@@ -23,3 +23,7 @@ modules.order
 
 tags
 *build
+*core
+*results.xml
+*iverilog_dump.v
+*.fst
