@@ -720,24 +720,24 @@ assign m_axis_direct_rx_tuser = s_axis_direct_rx_tuser;
 /*
  * Ethernet (synchronous MAC interface - low latency raw traffic)
  */
-assign m_axis_sync_tx_tdata = s_axis_sync_tx_tdata;
-assign m_axis_sync_tx_tkeep = s_axis_sync_tx_tkeep;
-assign m_axis_sync_tx_tvalid = s_axis_sync_tx_tvalid;
-assign s_axis_sync_tx_tready = m_axis_sync_tx_tready;
-assign m_axis_sync_tx_tlast = s_axis_sync_tx_tlast;
-assign m_axis_sync_tx_tuser = s_axis_sync_tx_tuser;
+// assign m_axis_sync_tx_tdata = s_axis_sync_tx_tdata;
+// assign m_axis_sync_tx_tkeep = s_axis_sync_tx_tkeep;
+// assign m_axis_sync_tx_tvalid = s_axis_sync_tx_tvalid;
+// assign s_axis_sync_tx_tready = m_axis_sync_tx_tready;
+// assign m_axis_sync_tx_tlast = s_axis_sync_tx_tlast;
+// assign m_axis_sync_tx_tuser = s_axis_sync_tx_tuser;
 
 assign m_axis_sync_tx_cpl_ts = s_axis_sync_tx_cpl_ts;
 assign m_axis_sync_tx_cpl_tag = s_axis_sync_tx_cpl_tag;
 assign m_axis_sync_tx_cpl_valid = s_axis_sync_tx_cpl_valid;
 assign s_axis_sync_tx_cpl_ready = m_axis_sync_tx_cpl_ready;
 
-assign m_axis_sync_rx_tdata = s_axis_sync_rx_tdata;
-assign m_axis_sync_rx_tkeep = s_axis_sync_rx_tkeep;
-assign m_axis_sync_rx_tvalid = s_axis_sync_rx_tvalid;
-assign s_axis_sync_rx_tready = m_axis_sync_rx_tready;
-assign m_axis_sync_rx_tlast = s_axis_sync_rx_tlast;
-assign m_axis_sync_rx_tuser = s_axis_sync_rx_tuser;
+// assign m_axis_sync_rx_tdata = s_axis_sync_rx_tdata;
+// assign m_axis_sync_rx_tkeep = s_axis_sync_rx_tkeep;
+// assign m_axis_sync_rx_tvalid = s_axis_sync_rx_tvalid;
+// assign s_axis_sync_rx_tready = m_axis_sync_rx_tready;
+// assign m_axis_sync_rx_tlast = s_axis_sync_rx_tlast;
+// assign m_axis_sync_rx_tuser = s_axis_sync_rx_tuser;
 
 /*
  * Ethernet (internal at interface module)
@@ -847,6 +847,126 @@ assign gpio_out = 0;
  * JTAG
  */
 assign jtag_tdo = jtag_tdi;
+
+   parameter S_COUNT = 4;
+   parameter M_COUNT = 4;
+   parameter DATA_WIDTH = PORT_COUNT*AXIS_SYNC_DATA_WIDTH;
+   parameter KEEP_ENABLE = (DATA_WIDTH>8);
+   parameter KEEP_WIDTH = (DATA_WIDTH/8);
+   parameter ID_ENABLE = 0;
+   parameter ID_WIDTH = 8;
+   parameter DEST_WIDTH = $clog2(M_COUNT+1);
+   parameter USER_ENABLE = 1;
+   parameter USER_WIDTH = PORT_COUNT;
+   parameter M_BASE = {3'd3, 3'd2, 3'd1, 3'd0};
+   parameter M_TOP = {3'd3, 3'd2, 3'd1, 3'd0};
+   parameter M_CONNECT = {M_COUNT{{S_COUNT{1'b1}}}};
+   parameter S_REG_TYPE = 0;
+   parameter M_REG_TYPE = 2;
+   parameter ARB_TYPE_ROUND_ROBIN = 1;
+   parameter ARB_LSB_HIGH_PRIORITY = 1;
+
+   axis_switch_4x4 #(
+	      .DATA_WIDTH(DATA_WIDTH),
+	      .M_DEST_WIDTH(2),
+	      .KEEP_ENABLE(KEEP_ENABLE),
+	      .KEEP_WIDTH(KEEP_WIDTH),
+	      .ID_ENABLE(ID_ENABLE),
+	      .ID_WIDTH(ID_WIDTH),
+	      .DEST_WIDTH(DEST_WIDTH),
+	      .USER_ENABLE(USER_ENABLE),
+	      .USER_WIDTH(USER_WIDTH),
+	      .M_BASE(M_BASE),
+	      .ARB_TYPE_ROUND_ROBIN(ARB_TYPE_ROUND_ROBIN),
+	      .ARB_LSB_HIGH_PRIORITY(ARB_LSB_HIGH_PRIORITY)
+		     ) axis_switch_inst
+     (
+      .clk(clk),
+      .rst(rst),
+
+      /*
+       * AXI Stream inputs
+       */
+      // rx
+      .s00_axis_tdata(),
+      .s00_axis_tkeep(),
+      .s00_axis_tvalid(),
+      .s00_axis_tready(),
+      .s00_axis_tlast(),
+      .s00_axis_tid(),
+      .s00_axis_tdest(),
+      .s00_axis_tuser(),
+
+      .s01_axis_tdata(s_axis_sync_rx_tdata),
+      .s01_axis_tkeep(s_axis_sync_rx_tkeep),
+      .s01_axis_tvalid(s_axis_sync_rx_tvalid),
+      .s01_axis_tready(s_axis_sync_rx_tready),
+      .s01_axis_tlast(s_axis_sync_rx_tlast),
+      .s01_axis_tid(),
+      .s01_axis_tdest(4'b001),
+      .s01_axis_tuser(s_axis_sync_rx_tuser),
+
+      .s02_axis_tdata(s_axis_sync_tx_tdata),
+      .s02_axis_tkeep(s_axis_sync_tx_tkeep),
+      .s02_axis_tvalid(s_axis_sync_tx_tvalid),
+      .s02_axis_tready(s_axis_sync_tx_tready),
+      .s02_axis_tlast(s_axis_sync_tx_tlast),
+      .s02_axis_tid(),
+      .s02_axis_tdest(4'b010),
+      .s02_axis_tuser(s_axis_sync_tx_tuser),
+
+      .s03_axis_tdata(),
+      .s03_axis_tkeep(),
+      .s03_axis_tvalid(),
+      .s03_axis_tready(),
+      .s03_axis_tlast(),
+      .s03_axis_tid(),
+      .s03_axis_tdest(),
+      .s03_axis_tuser(),
+
+      /*
+       * AXI Stream outputs
+       */
+      // rx
+      .m00_axis_tdata(),
+      .m00_axis_tkeep(),
+      .m00_axis_tvalid(),
+      .m00_axis_tready(),
+      .m00_axis_tlast(),
+      .m00_axis_tid(),
+      .m00_axis_tdest(),
+      .m00_axis_tuser(),
+
+      .m01_axis_tdata(m_axis_sync_rx_tdata),
+      .m01_axis_tkeep(m_axis_sync_rx_tkeep),
+      .m01_axis_tvalid(m_axis_sync_rx_tvalid),
+      .m01_axis_tready(m_axis_sync_rx_tready),
+      .m01_axis_tlast(m_axis_sync_rx_tlast),
+      .m01_axis_tid(),
+      .m01_axis_tdest(),
+      .m01_axis_tuser(m_axis_sync_rx_tuser),
+
+      .m02_axis_tdata(m_axis_sync_tx_tdata),
+      .m02_axis_tkeep(m_axis_sync_tx_tkeep),
+      .m02_axis_tvalid(m_axis_sync_tx_tvalid),
+      .m02_axis_tready(m_axis_sync_tx_tready),
+      .m02_axis_tlast(m_axis_sync_tx_tlast),
+      .m02_axis_tid(),
+      .m02_axis_tdest(),
+      .m02_axis_tuser(m_axis_sync_tx_tuser),
+
+      // tx
+      .m03_axis_tdata(),
+      .m03_axis_tkeep(),
+      .m03_axis_tvalid(),
+      .m03_axis_tready(),
+      .m03_axis_tlast(),
+      .m03_axis_tid(),
+      .m03_axis_tdest(),
+      .m03_axis_tuser()
+
+      );
+
 
 endmodule
 
