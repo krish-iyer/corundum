@@ -598,6 +598,7 @@ initial begin
     end
 end
 
+
 /*
  * AXI-Lite slave interface (control from host)
  */
@@ -866,6 +867,12 @@ assign jtag_tdo = jtag_tdi;
    parameter ARB_TYPE_ROUND_ROBIN = 1;
    parameter ARB_LSB_HIGH_PRIORITY = 1;
 
+   wire [511:0]	recon_s_axis_tdata;
+   wire [63:0]	recon_s_axis_tkeep;
+   wire		recon_s_axis_tlast;
+   wire		recon_s_axis_tvalid;
+   wire		recon_s_axis_tready;
+
    axis_switch_4x4 #(
 	      .DATA_WIDTH(DATA_WIDTH),
 	      .M_DEST_WIDTH(2),
@@ -956,17 +963,89 @@ assign jtag_tdo = jtag_tdi;
       .m02_axis_tuser(m_axis_sync_tx_tuser),
 
       // tx
-      .m03_axis_tdata(),
-      .m03_axis_tkeep(),
-      .m03_axis_tvalid(),
-      .m03_axis_tready(),
-      .m03_axis_tlast(),
+      .m03_axis_tdata(recon_s_axis_tdata),
+      .m03_axis_tkeep(recon_s_axis_tkeep),
+      .m03_axis_tvalid(recon_s_axis_tvalid),
+      .m03_axis_tready(recon_s_axis_tready),
+      .m03_axis_tlast(recon_s_axis_tlast),
       .m03_axis_tid(),
       .m03_axis_tdest(),
       .m03_axis_tuser()
 
       );
 
+
+   reg		startCapture;
+   reg [1:0]	state;
+   always @(clk) begin
+      if(!rst) begin
+	 state <= 2'b0;
+      end
+      else begin
+	 case(state)
+	   2'b00: begin
+	      if(recon_s_axis_tvalid) begin
+		 startCapture <= 1'b1;
+		 state <= 2'b01;
+	      end
+	   end
+	   2'b01: begin
+	      state <= 2'b10;
+	   end
+	   2'b10: begin
+	      //state <= 2'b00;
+	      startCapture <= 1'b0;
+	   end
+	 endcase // case (state)
+      end
+   end
+   streamCapture stream_capture_inst
+     (
+      .clk_stream(clk),
+      .m_axi_aclk(clk),
+      .resetn_stream(rst),
+      //input stream
+      .s_axis_tvalid(recon_s_axis_tvalid),
+      .s_axis_tdata(recon_s_axis_tdata),
+      .s_axis_tkeep(recon_s_axis_tkeep),
+      .s_axis_tlast(recon_s_axis_tlast),
+      .s_axis_tready(recon_s_axis_tready),
+      // AXI MM Interface
+      .axi_awready(),   // Indicates slave is ready to accept a write address
+      .axi_awid(),      // Write ID
+      .axi_awaddr(),    // Write address
+      .axi_awlen(),     // Write Burst Length
+      .axi_awsize(),    // Write Burst size
+      .axi_awburst(),   // Write Burst type
+      .axi_awlock(),    // Write lock type
+      .axi_awcache(),   // Write Cache type
+      .axi_awprot(),    // Write Protection type
+      .axi_awvalid(),   // Write address valid
+      ////////////////////////////////////////////////////////////////////////////
+      // Master Interface Write Data
+      .axi_wd_wready(), // Write data ready
+      .axi_wd_data(),   // Write data
+      .axi_wd_strb(),   // Write strobes
+      .axi_wd_last(),   // Last write transaction
+      .axi_wd_valid(),  // Write valid
+      ////////////////////////////////////////////////////////////////////////////
+      // Master Interface Write Response
+      .axi_wd_bid(),    // Response ID
+      .axi_wd_bresp(),  // Write response
+      .axi_wd_bvalid(), // Write reponse valid
+      .axi_wd_bready(), // Response read
+
+      .startCapture(startCapture),
+      .start_addr(32'h8000000),
+      .o_capture_start(),
+      .o_done(),
+      .rd_en(),
+      .rd_ptr(),
+      .rd_prev_ptr(),
+      .wr_state(),
+      .empty(),
+      .full()
+    );
 
 endmodule
 
