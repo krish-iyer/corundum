@@ -27,3 +27,5 @@ tags
 *results.xml
 *iverilog_dump.v
 *.fst
+*.gtkw
+TAGS
