@@ -589,7 +589,7 @@ async def run_test_nic(dut):
 
     pkts = [bytearray([(x) % 128 for x in range(128)]) for k in range(count)]
 
-    tb.loopback_enable = True
+    tb.loopback_enable = False
 
     for p in pkts:
         await tb.driver.interfaces[0].start_xmit(p, 0)

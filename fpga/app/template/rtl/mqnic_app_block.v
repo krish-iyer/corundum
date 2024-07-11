@@ -64,8 +64,8 @@ module mqnic_app_block #
     parameter HBM_CH = 1,
     parameter HBM_ENABLE = 0,
     parameter HBM_GROUP_SIZE = 1,
-    parameter AXI_HBM_DATA_WIDTH = 256,
-    parameter AXI_HBM_ADDR_WIDTH = 32,
+    parameter AXI_HBM_DATA_WIDTH = 512,
+    parameter AXI_HBM_ADDR_WIDTH = 64,
     parameter AXI_HBM_STRB_WIDTH = (AXI_HBM_DATA_WIDTH/8),
     parameter AXI_HBM_ID_WIDTH = 8,
     parameter AXI_HBM_AWUSER_ENABLE = 0,
@@ -769,23 +769,23 @@ assign m_axis_if_rx_tuser = s_axis_if_rx_tuser;
 /*
  * DDR
  */
-assign m_axi_ddr_awid = 0;
-assign m_axi_ddr_awaddr = 0;
-assign m_axi_ddr_awlen = 0;
-assign m_axi_ddr_awsize = 0;
-assign m_axi_ddr_awburst = 0;
-assign m_axi_ddr_awlock = 0;
-assign m_axi_ddr_awcache = 0;
-assign m_axi_ddr_awprot = 0;
-assign m_axi_ddr_awqos = 0;
-assign m_axi_ddr_awuser = 0;
-assign m_axi_ddr_awvalid = 0;
-assign m_axi_ddr_wdata = 0;
-assign m_axi_ddr_wstrb = 0;
-assign m_axi_ddr_wlast = 0;
-assign m_axi_ddr_wuser = 0;
-assign m_axi_ddr_wvalid = 0;
-assign m_axi_ddr_bready = 0;
+// assign m_axi_ddr_awid = 0;
+// assign m_axi_ddr_awaddr = 0;
+// assign m_axi_ddr_awlen = 0;
+// assign m_axi_ddr_awsize = 0;
+// assign m_axi_ddr_awburst = 0;
+// assign m_axi_ddr_awlock = 0;
+// assign m_axi_ddr_awcache = 0;
+// assign m_axi_ddr_awprot = 0;
+// assign m_axi_ddr_awqos = 0;
+// assign m_axi_ddr_awuser = 0;
+// assign m_axi_ddr_awvalid = 0;
+// assign m_axi_ddr_wdata = 0;
+// assign m_axi_ddr_wstrb = 0;
+// assign m_axi_ddr_wlast = 0;
+// assign m_axi_ddr_wuser = 0;
+// assign m_axi_ddr_wvalid = 0;
+// assign m_axi_ddr_bready = 0;
 assign m_axi_ddr_arid = 0;
 assign m_axi_ddr_araddr = 0;
 assign m_axi_ddr_arlen = 0;
@@ -1039,10 +1039,11 @@ assign jtag_tdo = jtag_tdi;
 
       );
 
+
    streamCapture stream_capture_inst
      (
       .clk_stream(clk),
-      .m_axi_aclk(clk),
+      .m_axi_aclk(ddr_clk),
       .resetn_stream(!rst),
       //input stream
       .s_axis_tvalid(recon_s_axis_tvalid),
@@ -1051,29 +1052,29 @@ assign jtag_tdo = jtag_tdi;
       .s_axis_tlast(recon_s_axis_tlast),
       .s_axis_tready(recon_s_axis_tready),
       // AXI MM Interface
-      .axi_awready(1'b1),   // Indicates slave is ready to accept a write address
-      .axi_awid(),      // Write ID
-      .axi_awaddr(),    // Write address
-      .axi_awlen(),     // Write Burst Length
-      .axi_awsize(),    // Write Burst size
-      .axi_awburst(),   // Write Burst type
-      .axi_awlock(),    // Write lock type
-      .axi_awcache(),   // Write Cache type
-      .axi_awprot(),    // Write Protection type
-      .axi_awvalid(),   // Write address valid
+      .axi_awready(m_axi_ddr_awready),   // Indicates slave is ready to accept a write address
+      .axi_awid(m_axi_ddr_awid),      // Write ID
+      .axi_awaddr(m_axi_ddr_awaddr),    // Write address
+      .axi_awlen(m_axi_ddr_awlen),     // Write Burst Length
+      .axi_awsize(m_axi_ddr_awsize),    // Write Burst size
+      .axi_awburst(m_axi_ddr_awburst),   // Write Burst type
+      .axi_awlock(m_axi_ddr_awlock),    // Write lock type
+      .axi_awcache(m_axi_ddr_awcache),   // Write Cache type
+      .axi_awprot(m_axi_ddr_awprot),    // Write Protection type
+      .axi_awvalid(m_axi_ddr_awvalid),   // Write address valid
       ////////////////////////////////////////////////////////////////////////////
       // Master Interface Write Data
-      .axi_wd_wready(1'b1), // Write data ready
-      .axi_wd_data(),   // Write data
-      .axi_wd_strb(),   // Write strobes
-      .axi_wd_last(),   // Last write transaction
-      .axi_wd_valid(),  // Write valid
+      .axi_wd_wready(m_axi_ddr_wready), // Write data ready
+      .axi_wd_data(m_axi_ddr_wdata),   // Write data
+      .axi_wd_strb(m_axi_ddr_wstrb),   // Write strobes
+      .axi_wd_last(m_axi_ddr_wlast),   // Last write transaction
+      .axi_wd_valid(m_axi_ddr_wvalid),  // Write valid
       ////////////////////////////////////////////////////////////////////////////
       // Master Interface Write Response
-      .axi_wd_bid(),    // Response ID
-      .axi_wd_bresp(),  // Write response
-      .axi_wd_bvalid(1'b1), // Write reponse valid
-      .axi_wd_bready(), // Response read
+      .axi_wd_bid(m_axi_ddr_bid),    // Response ID
+      .axi_wd_bresp(m_axi_ddr_bresp),  // Write response
+      .axi_wd_bvalid(m_axi_ddr_bvalid), // Write reponse valid
+      .axi_wd_bready(m_axi_ddr_bready), // Response read
 
       .startCapture(startCapture),
       .start_addr(32'h8000000),
