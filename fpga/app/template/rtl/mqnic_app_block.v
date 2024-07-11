@@ -1038,7 +1038,7 @@ assign jtag_tdo = jtag_tdi;
       .axi_wd_bready(m_axi_ddr_bready), // Response read
 
       .startCapture(startCapture),
-      .start_addr(32'h8000000),
+      .start_addr(32'h80000000),
       .o_capture_start(),
       .o_done(),
       .rd_en(),
