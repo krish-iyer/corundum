@@ -873,6 +873,71 @@ assign jtag_tdo = jtag_tdi;
    wire		recon_s_axis_tvalid;
    wire		recon_s_axis_tready;
 
+
+
+   // TODO: fix osciallating nature, make it stop after two pulses.
+   // TODO: check, commit valid, it only send after all packets probably because of tlast.
+   reg		startCapture;
+   reg [1:0]	stateCapture = 2'b00;
+   reg		CaptureInit = 1'b0;
+   always @(posedge clk) begin
+      case(stateCapture)
+	2'b00: begin
+	   if (CaptureInit) begin
+	      startCapture <= 1'b1;
+	   end
+	   else if(recon_s_axis_tvalid) begin
+	      startCapture <= 1'b1;
+	      stateCapture <= 2'b01;
+	   end
+	end
+	2'b01: begin
+	   stateCapture <= 2'b00;
+	   startCapture <= 1'b0;
+	   CaptureInit <= 1'b1;
+	end
+	2'b10: begin
+	   stateCapture <= 2'b11;
+	   startCapture <= 1'b1;
+	end
+	2'b11: begin
+	   startCapture <= 1'b0;
+	   CaptureInit <= 1'b1;
+	   stateCapture <= 2'b00;
+	end
+      endcase // case (state)
+   end // always @ (posedge clk)
+
+   // reg		startCapture;
+   // reg [1:0]	stateCapture = 2'b00;
+   // reg		CaptureInit = 1'b0;
+   // always @(posedge clk) begin
+   //    case(stateCapture)
+   // 	2'b00: begin
+   // 	   if (CaptureInit) begin
+   // 	      startCapture <= 1'b0;
+   // 	   end
+   // 	   else if(recon_s_axis_tvalid) begin
+   // 	      startCapture <= 1'b1;
+   // 	      stateCapture <= 2'b01;
+   // 	   end
+   // 	end
+   // 	2'b01: begin
+   // 	   stateCapture <= 2'b10;
+   // 	end
+   // 	2'b10: begin
+   // 	   stateCapture <= 2'b11;
+   // 	   startCapture <= 1'b0;
+   // 	end
+   // 	2'b11: begin
+   // 	   startCapture <= 1'b1;
+   // 	   CaptureInit <= 1'b1;
+   // 	   stateCapture <= 2'b00;
+   // 	end
+   //    endcase // case (state)
+   // end // always @ (posedge clk)
+
+
    axis_switch_4x4 #(
 	      .DATA_WIDTH(DATA_WIDTH),
 	      .M_DEST_WIDTH(2),
@@ -919,7 +984,7 @@ assign jtag_tdo = jtag_tdi;
       .s02_axis_tready(s_axis_sync_tx_tready),
       .s02_axis_tlast(s_axis_sync_tx_tlast),
       .s02_axis_tid(),
-      .s02_axis_tdest(4'b010),
+      .s02_axis_tdest(4'b011),
       .s02_axis_tuser(s_axis_sync_tx_tuser),
 
       .s03_axis_tdata(),
@@ -974,36 +1039,11 @@ assign jtag_tdo = jtag_tdi;
 
       );
 
-
-   reg		startCapture;
-   reg [1:0]	state;
-   always @(clk) begin
-      if(!rst) begin
-	 state <= 2'b0;
-      end
-      else begin
-	 case(state)
-	   2'b00: begin
-	      if(recon_s_axis_tvalid) begin
-		 startCapture <= 1'b1;
-		 state <= 2'b01;
-	      end
-	   end
-	   2'b01: begin
-	      state <= 2'b10;
-	   end
-	   2'b10: begin
-	      //state <= 2'b00;
-	      startCapture <= 1'b0;
-	   end
-	 endcase // case (state)
-      end
-   end
    streamCapture stream_capture_inst
      (
       .clk_stream(clk),
       .m_axi_aclk(clk),
-      .resetn_stream(rst),
+      .resetn_stream(!rst),
       //input stream
       .s_axis_tvalid(recon_s_axis_tvalid),
       .s_axis_tdata(recon_s_axis_tdata),
@@ -1011,7 +1051,7 @@ assign jtag_tdo = jtag_tdi;
       .s_axis_tlast(recon_s_axis_tlast),
       .s_axis_tready(recon_s_axis_tready),
       // AXI MM Interface
-      .axi_awready(),   // Indicates slave is ready to accept a write address
+      .axi_awready(1'b1),   // Indicates slave is ready to accept a write address
       .axi_awid(),      // Write ID
       .axi_awaddr(),    // Write address
       .axi_awlen(),     // Write Burst Length
@@ -1023,7 +1063,7 @@ assign jtag_tdo = jtag_tdi;
       .axi_awvalid(),   // Write address valid
       ////////////////////////////////////////////////////////////////////////////
       // Master Interface Write Data
-      .axi_wd_wready(), // Write data ready
+      .axi_wd_wready(1'b1), // Write data ready
       .axi_wd_data(),   // Write data
       .axi_wd_strb(),   // Write strobes
       .axi_wd_last(),   // Last write transaction
@@ -1032,7 +1072,7 @@ assign jtag_tdo = jtag_tdi;
       // Master Interface Write Response
       .axi_wd_bid(),    // Response ID
       .axi_wd_bresp(),  // Write response
-      .axi_wd_bvalid(), // Write reponse valid
+      .axi_wd_bvalid(1'b1), // Write reponse valid
       .axi_wd_bready(), // Response read
 
       .startCapture(startCapture),

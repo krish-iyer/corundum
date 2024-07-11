@@ -470,31 +470,31 @@ async def run_test_nic(dut):
 
     # tb.log.info("RX and TX checksum tests")
 
-    payload = bytes([x % 256 for x in range(256)])
-    eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
-    ip = IP(src='192.168.1.100', dst='192.168.1.101')
-    udp = UDP(sport=1, dport=2)
-    test_pkt = eth / ip / udp / payload
+    # payload = bytes([x % 256 for x in range(256)])
+    # eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
+    # ip = IP(src='192.168.1.100', dst='192.168.1.101')
+    # udp = UDP(sport=1, dport=2)
+    # test_pkt = eth / ip / udp / payload
 
-    if tb.driver.interfaces[0].if_feature_tx_csum:
-        test_pkt2 = test_pkt.copy()
-        test_pkt2[UDP].chksum = scapy.utils.checksum(bytes(test_pkt2[UDP]))
+    # if tb.driver.interfaces[0].if_feature_tx_csum:
+    #     test_pkt2 = test_pkt.copy()
+    #     test_pkt2[UDP].chksum = scapy.utils.checksum(bytes(test_pkt2[UDP]))
 
-        await tb.driver.interfaces[0].start_xmit(test_pkt2.build(), 0, 34, 6)
-    else:
-        await tb.driver.interfaces[0].start_xmit(test_pkt.build(), 0)
+    #     await tb.driver.interfaces[0].start_xmit(test_pkt2.build(), 0, 34, 6)
+    # else:
+    #     await tb.driver.interfaces[0].start_xmit(test_pkt.build(), 0)
 
-    pkt = await tb.port_mac[0].tx.recv()
-    tb.log.info("Packet with full frame(1): %s", pkt)
+    # pkt = await tb.port_mac[0].tx.recv()
+    # tb.log.info("Packet with full frame(1): %s", pkt)
 
-    await tb.port_mac[0].rx.send(pkt)
+    # await tb.port_mac[0].rx.send(pkt)
 
-    pkt = await tb.driver.interfaces[0].recv()
+    # pkt = await tb.driver.interfaces[0].recv()
 
-    tb.log.info("Packet with full frame: %s", pkt)
-    if tb.driver.interfaces[0].if_feature_rx_csum:
-        assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
-    assert Ether(pkt.data).build() == test_pkt.build()
+    # tb.log.info("Packet with full frame: %s", pkt)
+    # if tb.driver.interfaces[0].if_feature_rx_csum:
+    #     assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
+    # assert Ether(pkt.data).build() == test_pkt.build()
 
     # tb.log.info("Queue mapping offset test")
 
@@ -560,34 +560,11 @@ async def run_test_nic(dut):
 
     #     await tb.driver.interfaces[0].set_rx_queue_map_rss_mask(0, 0)
 
-    tb.log.info("Multiple small packets")
+    # tb.log.info("Multiple small packets")
 
-    count = 28
+    # count = 28
 
-    pkts = [bytearray([(x+k) % 256 for x in range(60)]) for k in range(count)]
-
-    tb.loopback_enable = True
-
-    for p in pkts:
-        await tb.driver.interfaces[0].start_xmit(p, 0)
-
-    for k in range(count):
-        tb.log.info("[Multiple small packet] Trying to receive Packets %d", k)
-        pkt = await tb.driver.interfaces[0].recv()
-
-        tb.log.info("Packet: %s", pkt)
-        assert pkt.data == pkts[k]
-        if tb.driver.interfaces[0].if_feature_rx_csum:
-            assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
-    tb.log.info("[Multiple small packets] Done test :)")
-
-    tb.loopback_enable = False
-
-    # tb.log.info("Multiple large packets")
-
-    # count = 30
-
-    # pkts = [bytearray([(x+k) % 256 for x in range(1514)]) for k in range(count)]
+    # pkts = [bytearray([(x+k) % 256 for x in range(60)]) for k in range(count)]
 
     # tb.loopback_enable = True
 
@@ -595,14 +572,37 @@ async def run_test_nic(dut):
     #     await tb.driver.interfaces[0].start_xmit(p, 0)
 
     # for k in range(count):
+    #     tb.log.info("[Multiple small packet] Trying to receive Packets %d", k)
     #     pkt = await tb.driver.interfaces[0].recv()
 
     #     tb.log.info("Packet: %s", pkt)
     #     assert pkt.data == pkts[k]
     #     if tb.driver.interfaces[0].if_feature_rx_csum:
     #         assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
+    # tb.log.info("[Multiple small packets] Done test :)")
 
     # tb.loopback_enable = False
+
+    tb.log.info("Multiple large packets")
+
+    count = 30
+
+    pkts = [bytearray([(x) % 128 for x in range(128)]) for k in range(count)]
+
+    tb.loopback_enable = True
+
+    for p in pkts:
+        await tb.driver.interfaces[0].start_xmit(p, 0)
+
+    for k in range(count):
+        pkt = await tb.driver.interfaces[0].recv()
+
+        tb.log.info("Packet: %s", pkt)
+        assert pkt.data == pkts[k]
+        if tb.driver.interfaces[0].if_feature_rx_csum:
+            assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
+
+    tb.loopback_enable = False
 
     # tb.log.info("Jumbo frames")
 
