@@ -905,11 +905,8 @@ assign jtag_tdo = jtag_tdi;
 	      .KEEP_ENABLE(KEEP_ENABLE),
 	      .KEEP_WIDTH(KEEP_WIDTH),
 	      .ID_ENABLE(ID_ENABLE),
-	      .ID_WIDTH(ID_WIDTH),
-	      .DEST_WIDTH(DEST_WIDTH),
 	      .USER_ENABLE(USER_ENABLE),
 	      .USER_WIDTH(USER_WIDTH),
-	      .M_BASE(M_BASE),
 	      .ARB_TYPE_ROUND_ROBIN(ARB_TYPE_ROUND_ROBIN),
 	      .ARB_LSB_HIGH_PRIORITY(ARB_LSB_HIGH_PRIORITY)
 		     ) axis_switch_inst
