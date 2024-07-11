@@ -896,47 +896,8 @@ assign jtag_tdo = jtag_tdi;
 	   startCapture <= 1'b0;
 	   CaptureInit <= 1'b1;
 	end
-	2'b10: begin
-	   stateCapture <= 2'b11;
-	   startCapture <= 1'b1;
-	end
-	2'b11: begin
-	   startCapture <= 1'b0;
-	   CaptureInit <= 1'b1;
-	   stateCapture <= 2'b00;
-	end
       endcase // case (state)
    end // always @ (posedge clk)
-
-   // reg		startCapture;
-   // reg [1:0]	stateCapture = 2'b00;
-   // reg		CaptureInit = 1'b0;
-   // always @(posedge clk) begin
-   //    case(stateCapture)
-   // 	2'b00: begin
-   // 	   if (CaptureInit) begin
-   // 	      startCapture <= 1'b0;
-   // 	   end
-   // 	   else if(recon_s_axis_tvalid) begin
-   // 	      startCapture <= 1'b1;
-   // 	      stateCapture <= 2'b01;
-   // 	   end
-   // 	end
-   // 	2'b01: begin
-   // 	   stateCapture <= 2'b10;
-   // 	end
-   // 	2'b10: begin
-   // 	   stateCapture <= 2'b11;
-   // 	   startCapture <= 1'b0;
-   // 	end
-   // 	2'b11: begin
-   // 	   startCapture <= 1'b1;
-   // 	   CaptureInit <= 1'b1;
-   // 	   stateCapture <= 2'b00;
-   // 	end
-   //    endcase // case (state)
-   // end // always @ (posedge clk)
-
 
    axis_switch_4x4 #(
 	      .DATA_WIDTH(DATA_WIDTH),
