@@ -78,6 +78,7 @@ SYN_FILES += lib/axi/rtl/axil_reg_if_rd.v
 SYN_FILES += lib/axi/rtl/axil_reg_if_wr.v
 SYN_FILES += lib/axi/rtl/axil_register_rd.v
 SYN_FILES += lib/axi/rtl/axil_register_wr.v
+SYN_FILES += lib/axi/rtl/axil_ram.v
 SYN_FILES += lib/axi/rtl/arbiter.v
 SYN_FILES += lib/axi/rtl/priority_encoder.v
 SYN_FILES += lib/axis/rtl/axis_adapter.v
