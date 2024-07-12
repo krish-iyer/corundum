@@ -2233,6 +2233,21 @@ core_inst (
     .m_axil_cms_rready(axil_cms_rready)
 );
 
+  ila_0
+    ddr_ila(
+	    .clk(clk_100mhz_0_int),
+	    .probe0(ddr_clk),
+	    .probe1(ddr_rst),
+	    .probe2(ddr_status),
+	    .probe3(m_axi_ddr_awaddr),
+	    .probe4(m_axi_ddr_awvalid),
+	    .probe5(m_axi_ddr_awready),
+	    .probe6(m_axi_ddr_wvalid),
+	    .probe7(m_axi_ddr_wstrb),
+	    .probe8(m_axi_ddr_wready)
+	    );
+
+
 endmodule
 
 `resetall
