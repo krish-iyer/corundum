@@ -44,7 +44,7 @@ module mqnic_app_block #
     parameter DDR_ENABLE = 1,
     parameter DDR_GROUP_SIZE = 1,
     parameter AXI_DDR_DATA_WIDTH = 512,
-    parameter AXI_DDR_ADDR_WIDTH = 64,
+    parameter AXI_DDR_ADDR_WIDTH = 32,
     parameter AXI_DDR_STRB_WIDTH = (AXI_DDR_DATA_WIDTH/8),
     parameter AXI_DDR_ID_WIDTH = 8,
     parameter AXI_DDR_AWUSER_ENABLE = 0,
