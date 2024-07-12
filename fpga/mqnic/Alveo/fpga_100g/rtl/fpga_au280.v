@@ -2247,9 +2247,7 @@ core_inst (
 
 
    ila_1 ddr_axi (
-	.clk(clk), // input wire clk
-
-
+	.clk(ddr_clk), // input wire clk
 	.probe0(m_axi_ddr_awready), // input wire [0:0] probe0
 	.probe1(m_axi_ddr_awaddr), // input wire [31:0]  probe1
 	.probe2(0), // input wire [1:0]  probe2
