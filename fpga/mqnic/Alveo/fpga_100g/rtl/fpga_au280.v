@@ -2232,22 +2232,69 @@ core_inst (
     .m_axil_cms_rvalid(axil_cms_rvalid),
     .m_axil_cms_rready(axil_cms_rready)
 );
-
   ila_0
     ddr_ila(
 	    .clk(clk_100mhz_0_int),
 	    .probe0(ddr_clk),
 	    .probe1(ddr_rst),
 	    .probe2(ddr_status),
-	    .probe3(m_axi_ddr_awaddr),
-	    .probe4(m_axi_ddr_awvalid),
-	    .probe5(m_axi_ddr_awready),
-	    .probe6(m_axi_ddr_wvalid),
-	    .probe7(m_axi_ddr_wstrb),
-	    .probe8(m_axi_ddr_wready)
+	    .probe3(0),
+	    .probe4(0),
+	    .probe5(0),
+	    .probe6(0),
+	    .probe7(0),
 	    );
 
 
+   ila_1 ddr_axi (
+	.clk(clk), // input wire clk
+
+
+	.probe0(m_axi_ddr_awready), // input wire [0:0] probe0
+	.probe1(m_axi_ddr_awaddr), // input wire [31:0]  probe1
+	.probe2(0), // input wire [1:0]  probe2
+	.probe3(0), // input wire [0:0]  probe3
+	.probe4(0), // input wire [0:0]  probe4
+	.probe5(0), // input wire [31:0]  probe5
+	.probe6(0), // input wire [0:0]  probe6
+	.probe7(m_axi_ddr_wvalid), // input wire [0:0]  probe7
+	.probe8(0), // input wire [0:0]  probe8
+	.probe9(0), // input wire [0:0]  probe9
+	.probe10(0), // input wire [511:0]  probe10
+	.probe11(m_axi_ddr_awvalid), // input wire [0:0]  probe11
+	.probe12(m_axi_ddr_awready), // input wire [0:0]  probe12
+	.probe13(0), // input wire [1:0]  probe13
+	.probe14(m_axi_ddr_wdata), // input wire [511:0]  probe14
+	.probe15(m_axi_ddr_wstrb), // input wire [63:0]  probe15
+	.probe16(0), // input wire [0:0]  probe16
+	.probe17(0), // input wire [2:0]  probe17
+	.probe18(0), // input wire [2:0]  probe18
+	.probe19(0), // input wire [0:0]  probe19
+	.probe20(0), // input wire [0:0]  probe20
+	.probe21(0), // input wire [7:0]  probe21
+	.probe22(0), // input wire [0:0]  probe22
+	.probe23(0), // input wire [2:0]  probe23
+	.probe24(0), // input wire [1:0]  probe24
+	.probe25(0), // input wire [0:0]  probe25
+	.probe26(0), // input wire [0:0]  probe26
+	.probe27(0), // input wire [7:0]  probe27
+	.probe28(0), // input wire [2:0]  probe28
+	.probe29(0), // input wire [1:0]  probe29
+	.probe30(0), // input wire [0:0]  probe30
+	.probe31(0), // input wire [3:0]  probe31
+	.probe32(0), // input wire [3:0]  probe32
+	.probe33(0), // input wire [3:0]  probe33
+	.probe34(0), // input wire [3:0]  probe34
+	.probe35(0), // input wire [0:0]  probe35
+	.probe36(0), // input wire [3:0]  probe36
+	.probe37(0), // input wire [3:0]  probe37
+	.probe38(0), // input wire [0:0]  probe38
+	.probe39(0), // input wire [0:0]  probe39
+	.probe40(0), // input wire [0:0]  probe40
+	.probe41(0), // input wire [0:0]  probe41
+	.probe42(0), // input wire [0:0]  probe42
+	.probe43(m_axi_ddr_wlast) // input wire [0:0]  probe43
+			     );
 endmodule
 
 `resetall
