@@ -113,6 +113,8 @@ SYN_FILES += lib/pcie/rtl/pcie_us_if_cc.v
 SYN_FILES += lib/pcie/rtl/pcie_us_if_cq.v
 SYN_FILES += lib/pcie/rtl/pcie_us_cfg.v
 SYN_FILES += lib/pcie/rtl/pulse_merge.v
+# include app
+SYN_FILES += app/template/rtl/mqnic_app_block.v
 
 # XDC files
 XDC_FILES = fpga_au280.xdc
@@ -136,7 +138,7 @@ IP_TCL_FILES += ip/cmac_usplus.tcl
 IP_TCL_FILES += ip/cmac_gty.tcl
 IP_TCL_FILES += ip/cms.tcl
 #IP_TCL_FILES += ip/hbm_0.tcl
-#IP_TCL_FILES += ip/ddr4_0_au280.tcl
+IP_TCL_FILES += ip/ddr4_0_au280.tcl
 
 # Configuration
 CONFIG_TCL_FILES = ./config.tcl
@@ -190,4 +192,3 @@ flash: $(FPGA_TOP).mcs $(FPGA_TOP).prm
 	echo "boot_hw_device [current_hw_device]" >> flash.tcl
 	echo "exit" >> flash.tcl
 	vivado -nojournal -nolog -mode batch -source flash.tcl
-

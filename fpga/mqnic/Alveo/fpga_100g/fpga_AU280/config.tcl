@@ -114,8 +114,8 @@ dict set params TX_RAM_SIZE "131072"
 dict set params RX_RAM_SIZE "131072"
 
 # RAM configuration
-dict set params DDR_CH "2"
-dict set params DDR_ENABLE "0"
+dict set params DDR_CH "1"
+dict set params DDR_ENABLE "1"
 dict set params AXI_DDR_ID_WIDTH "8"
 dict set params AXI_DDR_MAX_BURST_LEN "256"
 dict set params HBM_CH "32"
@@ -124,8 +124,8 @@ dict set params HBM_GROUP_SIZE [dict get $params HBM_CH]
 dict set params AXI_HBM_MAX_BURST_LEN "16"
 
 # Application block configuration
-dict set params APP_ID "32'h00000000"
-dict set params APP_ENABLE "0"
+dict set params APP_ID "32'h12340001"
+dict set params APP_ENABLE "1"
 dict set params APP_CTRL_ENABLE "1"
 dict set params APP_DMA_ENABLE "1"
 dict set params APP_AXIS_DIRECT_ENABLE "1"
