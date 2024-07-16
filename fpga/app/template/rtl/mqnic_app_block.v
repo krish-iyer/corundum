@@ -720,24 +720,24 @@ assign m_axis_direct_rx_tuser = s_axis_direct_rx_tuser;
 /*
  * Ethernet (synchronous MAC interface - low latency raw traffic)
  */
-assign m_axis_sync_tx_tdata = s_axis_sync_tx_tdata;
-assign m_axis_sync_tx_tkeep = s_axis_sync_tx_tkeep;
-assign m_axis_sync_tx_tvalid = s_axis_sync_tx_tvalid;
-assign s_axis_sync_tx_tready = m_axis_sync_tx_tready;
-assign m_axis_sync_tx_tlast = s_axis_sync_tx_tlast;
-assign m_axis_sync_tx_tuser = s_axis_sync_tx_tuser;
+// assign m_axis_sync_tx_tdata = s_axis_sync_tx_tdata;
+// assign m_axis_sync_tx_tkeep = s_axis_sync_tx_tkeep;
+// assign m_axis_sync_tx_tvalid = s_axis_sync_tx_tvalid;
+// assign s_axis_sync_tx_tready = m_axis_sync_tx_tready;
+// assign m_axis_sync_tx_tlast = s_axis_sync_tx_tlast;
+// assign m_axis_sync_tx_tuser = s_axis_sync_tx_tuser;
 
 assign m_axis_sync_tx_cpl_ts = s_axis_sync_tx_cpl_ts;
 assign m_axis_sync_tx_cpl_tag = s_axis_sync_tx_cpl_tag;
 assign m_axis_sync_tx_cpl_valid = s_axis_sync_tx_cpl_valid;
 assign s_axis_sync_tx_cpl_ready = m_axis_sync_tx_cpl_ready;
 
-assign m_axis_sync_rx_tdata = s_axis_sync_rx_tdata;
-assign m_axis_sync_rx_tkeep = s_axis_sync_rx_tkeep;
-assign m_axis_sync_rx_tvalid = s_axis_sync_rx_tvalid;
-assign s_axis_sync_rx_tready = m_axis_sync_rx_tready;
-assign m_axis_sync_rx_tlast = s_axis_sync_rx_tlast;
-assign m_axis_sync_rx_tuser = s_axis_sync_rx_tuser;
+// assign m_axis_sync_rx_tdata = s_axis_sync_rx_tdata;
+// assign m_axis_sync_rx_tkeep = s_axis_sync_rx_tkeep;
+// assign m_axis_sync_rx_tvalid = s_axis_sync_rx_tvalid;
+// assign s_axis_sync_rx_tready = m_axis_sync_rx_tready;
+// assign m_axis_sync_rx_tlast = s_axis_sync_rx_tlast;
+// assign m_axis_sync_rx_tuser = s_axis_sync_rx_tuser;
 
 /*
  * Ethernet (internal at interface module)
@@ -768,23 +768,23 @@ assign m_axis_if_rx_tuser = s_axis_if_rx_tuser;
 /*
  * DDR
  */
-assign m_axi_ddr_awid = 0;
-assign m_axi_ddr_awaddr = 0;
-assign m_axi_ddr_awlen = 0;
-assign m_axi_ddr_awsize = 0;
-assign m_axi_ddr_awburst = 0;
-assign m_axi_ddr_awlock = 0;
-assign m_axi_ddr_awcache = 0;
-assign m_axi_ddr_awprot = 0;
-assign m_axi_ddr_awqos = 0;
-assign m_axi_ddr_awuser = 0;
-assign m_axi_ddr_awvalid = 0;
-assign m_axi_ddr_wdata = 0;
-assign m_axi_ddr_wstrb = 0;
-assign m_axi_ddr_wlast = 0;
-assign m_axi_ddr_wuser = 0;
-assign m_axi_ddr_wvalid = 0;
-assign m_axi_ddr_bready = 0;
+// assign m_axi_ddr_awid = 0;
+// assign m_axi_ddr_awaddr = 0;
+// assign m_axi_ddr_awlen = 0;
+// assign m_axi_ddr_awsize = 0;
+// assign m_axi_ddr_awburst = 0;
+// assign m_axi_ddr_awlock = 0;
+// assign m_axi_ddr_awcache = 0;
+// assign m_axi_ddr_awprot = 0;
+// assign m_axi_ddr_awqos = 0;
+// assign m_axi_ddr_awuser = 0;
+// assign m_axi_ddr_awvalid = 0;
+// assign m_axi_ddr_wdata = 0;
+// assign m_axi_ddr_wstrb = 0;
+// assign m_axi_ddr_wlast = 0;
+// assign m_axi_ddr_wuser = 0;
+// assign m_axi_ddr_wvalid = 0;
+// assign m_axi_ddr_bready = 0;
 assign m_axi_ddr_arid = 0;
 assign m_axi_ddr_araddr = 0;
 assign m_axi_ddr_arlen = 0;
@@ -848,6 +848,333 @@ assign gpio_out = 0;
  */
 assign jtag_tdo = jtag_tdi;
 
+   parameter S_COUNT = 4;
+   parameter M_COUNT = 4;
+   parameter DATA_WIDTH = PORT_COUNT*AXIS_SYNC_DATA_WIDTH;
+   parameter KEEP_ENABLE = (DATA_WIDTH>8);
+   parameter KEEP_WIDTH = (DATA_WIDTH/8);
+   parameter ID_ENABLE = 0;
+   parameter ID_WIDTH = 8;
+   parameter DEST_WIDTH = $clog2(M_COUNT+1);
+   parameter USER_ENABLE = 1;
+   parameter USER_WIDTH = PORT_COUNT;
+   parameter M_BASE = {3'd3, 3'd2, 3'd1, 3'd0};
+   parameter M_TOP = {3'd3, 3'd2, 3'd1, 3'd0};
+   parameter M_CONNECT = {M_COUNT{{S_COUNT{1'b1}}}};
+   parameter S_REG_TYPE = 0;
+   parameter M_REG_TYPE = 2;
+   parameter ARB_TYPE_ROUND_ROBIN = 1;
+   parameter ARB_LSB_HIGH_PRIORITY = 1;
+
+   wire [511:0]	recon_s_axis_tdata;
+   wire [63:0]	recon_s_axis_tkeep;
+   wire		recon_s_axis_tlast;
+   wire		recon_s_axis_tvalid;
+   wire		recon_s_axis_tready;
+
+
+
+   // TODO: fix osciallating nature, make it stop after two pulses.
+   // TODO: check, commit valid, it only send after all packets probably because of tlast.
+   reg		startCapture;
+   reg [1:0]	stateCapture = 2'b00;
+   reg		CaptureInit = 1'b0;
+   always @(posedge clk) begin
+      case(stateCapture)
+	2'b00: begin
+	   if (CaptureInit) begin
+	      startCapture <= 1'b1;
+	   end
+	   else if(recon_s_axis_tvalid) begin
+	      startCapture <= 1'b1;
+	      stateCapture <= 2'b01;
+	   end
+	end
+	2'b01: begin
+	   stateCapture <= 2'b00;
+	   startCapture <= 1'b0;
+	   CaptureInit <= 1'b1;
+	end
+      endcase // case (state)
+   end // always @ (posedge clk)
+
+   axis_switch_4x4 #(
+	      .DATA_WIDTH(DATA_WIDTH),
+	      .M_DEST_WIDTH(2),
+	      .KEEP_ENABLE(KEEP_ENABLE),
+	      .KEEP_WIDTH(KEEP_WIDTH),
+	      .ID_ENABLE(ID_ENABLE),
+	      .USER_ENABLE(USER_ENABLE),
+	      .USER_WIDTH(USER_WIDTH),
+	      .ARB_TYPE_ROUND_ROBIN(ARB_TYPE_ROUND_ROBIN),
+	      .ARB_LSB_HIGH_PRIORITY(ARB_LSB_HIGH_PRIORITY)
+		     ) axis_switch_inst
+     (
+      .clk(clk),
+      .rst(rst),
+
+
+      // rx
+      .s00_axis_tdata(),
+      .s00_axis_tkeep(),
+      .s00_axis_tvalid(),
+      .s00_axis_tready(),
+      .s00_axis_tlast(),
+      .s00_axis_tid(),
+      .s00_axis_tdest(),
+      .s00_axis_tuser(),
+
+      .s01_axis_tdata(s_axis_sync_rx_tdata),
+      .s01_axis_tkeep(s_axis_sync_rx_tkeep),
+      .s01_axis_tvalid(s_axis_sync_rx_tvalid),
+      .s01_axis_tready(s_axis_sync_rx_tready),
+      .s01_axis_tlast(s_axis_sync_rx_tlast),
+      .s01_axis_tid(),
+      .s01_axis_tdest(4'b001),
+      .s01_axis_tuser(s_axis_sync_rx_tuser),
+
+      .s02_axis_tdata(s_axis_sync_tx_tdata),
+      .s02_axis_tkeep(s_axis_sync_tx_tkeep),
+      .s02_axis_tvalid(s_axis_sync_tx_tvalid),
+      .s02_axis_tready(s_axis_sync_tx_tready),
+      .s02_axis_tlast(s_axis_sync_tx_tlast),
+      .s02_axis_tid(),
+      .s02_axis_tdest(4'b010),
+      .s02_axis_tuser(s_axis_sync_tx_tuser),
+
+      .s03_axis_tdata(),
+      .s03_axis_tkeep(),
+      .s03_axis_tvalid(),
+      .s03_axis_tready(),
+      .s03_axis_tlast(),
+      .s03_axis_tid(),
+      .s03_axis_tdest(),
+      .s03_axis_tuser(),
+
+
+      // rx
+      .m00_axis_tdata(),
+      .m00_axis_tkeep(),
+      .m00_axis_tvalid(),
+      .m00_axis_tready(),
+      .m00_axis_tlast(),
+      .m00_axis_tid(),
+      .m00_axis_tdest(),
+      .m00_axis_tuser(),
+
+      .m01_axis_tdata(m_axis_sync_rx_tdata),
+      .m01_axis_tkeep(m_axis_sync_rx_tkeep),
+      .m01_axis_tvalid(m_axis_sync_rx_tvalid),
+      .m01_axis_tready(m_axis_sync_rx_tready),
+      .m01_axis_tlast(m_axis_sync_rx_tlast),
+      .m01_axis_tid(),
+      .m01_axis_tdest(),
+      .m01_axis_tuser(m_axis_sync_rx_tuser),
+
+      .m02_axis_tdata(m_axis_sync_tx_tdata),
+      .m02_axis_tkeep(m_axis_sync_tx_tkeep),
+      .m02_axis_tvalid(m_axis_sync_tx_tvalid),
+      .m02_axis_tready(m_axis_sync_tx_tready),
+      .m02_axis_tlast(m_axis_sync_tx_tlast),
+      .m02_axis_tid(),
+      .m02_axis_tdest(),
+      .m02_axis_tuser(m_axis_sync_tx_tuser),
+
+      // tx
+      .m03_axis_tdata(recon_s_axis_tdata),
+      .m03_axis_tkeep(recon_s_axis_tkeep),
+      .m03_axis_tvalid(recon_s_axis_tvalid),
+      .m03_axis_tready(recon_s_axis_tready),
+      .m03_axis_tlast(recon_s_axis_tlast),
+      .m03_axis_tid(),
+      .m03_axis_tdest(),
+      .m03_axis_tuser()
+
+      );
+
+
+   streamCapture stream_capture_inst
+     (
+      .clk_stream(clk),
+      .m_axi_aclk(ddr_clk),
+      .resetn_stream(!rst),
+      //input stream
+      .s_axis_tvalid(recon_s_axis_tvalid),
+      .s_axis_tdata(recon_s_axis_tdata),
+      .s_axis_tkeep(recon_s_axis_tkeep),
+      .s_axis_tlast(recon_s_axis_tlast),
+      .s_axis_tready(recon_s_axis_tready),
+      // AXI MM Interface
+      .axi_awready(m_axi_ddr_awready),   // Indicates slave is ready to accept a write address
+      .axi_awid(m_axi_ddr_awid),      // Write ID
+      .axi_awaddr(m_axi_ddr_awaddr),    // Write address
+      .axi_awlen(m_axi_ddr_awlen),     // Write Burst Length
+      .axi_awsize(m_axi_ddr_awsize),    // Write Burst size
+      .axi_awburst(m_axi_ddr_awburst),   // Write Burst type
+      .axi_awlock(m_axi_ddr_awlock),    // Write lock type
+      .axi_awcache(m_axi_ddr_awcache),   // Write Cache type
+      .axi_awprot(m_axi_ddr_awprot),    // Write Protection type
+      .axi_awvalid(m_axi_ddr_awvalid),   // Write address valid
+      ////////////////////////////////////////////////////////////////////////////
+      // Master Interface Write Data
+      .axi_wd_wready(m_axi_ddr_wready), // Write data ready
+      .axi_wd_data(m_axi_ddr_wdata),   // Write data
+      .axi_wd_strb(m_axi_ddr_wstrb),   // Write strobes
+      .axi_wd_last(m_axi_ddr_wlast),   // Last write transaction
+      .axi_wd_valid(m_axi_ddr_wvalid),  // Write valid
+      ////////////////////////////////////////////////////////////////////////////
+      // Master Interface Write Response
+      .axi_wd_bid(m_axi_ddr_bid),    // Response ID
+      .axi_wd_bresp(m_axi_ddr_bresp),  // Write response
+      .axi_wd_bvalid(m_axi_ddr_bvalid), // Write reponse valid
+      .axi_wd_bready(m_axi_ddr_bready), // Response read
+
+      .startCapture(startCapture),
+      .start_addr(32'h00000000),
+      .o_capture_start(),
+      .o_done(),
+      .rd_en(),
+      .rd_ptr(),
+      .rd_prev_ptr(),
+      .wr_state(),
+      .empty(),
+      .full()
+    );
+
+
+   /*
+
+
+    ila_axis recon_debug (
+        .clk(clk), // input wire clk
+
+        .probe0(recon_s_axis_tready), // input wire [0:0] probe0
+        .probe1(recon_s_axis_tdata), // input wire [511:0]  probe1
+        .probe2(0), // input wire [63:0]  probe2
+        .probe3(recon_s_axis_tvalid), // input wire [0:0]  probe3
+        .probe4(recon_s_axis_tlast), // input wire [0:0]  probe4
+        .probe5(0), // input wire [0:0]  probe5
+        .probe6(recon_s_axis_tkeep), // input wire [63:0]  probe6
+        .probe7(0), // input wire [0:0]  probe7
+        .probe8(0) // input wire [0:0]  probe8
+    );
+
+    ila_axis s_axis_direct_tx (
+        .clk(direct_tx_clk), // input wire clk
+
+        .probe0(s_axis_direct_tx_tready), // input wire [0:0] probe0
+        .probe1(s_axis_direct_tx_tdata), // input wire [511:0]  probe1
+        .probe2(0), // input wire [63:0]  probe2
+        .probe3(s_axis_direct_tx_tvalid), // input wire [0:0]  probe3
+        .probe4(s_axis_direct_tx_tlast), // input wire [0:0]  probe4
+        .probe5(0), // input wire [0:0]  probe5
+        .probe6(s_axis_direct_tx_tkeep), // input wire [63:0]  probe6
+        .probe7(0), // input wire [0:0]  probe7
+        .probe8(0) // input wire [0:0]  probe8
+    );
+
+     ila_axis s_axis_direct_rx (
+	   .clk(direct_tx_clk), // input wire clk
+
+        .probe0(s_axis_direct_rx_tready), // input wire [0:0] probe0
+        .probe1(s_axis_direct_rx_tdata), // input wire [511:0]  probe1
+        .probe2(0), // input wire [63:0]  probe2
+        .probe3(s_axis_direct_rx_tvalid), // input wire [0:0]  probe3
+        .probe4(s_axis_direct_rx_tlast), // input wire [0:0]  probe4
+        .probe5(0), // input wire [0:0]  probe5
+        .probe6(s_axis_direct_rx_tkeep), // input wire [63:0]  probe6
+        .probe7(0), // input wire [0:0]  probe7
+        .probe8(0) // input wire [0:0]  probe8
+    );
+
+    ila_axis s_axis_sync_tx (
+	   .clk(clk), // input wire clk
+
+        .probe0(s_axis_sync_tx_tready), // input wire [0:0] probe0
+        .probe1(s_axis_sync_tx_tdata), // input wire [511:0]  probe1
+        .probe2(0), // input wire [63:0]  probe2
+        .probe3(s_axis_sync_tx_tvalid), // input wire [0:0]  probe3
+        .probe4(s_axis_sync_tx_tlast), // input wire [0:0]  probe4
+        .probe5(0), // input wire [0:0]  probe5
+        .probe6(s_axis_sync_tx_tkeep), // input wire [63:0]  probe6
+        .probe7(0), // input wire [0:0]  probe7
+        .probe8(0) // input wire [0:0]  probe8
+    );
+
+	    ila_axis s_axis_sync_rx (
+	   .clk(clk), // input wire clk
+
+        .probe0(s_axis_sync_rx_tready), // input wire [0:0] probe0
+        .probe1(s_axis_sync_rx_tdata), // input wire [511:0]  probe1
+        .probe2(0), // input wire [63:0]  probe2
+        .probe3(s_axis_sync_rx_tvalid), // input wire [0:0]  probe3
+        .probe4(s_axis_sync_rx_tlast), // input wire [0:0]  probe4
+        .probe5(0), // input wire [0:0]  probe5
+        .probe6(s_axis_sync_rx_tkeep), // input wire [63:0]  probe6
+        .probe7(0), // input wire [0:0]  probe7
+        .probe8(0) // input wire [0:0]  probe8
+    );
+
+
+   ila_axi ddr_axi (
+	.clk(ddr_clk), // input wire clk
+
+
+	.probe0(m_axi_ddr_wready), // input wire [0:0] probe0
+	.probe1(m_axi_ddr_awaddr), // input wire [31:0]  probe1
+	.probe2(m_axi_ddr_bresp), // input wire [1:0]  probe2
+	.probe3(m_axi_ddr_bvalid), // input wire [0:0]  probe3
+	.probe4(m_axi_ddr_bready), // input wire [0:0]  probe4
+	.probe5(m_axi_ddr_araddr), // input wire [31:0]  probe5
+	.probe6(m_axi_ddr_rready), // input wire [0:0]  probe6
+	.probe7(m_axi_ddr_wvalid), // input wire [0:0]  probe7
+	.probe8(m_axi_ddr_arvalid), // input wire [0:0]  probe8
+	.probe9(m_axi_ddr_arready), // input wire [0:0]  probe9
+	.probe10(m_axi_ddr_rdata), // input wire [511:0]  probe10
+	.probe11(m_axi_ddr_awvalid), // input wire [0:0]  probe11
+	.probe12(m_axi_ddr_awready), // input wire [0:0]  probe12
+	.probe13(m_axi_ddr_rresp), // input wire [1:0]  probe13
+	.probe14(m_axi_ddr_wdata), // input wire [511:0]  probe14
+	.probe15(m_axi_ddr_wstrb), // input wire [63:0]  probe15
+	.probe16(m_axi_ddr_rvalid), // input wire [0:0]  probe16
+	.probe17( 0), // input wire [2:0]  probe17
+	.probe18( 0), // input wire [2:0]  probe18
+	.probe19( 0), // input wire [0:0]  probe19
+	.probe20( 0), // input wire [0:0]  probe20
+	.probe21( 0), // input wire [7:0]  probe21
+	.probe22( 0), // input wire [0:0]  probe22
+	.probe23( 0), // input wire [2:0]  probe23
+	.probe24( 0), // input wire [1:0]  probe24
+	.probe25( 0), // input wire [0:0]  probe25
+	.probe26( 0), // input wire [0:0]  probe26
+	.probe27( 0), // input wire [7:0]  probe27
+	.probe28( 0), // input wire [2:0]  probe28
+	.probe29( 0), // input wire [1:0]  probe29
+	.probe30( 0), // input wire [0:0]  probe30
+	.probe31( 0), // input wire [3:0]  probe31
+	.probe32( 0), // input wire [3:0]  probe32
+	.probe33( 0), // input wire [3:0]  probe33
+	.probe34( 0), // input wire [3:0]  probe34
+	.probe35( 0), // input wire [0:0]  probe35
+	.probe36( 0), // input wire [3:0]  probe36
+	.probe37( 0), // input wire [3:0]  probe37
+	.probe38( 0), // input wire [0:0]  probe38
+	.probe39( 0), // input wire [0:0]  probe39
+	.probe40( 0), // input wire [0:0]  probe40
+	.probe41(m_axi_ddr_rlast), // input wire [0:0]  probe41
+	.probe42(0), // input wire [0:0]  probe42
+	.probe43(m_axi_ddr_wlast) // input wire [0:0]  probe43
+    );
+
+    ila_sig debug_sig_0 (
+	.clk(clk), // input wire clk
+
+	.probe0(startCapture), // input wire [0:0]  probe0
+	.probe1(!rst), // input wire [0:0]  probe1
+	.probe2(0), // input wire [0:0]  probe2
+	.probe3(0) // input wire [0:0]  probe3
+);
+    */
 endmodule
 
 `resetall
