@@ -1075,7 +1075,7 @@ assign jtag_tdo = jtag_tdi;
     );
 
      ila_axis s_axis_direct_rx (
-	   .clk(direct_tx_clk), // input wire clk
+	   .clk(direct_rx_clk), // input wire clk
 
         .probe0(s_axis_direct_rx_tready), // input wire [0:0] probe0
         .probe1(s_axis_direct_rx_tdata), // input wire [511:0]  probe1
