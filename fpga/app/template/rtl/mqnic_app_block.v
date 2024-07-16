@@ -601,6 +601,7 @@ end
 /*
  * AXI-Lite slave interface (control from host)
  */
+/*
 axil_ram #(
     .DATA_WIDTH(AXIL_APP_CTRL_DATA_WIDTH),
     .ADDR_WIDTH(12),
@@ -631,7 +632,7 @@ ram_inst (
     .s_axil_rvalid(s_axil_app_ctrl_rvalid),
     .s_axil_rready(s_axil_app_ctrl_rready)
 );
-
+*/
 /*
  * AXI-Lite master interface (control to NIC)
  */
