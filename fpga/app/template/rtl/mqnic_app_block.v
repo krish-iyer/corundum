@@ -1003,7 +1003,7 @@ assign jtag_tdo = jtag_tdi;
       .s_axis_tdata(m_axis_sync_tx_tdata),
       .s_axis_tkeep(m_axis_sync_tx_tkeep),
       .s_axis_tlast(m_axis_sync_tx_tlast),
-      .s_axis_tready(m_axis_sync_tx_tready),
+      .s_axis_tready(),
       // AXI MM Interface
       .axi_awready(m_axi_ddr_awready),   // Indicates slave is ready to accept a write address
       .axi_awid(m_axi_ddr_awid),      // Write ID
