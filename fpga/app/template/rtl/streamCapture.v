@@ -85,7 +85,7 @@ module streamCapture   (
    assign rd_prev_ptr = prev_ptr;
    assign wr_state = wrState;
    assign fifo_tlast    =  (dataCounter == captureSize-1);
-   assign fifo_tvalid   =  s_axis_tvalid & startCaptureInt & commit_data_valid;
+   assign fifo_tvalid   =  startCaptureInt & commit_data_valid;
    assign fifo_tdata    =  commit_data;
    //assign fifo_tkeep    =  s_axis_tkeep;
    assign fifo_tkeep = 64'hffff_ffff_ffff_ffff;
@@ -142,6 +142,9 @@ module streamCapture   (
 	   commit_data <= prev_data >> 336 | s_axis_tdata << 176;
 	   commit_data_valid <= 1'b1;
 	end
+      else begin
+	 commit_data_valid <= 1'b0;
+      end
    end
 
 
