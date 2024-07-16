@@ -885,7 +885,7 @@ assign jtag_tdo = jtag_tdi;
 	   if (CaptureInit) begin
 	      startCapture <= 1'b1;
 	   end
-	   else if(recon_s_axis_tvalid) begin
+	   else if(m_axis_sync_tx_tvalid) begin
 	      startCapture <= 1'b1;
 	      stateCapture <= 2'b01;
 	   end
@@ -996,16 +996,16 @@ assign jtag_tdo = jtag_tdi;
    streamCapture stream_capture_inst
      (
       .clk_stream(clk),
-      .m_axi_aclk(ddr_clk),
+      .m_axi_aclk(clk),
       .resetn_stream(!rst),
       //input stream
-      .s_axis_tvalid(recon_s_axis_tvalid),
-      .s_axis_tdata(recon_s_axis_tdata),
-      .s_axis_tkeep(recon_s_axis_tkeep),
-      .s_axis_tlast(recon_s_axis_tlast),
-      .s_axis_tready(recon_s_axis_tready),
+      .s_axis_tvalid(m_axis_sync_tx_tvalid),
+      .s_axis_tdata(m_axis_sync_tx_tdata),
+      .s_axis_tkeep(m_axis_sync_tx_tkeep),
+      .s_axis_tlast(m_axis_sync_tx_tlast),
+      .s_axis_tready(m_axis_sync_tx_tready),
       // AXI MM Interface
-      .axi_awready(m_axi_ddr_awready),   // Indicates slave is ready to accept a write address
+      .axi_awready(1'b1),   // Indicates slave is ready to accept a write address
       .axi_awid(m_axi_ddr_awid),      // Write ID
       .axi_awaddr(m_axi_ddr_awaddr),    // Write address
       .axi_awlen(m_axi_ddr_awlen),     // Write Burst Length
@@ -1017,7 +1017,7 @@ assign jtag_tdo = jtag_tdi;
       .axi_awvalid(m_axi_ddr_awvalid),   // Write address valid
       ////////////////////////////////////////////////////////////////////////////
       // Master Interface Write Data
-      .axi_wd_wready(m_axi_ddr_wready), // Write data ready
+      .axi_wd_wready(1'b1), // Write data ready
       .axi_wd_data(m_axi_ddr_wdata),   // Write data
       .axi_wd_strb(m_axi_ddr_wstrb),   // Write strobes
       .axi_wd_last(m_axi_ddr_wlast),   // Last write transaction
