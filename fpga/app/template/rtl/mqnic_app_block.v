@@ -996,7 +996,7 @@ assign jtag_tdo = jtag_tdi;
    streamCapture stream_capture_inst
      (
       .clk_stream(clk),
-      .m_axi_aclk(clk),
+      .m_axi_aclk(ddr_clk),
       .resetn_stream(!rst),
       //input stream
       .s_axis_tvalid(m_axis_sync_tx_tvalid),
@@ -1005,7 +1005,7 @@ assign jtag_tdo = jtag_tdi;
       .s_axis_tlast(m_axis_sync_tx_tlast),
       .s_axis_tready(m_axis_sync_tx_tready),
       // AXI MM Interface
-      .axi_awready(1'b1),   // Indicates slave is ready to accept a write address
+      .axi_awready(m_axi_ddr_awready),   // Indicates slave is ready to accept a write address
       .axi_awid(m_axi_ddr_awid),      // Write ID
       .axi_awaddr(m_axi_ddr_awaddr),    // Write address
       .axi_awlen(m_axi_ddr_awlen),     // Write Burst Length
@@ -1017,7 +1017,7 @@ assign jtag_tdo = jtag_tdi;
       .axi_awvalid(m_axi_ddr_awvalid),   // Write address valid
       ////////////////////////////////////////////////////////////////////////////
       // Master Interface Write Data
-      .axi_wd_wready(1'b1), // Write data ready
+      .axi_wd_wready(m_axi_ddr_wready), // Write data ready
       .axi_wd_data(m_axi_ddr_wdata),   // Write data
       .axi_wd_strb(m_axi_ddr_wstrb),   // Write strobes
       .axi_wd_last(m_axi_ddr_wlast),   // Last write transaction
@@ -1058,7 +1058,7 @@ assign jtag_tdo = jtag_tdi;
         .probe7(0), // input wire [0:0]  probe7
         .probe8(0) // input wire [0:0]  probe8
     );
-
+*/
     ila_axis s_axis_direct_tx (
         .clk(direct_tx_clk), // input wire clk
 
@@ -1174,7 +1174,7 @@ assign jtag_tdo = jtag_tdi;
 	.probe2(0), // input wire [0:0]  probe2
 	.probe3(0) // input wire [0:0]  probe3
 );
-    */
+
 endmodule
 
 `resetall

@@ -115,6 +115,12 @@ SYN_FILES += lib/pcie/rtl/pcie_us_cfg.v
 SYN_FILES += lib/pcie/rtl/pulse_merge.v
 # include app
 SYN_FILES += app/template/rtl/mqnic_app_block.v
+SYN_FILES += app/template/rtl/axis_fifo.v
+SYN_FILES += app/template/rtl/streamCapture.v
+SYN_FILES += app/template/rtl/async_fifo.v
+SYN_FILES += lib/axis/rtl/axis_switch_4x4.v
+SYN_FILES += lib/axis/rtl/axis_switch.v
+
 
 # XDC files
 XDC_FILES = fpga_au280.xdc
