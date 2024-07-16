@@ -721,24 +721,24 @@ assign m_axis_direct_rx_tuser = s_axis_direct_rx_tuser;
 /*
  * Ethernet (synchronous MAC interface - low latency raw traffic)
  */
-// assign m_axis_sync_tx_tdata = s_axis_sync_tx_tdata;
-// assign m_axis_sync_tx_tkeep = s_axis_sync_tx_tkeep;
-// assign m_axis_sync_tx_tvalid = s_axis_sync_tx_tvalid;
-// assign s_axis_sync_tx_tready = m_axis_sync_tx_tready;
-// assign m_axis_sync_tx_tlast = s_axis_sync_tx_tlast;
-// assign m_axis_sync_tx_tuser = s_axis_sync_tx_tuser;
+assign m_axis_sync_tx_tdata = s_axis_sync_tx_tdata;
+assign m_axis_sync_tx_tkeep = s_axis_sync_tx_tkeep;
+assign m_axis_sync_tx_tvalid = s_axis_sync_tx_tvalid;
+assign s_axis_sync_tx_tready = m_axis_sync_tx_tready;
+assign m_axis_sync_tx_tlast = s_axis_sync_tx_tlast;
+assign m_axis_sync_tx_tuser = s_axis_sync_tx_tuser;
 
 assign m_axis_sync_tx_cpl_ts = s_axis_sync_tx_cpl_ts;
 assign m_axis_sync_tx_cpl_tag = s_axis_sync_tx_cpl_tag;
 assign m_axis_sync_tx_cpl_valid = s_axis_sync_tx_cpl_valid;
 assign s_axis_sync_tx_cpl_ready = m_axis_sync_tx_cpl_ready;
 
-// assign m_axis_sync_rx_tdata = s_axis_sync_rx_tdata;
-// assign m_axis_sync_rx_tkeep = s_axis_sync_rx_tkeep;
-// assign m_axis_sync_rx_tvalid = s_axis_sync_rx_tvalid;
-// assign s_axis_sync_rx_tready = m_axis_sync_rx_tready;
-// assign m_axis_sync_rx_tlast = s_axis_sync_rx_tlast;
-// assign m_axis_sync_rx_tuser = s_axis_sync_rx_tuser;
+assign m_axis_sync_rx_tdata = s_axis_sync_rx_tdata;
+assign m_axis_sync_rx_tkeep = s_axis_sync_rx_tkeep;
+assign m_axis_sync_rx_tvalid = s_axis_sync_rx_tvalid;
+assign s_axis_sync_rx_tready = m_axis_sync_rx_tready;
+assign m_axis_sync_rx_tlast = s_axis_sync_rx_tlast;
+assign m_axis_sync_rx_tuser = s_axis_sync_rx_tuser;
 
 /*
  * Ethernet (internal at interface module)
@@ -886,7 +886,7 @@ assign jtag_tdo = jtag_tdi;
 	   if (CaptureInit) begin
 	      startCapture <= 1'b1;
 	   end
-	   else if(m_axis_sync_tx_tvalid) begin
+	   else if(recon_s_axis_tvalid) begin
 	      startCapture <= 1'b1;
 	      stateCapture <= 2'b01;
 	   end
@@ -931,7 +931,7 @@ assign jtag_tdo = jtag_tdi;
       .s01_axis_tready(s_axis_sync_rx_tready),
       .s01_axis_tlast(s_axis_sync_rx_tlast),
       .s01_axis_tid(),
-      .s01_axis_tdest(4'b001),
+      .s01_axis_tdest(3'b001),
       .s01_axis_tuser(s_axis_sync_rx_tuser),
 
       .s02_axis_tdata(s_axis_sync_tx_tdata),
@@ -940,7 +940,7 @@ assign jtag_tdo = jtag_tdi;
       .s02_axis_tready(s_axis_sync_tx_tready),
       .s02_axis_tlast(s_axis_sync_tx_tlast),
       .s02_axis_tid(),
-      .s02_axis_tdest(4'b010),
+      .s02_axis_tdest(3'b011),
       .s02_axis_tuser(s_axis_sync_tx_tuser),
 
       .s03_axis_tdata(),
@@ -963,23 +963,23 @@ assign jtag_tdo = jtag_tdi;
       .m00_axis_tdest(),
       .m00_axis_tuser(),
 
-      .m01_axis_tdata(m_axis_sync_rx_tdata),
-      .m01_axis_tkeep(m_axis_sync_rx_tkeep),
-      .m01_axis_tvalid(m_axis_sync_rx_tvalid),
-      .m01_axis_tready(m_axis_sync_rx_tready),
-      .m01_axis_tlast(m_axis_sync_rx_tlast),
+      .m01_axis_tdata(),
+      .m01_axis_tkeep(),
+      .m01_axis_tvalid(),
+      .m01_axis_tready(),
+      .m01_axis_tlast(),
       .m01_axis_tid(),
       .m01_axis_tdest(),
-      .m01_axis_tuser(m_axis_sync_rx_tuser),
+      .m01_axis_tuser(),
 
-      .m02_axis_tdata(m_axis_sync_tx_tdata),
-      .m02_axis_tkeep(m_axis_sync_tx_tkeep),
-      .m02_axis_tvalid(m_axis_sync_tx_tvalid),
-      .m02_axis_tready(m_axis_sync_tx_tready),
-      .m02_axis_tlast(m_axis_sync_tx_tlast),
+      .m02_axis_tdata(),
+      .m02_axis_tkeep(),
+      .m02_axis_tvalid(),
+      .m02_axis_tready(),
+      .m02_axis_tlast(),
       .m02_axis_tid(),
       .m02_axis_tdest(),
-      .m02_axis_tuser(m_axis_sync_tx_tuser),
+      .m02_axis_tuser(),
 
       // tx
       .m03_axis_tdata(recon_s_axis_tdata),
@@ -1000,11 +1000,11 @@ assign jtag_tdo = jtag_tdi;
       .m_axi_aclk(ddr_clk),
       .resetn_stream(!rst),
       //input stream
-      .s_axis_tvalid(m_axis_sync_tx_tvalid),
-      .s_axis_tdata(m_axis_sync_tx_tdata),
-      .s_axis_tkeep(m_axis_sync_tx_tkeep),
-      .s_axis_tlast(m_axis_sync_tx_tlast),
-      .s_axis_tready(),
+      .s_axis_tvalid(recon_s_axis_tvalid),
+      .s_axis_tdata(recon_s_axis_tdata),
+      .s_axis_tkeep(recon_s_axis_tkeep),
+      .s_axis_tlast(recon_s_axis_tlast),
+      .s_axis_tready(recon_s_axis_tready),
       // AXI MM Interface
       .axi_awready(m_axi_ddr_awready),   // Indicates slave is ready to accept a write address
       .axi_awid(m_axi_ddr_awid),      // Write ID
@@ -1060,6 +1060,21 @@ assign jtag_tdo = jtag_tdi;
         .probe8(0) // input wire [0:0]  probe8
     );
 */
+    ila_axis recon_s_axis (
+        .clk(clk), // input wire clk
+
+        .probe0(recon_s_axis_tready), // input wire [0:0] probe0
+        .probe1(recon_s_axis_tdata), // input wire [511:0]  probe1
+        .probe2(0), // input wire [63:0]  probe2
+        .probe3(recon_s_axis_tvalid), // input wire [0:0]  probe3
+        .probe4(recon_s_axis_tlast), // input wire [0:0]  probe4
+        .probe5(0), // input wire [0:0]  probe5
+        .probe6(recon_s_axis_tkeep), // input wire [63:0]  probe6
+        .probe7(0), // input wire [0:0]  probe7
+        .probe8(0) // input wire [0:0]  probe8
+    );
+
+
     ila_axis s_axis_direct_tx (
         .clk(direct_tx_clk), // input wire clk
 
