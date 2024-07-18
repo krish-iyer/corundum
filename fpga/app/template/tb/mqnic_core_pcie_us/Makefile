@@ -58,8 +58,9 @@ VERILOG_SOURCES += ../../rtl/mqnic_app_block.v
 VERILOG_SOURCES += ../../rtl/axis_fifo.v
 VERILOG_SOURCES += ../../rtl/async_fifo.v
 VERILOG_SOURCES += ../../rtl/streamCapture.v
-VERILOG_SOURCES += ../../lib/axis/rtl/axis_switch_4x4.v
-VERILOG_SOURCES += ../../lib/axis/rtl/axis_switch.v
+VERILOG_SOURCES += ../../lib/axis/rtl/axis_ram_switch_4x4.v
+VERILOG_SOURCES += ../../lib/axis/rtl/axis_ram_switch.v
+VERILOG_SOURCES += ../../lib/axis/rtl/axis_tap.v
 ##################################################################################
 VERILOG_SOURCES += ../../lib/eth/rtl/mac_ctrl_rx.v
 VERILOG_SOURCES += ../../lib/eth/rtl/mac_ctrl_tx.v
