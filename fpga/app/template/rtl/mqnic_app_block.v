@@ -873,10 +873,39 @@ assign jtag_tdo = jtag_tdi;
    wire		recon_s_axis_tvalid;
    wire		recon_s_axis_tready;
 
+   wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] tap_s_axis_sync_tx_tdata;
+   wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] tap_s_axis_sync_tx_tkeep;
+   wire [PORT_COUNT-1:0]		      tap_s_axis_sync_tx_tvalid;
+   wire [PORT_COUNT-1:0]		      tap_s_axis_sync_tx_tready;
+   wire [PORT_COUNT-1:0]		      tap_s_axis_sync_tx_tlast;
+   wire [PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH-1:0] tap_s_axis_sync_tx_tuser;
 
+   axis_tap #
+     (
+      .DATA_WIDTH(DATA_WIDTH)
+      ) axis_tap_inst
+       (
+	.clk(clk),
+	.rst(rst),
+	.tap_axis_tdata(s_axis_sync_tx_tdata),
+	.tap_axis_tkeep(s_axis_sync_tx_tkeep),
+	.tap_axis_tvalid(s_axis_sync_tx_tvalid),
+	.tap_axis_tready(s_axis_sync_tx_tready),
+	.tap_axis_tlast(s_axis_sync_tx_tlast),
+	.tap_axis_tid(),
+	.tap_axis_tdest(),
+	.tap_axis_tuser(s_axis_sync_tx_tuser),
 
-   // TODO: fix osciallating nature, make it stop after two pulses.
-   // TODO: check, commit valid, it only send after all packets probably because of tlast.
+	.m_axis_tdata(tap_s_axis_sync_tx_tdata),
+	.m_axis_tkeep(tap_s_axis_sync_tx_tkeep),
+	.m_axis_tvalid(tap_s_axis_sync_tx_tvalid),
+	.m_axis_tready(tap_s_axis_sync_tx_tready),
+	.m_axis_tlast(tap_s_axis_sync_tx_tlast),
+	.m_axis_tid(),
+	.m_axis_tdest(),
+	.m_axis_tuser(tap_s_axis_sync_tx_tuser)
+	);
+
    reg		startCapture;
    reg [1:0]	stateCapture = 2'b00;
    reg		CaptureInit = 1'b0;
