@@ -601,7 +601,7 @@ end
 /*
  * AXI-Lite slave interface (control from host)
  */
-/*
+
 axil_ram #(
     .DATA_WIDTH(AXIL_APP_CTRL_DATA_WIDTH),
     .ADDR_WIDTH(12),
@@ -632,7 +632,7 @@ ram_inst (
     .s_axil_rvalid(s_axil_app_ctrl_rvalid),
     .s_axil_rready(s_axil_app_ctrl_rready)
 );
-*/
+
 /*
  * AXI-Lite master interface (control to NIC)
  */
@@ -849,226 +849,222 @@ assign gpio_out = 0;
  */
 assign jtag_tdo = jtag_tdi;
 
-   parameter S_COUNT = 4;
-   parameter M_COUNT = 4;
-   parameter DATA_WIDTH = PORT_COUNT*AXIS_SYNC_DATA_WIDTH;
-   parameter KEEP_ENABLE = (DATA_WIDTH>8);
-   parameter KEEP_WIDTH = (DATA_WIDTH/8);
-   parameter ID_ENABLE = 0;
-   parameter M_DEST_WIDTH = $clog2(M_COUNT+1);
-   parameter USER_ENABLE = 1;
-   parameter USER_WIDTH = PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH;
-   parameter ARB_TYPE_ROUND_ROBIN = 1;
-   parameter ARB_LSB_HIGH_PRIORITY = 1;
+parameter S_COUNT = 4;
+parameter M_COUNT = 4;
+parameter DATA_WIDTH = PORT_COUNT*AXIS_SYNC_DATA_WIDTH;
+parameter KEEP_ENABLE = (DATA_WIDTH>8);
+parameter KEEP_WIDTH = (DATA_WIDTH/8);
+parameter ID_ENABLE = 0;
+parameter M_DEST_WIDTH = $clog2(M_COUNT+1);
+parameter USER_ENABLE = 1;
+parameter USER_WIDTH = PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH;
+parameter ARB_TYPE_ROUND_ROBIN = 1;
+parameter ARB_LSB_HIGH_PRIORITY = 1;
 
-   wire [511:0]	recon_s_axis_tdata;
-   wire [63:0]	recon_s_axis_tkeep;
-   wire		recon_s_axis_tlast;
-   wire		recon_s_axis_tvalid;
-   wire		recon_s_axis_tready;
+wire [511:0] recon_s_axis_tdata;
+wire [63:0]  recon_s_axis_tkeep;
+wire	     recon_s_axis_tlast;
+wire	     recon_s_axis_tvalid;
+wire	     recon_s_axis_tready;
 
-   wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] tap_s_axis_sync_tx_tdata;
-   wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] tap_s_axis_sync_tx_tkeep;
-   wire [PORT_COUNT-1:0]		      tap_s_axis_sync_tx_tvalid;
-   wire [PORT_COUNT-1:0]		      tap_s_axis_sync_tx_tready;
-   wire [PORT_COUNT-1:0]		      tap_s_axis_sync_tx_tlast;
-   wire [PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH-1:0] tap_s_axis_sync_tx_tuser;
+wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] tap_s_axis_sync_tx_tdata;
+wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] tap_s_axis_sync_tx_tkeep;
+wire [PORT_COUNT-1:0]			   tap_s_axis_sync_tx_tvalid;
+wire [PORT_COUNT-1:0]			   tap_s_axis_sync_tx_tready;
+wire [PORT_COUNT-1:0]			   tap_s_axis_sync_tx_tlast;
+wire [PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH-1:0] tap_s_axis_sync_tx_tuser;
 
-   axis_tap #
-     (
-      .DATA_WIDTH(DATA_WIDTH)
-      ) axis_tap_inst
-       (
-	.clk(clk),
-	.rst(rst),
-	.tap_axis_tdata(s_axis_sync_tx_tdata),
-	.tap_axis_tkeep(s_axis_sync_tx_tkeep),
-	.tap_axis_tvalid(s_axis_sync_tx_tvalid),
-	.tap_axis_tready(s_axis_sync_tx_tready),
-	.tap_axis_tlast(s_axis_sync_tx_tlast),
-	.tap_axis_tid(),
-	.tap_axis_tdest(),
-	.tap_axis_tuser(s_axis_sync_tx_tuser),
+axis_tap #(
+    .DATA_WIDTH(DATA_WIDTH)
+    )
+axis_tap_inst (
+    .clk(clk),
+    .rst(rst),
+    .tap_axis_tdata(s_axis_sync_tx_tdata),
+    .tap_axis_tkeep(s_axis_sync_tx_tkeep),
+    .tap_axis_tvalid(s_axis_sync_tx_tvalid),
+    .tap_axis_tready(s_axis_sync_tx_tready),
+    .tap_axis_tlast(s_axis_sync_tx_tlast),
+    .tap_axis_tid(),
+    .tap_axis_tdest(),
+    .tap_axis_tuser(s_axis_sync_tx_tuser),
 
-	.m_axis_tdata(tap_s_axis_sync_tx_tdata),
-	.m_axis_tkeep(tap_s_axis_sync_tx_tkeep),
-	.m_axis_tvalid(tap_s_axis_sync_tx_tvalid),
-	.m_axis_tready(tap_s_axis_sync_tx_tready),
-	.m_axis_tlast(tap_s_axis_sync_tx_tlast),
-	.m_axis_tid(),
-	.m_axis_tdest(),
-	.m_axis_tuser(tap_s_axis_sync_tx_tuser)
-	);
+    .m_axis_tdata(tap_s_axis_sync_tx_tdata),
+    .m_axis_tkeep(tap_s_axis_sync_tx_tkeep),
+    .m_axis_tvalid(tap_s_axis_sync_tx_tvalid),
+    .m_axis_tready(tap_s_axis_sync_tx_tready),
+    .m_axis_tlast(tap_s_axis_sync_tx_tlast),
+    .m_axis_tid(),
+    .m_axis_tdest(),
+    .m_axis_tuser(tap_s_axis_sync_tx_tuser)
+    );
 
-   reg		startCapture;
-   reg [1:0]	stateCapture = 2'b00;
-   reg		CaptureInit = 1'b0;
-   always @(posedge clk) begin
-      case(stateCapture)
+reg					      startCapture;
+reg [1:0]				      stateCapture = 2'b00;
+reg					      CaptureInit = 1'b0;
+
+always @(posedge clk) begin
+    case(stateCapture)
 	2'b00: begin
-	   if (CaptureInit) begin
-	      startCapture <= 1'b1;
-	   end
-	   else if(recon_s_axis_tvalid) begin
-	      startCapture <= 1'b1;
-	      stateCapture <= 2'b01;
-	   end
+	    if (CaptureInit) begin
+		startCapture <= 1'b1;
+	    end
+	    else if(recon_s_axis_tvalid) begin
+		startCapture <= 1'b1;
+		stateCapture <= 2'b01;
+	    end
 	end
 	2'b01: begin
-	   stateCapture <= 2'b00;
-	   startCapture <= 1'b0;
-	   CaptureInit <= 1'b1;
+	    stateCapture <= 2'b00;
+	    startCapture <= 1'b0;
+	    CaptureInit <= 1'b1;
 	end
-      endcase // case (state)
-   end // always @ (posedge clk)
+    endcase // case (state)
+end // always @ (posedge clk)
 
-   axis_ram_switch_4x4 #
-     (
-      .S_DATA_WIDTH(DATA_WIDTH),
-      .M_DATA_WIDTH(DATA_WIDTH),
-      .M_DEST_WIDTH(M_DEST_WIDTH),
-      .ID_ENABLE(ID_ENABLE),
-      .USER_ENABLE(USER_ENABLE),
-      .USER_WIDTH(USER_WIDTH),
-      .ARB_TYPE_ROUND_ROBIN(ARB_TYPE_ROUND_ROBIN),
-      .ARB_LSB_HIGH_PRIORITY(ARB_LSB_HIGH_PRIORITY),
-      .RAM_PIPELINE(1)
-      ) axis_switch_inst
-       (
-	.clk(clk),
-	.rst(rst),
+axis_ram_switch_4x4 #(
+    .S_DATA_WIDTH(DATA_WIDTH),
+    .M_DATA_WIDTH(DATA_WIDTH),
+    .M_DEST_WIDTH(M_DEST_WIDTH),
+    .ID_ENABLE(ID_ENABLE),
+    .USER_ENABLE(USER_ENABLE),
+    .USER_WIDTH(USER_WIDTH),
+    .ARB_TYPE_ROUND_ROBIN(ARB_TYPE_ROUND_ROBIN),
+    .ARB_LSB_HIGH_PRIORITY(ARB_LSB_HIGH_PRIORITY),
+    .RAM_PIPELINE(1)
+    )
+axis_switch_inst (
+    .clk(clk),
+    .rst(rst),
 
-	// rx
-	.s00_axis_tdata(tap_s_axis_sync_tx_tdata),
-	.s00_axis_tkeep(tap_s_axis_sync_tx_tkeep),
-	.s00_axis_tvalid(tap_s_axis_sync_tx_tvalid),
-	.s00_axis_tready(tap_s_axis_sync_tx_tready),
-	.s00_axis_tlast(tap_s_axis_sync_tx_tlast),
-	.s00_axis_tid(),
-	.s00_axis_tdest(3'b000),
-	.s00_axis_tuser(tap_s_axis_sync_tx_tuser),
+    // rx
+    .s00_axis_tdata(tap_s_axis_sync_tx_tdata),
+    .s00_axis_tkeep(tap_s_axis_sync_tx_tkeep),
+    .s00_axis_tvalid(tap_s_axis_sync_tx_tvalid),
+    .s00_axis_tready(tap_s_axis_sync_tx_tready),
+    .s00_axis_tlast(tap_s_axis_sync_tx_tlast),
+    .s00_axis_tid(),
+    .s00_axis_tdest(3'b000),
+    .s00_axis_tuser(tap_s_axis_sync_tx_tuser),
 
-	.s01_axis_tdata(),
-	.s01_axis_tkeep(),
-	.s01_axis_tvalid(),
-	.s01_axis_tready(),
-	.s01_axis_tlast(),
-	.s01_axis_tid(),
-	.s01_axis_tdest(),
-	.s01_axis_tuser(),
+    .s01_axis_tdata(),
+    .s01_axis_tkeep(),
+    .s01_axis_tvalid(),
+    .s01_axis_tready(),
+    .s01_axis_tlast(),
+    .s01_axis_tid(),
+    .s01_axis_tdest(),
+    .s01_axis_tuser(),
 
-	.s02_axis_tdata(),
-	.s02_axis_tkeep(),
-	.s02_axis_tvalid(),
-	.s02_axis_tready(),
-	.s02_axis_tlast(),
-	.s02_axis_tid(),
-	.s02_axis_tdest(),
-	.s02_axis_tuser(),
+    .s02_axis_tdata(),
+    .s02_axis_tkeep(),
+    .s02_axis_tvalid(),
+    .s02_axis_tready(),
+    .s02_axis_tlast(),
+    .s02_axis_tid(),
+    .s02_axis_tdest(),
+    .s02_axis_tuser(),
 
-	.s03_axis_tdata(),
-	.s03_axis_tkeep(),
-	.s03_axis_tvalid(),
-	.s03_axis_tready(),
-	.s03_axis_tlast(),
-	.s03_axis_tid(),
-	.s03_axis_tdest(),
-	.s03_axis_tuser(),
-
-
-	// rx
-	.m00_axis_tdata(recon_s_axis_tdata),
-	.m00_axis_tkeep(recon_s_axis_tkeep),
-	.m00_axis_tvalid(recon_s_axis_tvalid),
-	.m00_axis_tready(recon_s_axis_tready),
-	.m00_axis_tlast(recon_s_axis_tlast),
-	.m00_axis_tid(),
-	.m00_axis_tdest(),
-	.m00_axis_tuser(),
-
-	.m01_axis_tdata(),
-	.m01_axis_tkeep(),
-	.m01_axis_tvalid(),
-	.m01_axis_tready(),
-	.m01_axis_tlast(),
-	.m01_axis_tid(),
-	.m01_axis_tdest(),
-	.m01_axis_tuser(),
-
-	.m02_axis_tdata(),
-	.m02_axis_tkeep(),
-	.m02_axis_tvalid(),
-	.m02_axis_tready(),
-	.m02_axis_tlast(),
-	.m02_axis_tid(),
-	.m02_axis_tdest(),
-	.m02_axis_tuser(),
-
-	// tx
-	.m03_axis_tdata(),
-	.m03_axis_tkeep(),
-	.m03_axis_tvalid(),
-	.m03_axis_tready(),
-	.m03_axis_tlast(),
-	.m03_axis_tid(),
-	.m03_axis_tdest(),
-	.m03_axis_tuser()
-
-	);
+    .s03_axis_tdata(),
+    .s03_axis_tkeep(),
+    .s03_axis_tvalid(),
+    .s03_axis_tready(),
+    .s03_axis_tlast(),
+    .s03_axis_tid(),
+    .s03_axis_tdest(),
+    .s03_axis_tuser(),
 
 
-   streamCapture stream_capture_inst
-     (
-      .clk_stream(clk),
-      .m_axi_aclk(ddr_clk),
-      .resetn_stream(!rst),
-      //input stream
-      .s_axis_tvalid(recon_s_axis_tvalid),
-      .s_axis_tdata(recon_s_axis_tdata),
-      .s_axis_tkeep(recon_s_axis_tkeep),
-      .s_axis_tlast(recon_s_axis_tlast),
-      .s_axis_tready(recon_s_axis_tready),
-      // AXI MM Interface
-      .axi_awready(m_axi_ddr_awready),   // Indicates slave is ready to accept a write address
-      .axi_awid(m_axi_ddr_awid),      // Write ID
-      .axi_awaddr(m_axi_ddr_awaddr),    // Write address
-      .axi_awlen(m_axi_ddr_awlen),     // Write Burst Length
-      .axi_awsize(m_axi_ddr_awsize),    // Write Burst size
-      .axi_awburst(m_axi_ddr_awburst),   // Write Burst type
-      .axi_awlock(m_axi_ddr_awlock),    // Write lock type
-      .axi_awcache(m_axi_ddr_awcache),   // Write Cache type
-      .axi_awprot(m_axi_ddr_awprot),    // Write Protection type
-      .axi_awvalid(m_axi_ddr_awvalid),   // Write address valid
-      ////////////////////////////////////////////////////////////////////////////
-      // Master Interface Write Data
-      .axi_wd_wready(m_axi_ddr_wready), // Write data ready
-      .axi_wd_data(m_axi_ddr_wdata),   // Write data
-      .axi_wd_strb(m_axi_ddr_wstrb),   // Write strobes
-      .axi_wd_last(m_axi_ddr_wlast),   // Last write transaction
-      .axi_wd_valid(m_axi_ddr_wvalid),  // Write valid
-      ////////////////////////////////////////////////////////////////////////////
-      // Master Interface Write Response
-      .axi_wd_bid(m_axi_ddr_bid),    // Response ID
-      .axi_wd_bresp(m_axi_ddr_bresp),  // Write response
-      .axi_wd_bvalid(m_axi_ddr_bvalid), // Write reponse valid
-      .axi_wd_bready(m_axi_ddr_bready), // Response read
+    // rx
+    .m00_axis_tdata(recon_s_axis_tdata),
+    .m00_axis_tkeep(recon_s_axis_tkeep),
+    .m00_axis_tvalid(recon_s_axis_tvalid),
+    .m00_axis_tready(recon_s_axis_tready),
+    .m00_axis_tlast(recon_s_axis_tlast),
+    .m00_axis_tid(),
+    .m00_axis_tdest(),
+    .m00_axis_tuser(),
 
-      .startCapture(startCapture),
-      .start_addr(32'h00000000),
-      .o_capture_start(),
-      .o_done(),
-      .rd_en(),
-      .rd_ptr(),
-      .rd_prev_ptr(),
-      .wr_state(),
-      .empty(),
-      .full()
+    .m01_axis_tdata(),
+    .m01_axis_tkeep(),
+    .m01_axis_tvalid(),
+    .m01_axis_tready(),
+    .m01_axis_tlast(),
+    .m01_axis_tid(),
+    .m01_axis_tdest(),
+    .m01_axis_tuser(),
+
+    .m02_axis_tdata(),
+    .m02_axis_tkeep(),
+    .m02_axis_tvalid(),
+    .m02_axis_tready(),
+    .m02_axis_tlast(),
+    .m02_axis_tid(),
+    .m02_axis_tdest(),
+    .m02_axis_tuser(),
+
+    // tx
+    .m03_axis_tdata(),
+    .m03_axis_tkeep(),
+    .m03_axis_tvalid(),
+    .m03_axis_tready(),
+    .m03_axis_tlast(),
+    .m03_axis_tid(),
+    .m03_axis_tdest(),
+    .m03_axis_tuser()
+
+    );
+
+
+streamCapture stream_capture_inst (
+    .clk_stream(clk),
+    .m_axi_aclk(clk),
+    .resetn_stream(!rst),
+    //input stream
+    .s_axis_tvalid(recon_s_axis_tvalid),
+    .s_axis_tdata(recon_s_axis_tdata),
+    .s_axis_tkeep(recon_s_axis_tkeep),
+    .s_axis_tlast(recon_s_axis_tlast),
+    .s_axis_tready(recon_s_axis_tready),
+    // AXI MM Interface
+    .axi_awready(m_axi_ddr_awready),   // Indicates slave is ready to accept a write address
+    .axi_awid(m_axi_ddr_awid),      // Write ID
+    .axi_awaddr(m_axi_ddr_awaddr),    // Write address
+    .axi_awlen(m_axi_ddr_awlen),     // Write Burst Length
+    .axi_awsize(m_axi_ddr_awsize),    // Write Burst size
+    .axi_awburst(m_axi_ddr_awburst),   // Write Burst type
+    .axi_awlock(m_axi_ddr_awlock),    // Write lock type
+    .axi_awcache(m_axi_ddr_awcache),   // Write Cache type
+    .axi_awprot(m_axi_ddr_awprot),    // Write Protection type
+    .axi_awvalid(m_axi_ddr_awvalid),   // Write address valid
+    ////////////////////////////////////////////////////////////////////////////
+    // Master Interface Write Data
+    .axi_wd_wready(m_axi_ddr_wready), // Write data ready
+    .axi_wd_data(m_axi_ddr_wdata),   // Write data
+    .axi_wd_strb(m_axi_ddr_wstrb),   // Write strobes
+    .axi_wd_last(m_axi_ddr_wlast),   // Last write transaction
+    .axi_wd_valid(m_axi_ddr_wvalid),  // Write valid
+    ////////////////////////////////////////////////////////////////////////////
+    // Master Interface Write Response
+    .axi_wd_bid(m_axi_ddr_bid),    // Response ID
+    .axi_wd_bresp(m_axi_ddr_bresp),  // Write response
+    .axi_wd_bvalid(m_axi_ddr_bvalid), // Write reponse valid
+    .axi_wd_bready(m_axi_ddr_bready), // Response read
+
+    .startCapture(startCapture),
+    .start_addr(32'h00000000),
+    .o_capture_start(),
+    .o_done(),
+    .rd_en(),
+    .rd_ptr(),
+    .rd_prev_ptr(),
+    .wr_state(),
+    .empty(),
+    .full()
     );
 
 
    /*
-
-
     ila_axis recon_debug (
         .clk(clk), // input wire clk
 
@@ -1082,7 +1078,7 @@ assign jtag_tdo = jtag_tdi;
         .probe7(0), // input wire [0:0]  probe7
         .probe8(0) // input wire [0:0]  probe8
     );
-*/
+
     ila_axis recon_s_axis (
         .clk(clk), // input wire clk
 
@@ -1213,7 +1209,7 @@ assign jtag_tdo = jtag_tdi;
 	.probe2(0), // input wire [0:0]  probe2
 	.probe3(0) // input wire [0:0]  probe3
 );
-
+   */
 endmodule
 
 `resetall
