@@ -37,7 +37,7 @@ localparam [1:0]
 reg [1:0]	state_reg = STATE_IDLE, state_next = STATE_IDLE;
 wire [15:0]	ether_type;
 
-assign ether_type = state_reg == STATE_IDLE ? s_axis_tdata[12*8+:16] : 0;
+assign ether_type = state_reg == (STATE_IDLE && s_axis_tvalid) ? s_axis_tdata[12*8+:16] : 0;
 
 
 reg [PORT_COUNT*DATA_WIDTH-1:0]	reg_axis_tdata;
