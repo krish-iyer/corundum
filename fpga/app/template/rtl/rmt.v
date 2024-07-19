@@ -7,26 +7,27 @@ module rmt #(
     parameter DATA_WIDTH = 8,
     parameter KEEP_WIDTH = ((DATA_WIDTH+7)/8),
     parameter USER_WIDTH = 8,
-    parameter PORT_COUNT = 1
+    parameter PORT_COUNT = 1,
+    parameter DEST_WIDTH = 2
 )
 (
-    input				    clk,
-    input				    rst,
+    input				   clk,
+    input				   rst,
 
-    input wire [PORT_COUNT*DATA_WIDTH-1:0]  s_axis_tdata,
-    input wire [PORT_COUNT*KEEP_WIDTH-1:0]  s_axis_tkeep,
-    input wire [PORT_COUNT-1:0]		    s_axis_tvalid,
-    output reg [PORT_COUNT-1:0]	    s_axis_tready,
-    input wire [PORT_COUNT-1:0]		    s_axis_tlast,
-    input wire [PORT_COUNT*USER_WIDTH-1:0]  s_axis_tuser,
+    input wire [PORT_COUNT*DATA_WIDTH-1:0] s_axis_tdata,
+    input wire [PORT_COUNT*KEEP_WIDTH-1:0] s_axis_tkeep,
+    input wire [PORT_COUNT-1:0]		   s_axis_tvalid,
+    output reg [PORT_COUNT-1:0]		   s_axis_tready,
+    input wire [PORT_COUNT-1:0]		   s_axis_tlast,
+    input wire [PORT_COUNT*USER_WIDTH-1:0] s_axis_tuser,
 
     output reg [PORT_COUNT*DATA_WIDTH-1:0] m_axis_tdata,
     output reg [PORT_COUNT*KEEP_WIDTH-1:0] m_axis_tkeep,
-    output reg [PORT_COUNT-1:0]	    m_axis_tvalid,
-    input wire [PORT_COUNT-1:0]		    m_axis_tready,
-    output reg [PORT_COUNT-1:0]	    m_axis_tlast,
-    output reg [PORT_COUNT*USER_WIDTH-1:0] m_axis_tuser
-
+    output reg [PORT_COUNT-1:0]		   m_axis_tvalid,
+    input wire [PORT_COUNT-1:0]		   m_axis_tready,
+    output reg [PORT_COUNT-1:0]		   m_axis_tlast,
+    output reg [PORT_COUNT*USER_WIDTH-1:0] m_axis_tuser,
+    output reg [DEST_WIDTH-1:0]		   m_axis_tdest
 );
 
 localparam [1:0]
@@ -36,8 +37,10 @@ localparam [1:0]
 
 reg [1:0]	state_reg = STATE_IDLE, state_next = STATE_IDLE;
 wire [15:0]	ether_type;
+wire [15:0]	pkt_type;
 
 assign ether_type = state_reg == (STATE_IDLE && s_axis_tvalid) ? s_axis_tdata[12*8+:16] : 0;
+assign pkt_type = state_reg == (STATE_IDLE && s_axis_tvalid) ? s_axis_tdata[12*8+:16] : 0;
 
 
 reg [PORT_COUNT*DATA_WIDTH-1:0]	reg_axis_tdata;
@@ -46,6 +49,7 @@ reg [PORT_COUNT-1:0]		reg_axis_tvalid;
 reg [PORT_COUNT-1:0]		reg_axis_tready;
 reg [PORT_COUNT-1:0]		reg_axis_tlast;
 reg [PORT_COUNT*USER_WIDTH-1:0]	reg_axis_tuser;
+reg [DEST_WIDTH-1:0]		reg_axis_tdest;
 
 always @(posedge clk) begin
     state_reg <= state_next;
@@ -64,6 +68,7 @@ always @(posedge clk) begin
 	s_axis_tready <= reg_axis_tready;
 	m_axis_tlast <= reg_axis_tlast;
 	m_axis_tuser <= reg_axis_tuser;
+	m_axis_tdest <= reg_axis_tdest;
     end
 end // always @ (posedge clk)
 
