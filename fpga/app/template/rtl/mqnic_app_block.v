@@ -861,11 +861,18 @@ parameter USER_WIDTH = PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH;
 parameter ARB_TYPE_ROUND_ROBIN = 1;
 parameter ARB_LSB_HIGH_PRIORITY = 1;
 
-wire [511:0] recon_s_axis_tdata;
-wire [63:0]  recon_s_axis_tkeep;
-wire	     recon_s_axis_tlast;
-wire	     recon_s_axis_tvalid;
-wire	     recon_s_axis_tready;
+wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] rmt_s_axis_tdata;
+wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] rmt_s_axis_tkeep;
+wire [PORT_COUNT-1:0]			   rmt_s_axis_tlast;
+wire [PORT_COUNT-1:0]			   rmt_s_axis_tvalid;
+wire [PORT_COUNT-1:0]			   rmt_s_axis_tready;
+wire [PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH-1:0] rmt_s_axis_tuser;
+
+wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] recon_s_axis_tdata;
+wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] recon_s_axis_tkeep;
+wire [PORT_COUNT-1:0]			   recon_s_axis_tlast;
+wire [PORT_COUNT-1:0]			   recon_s_axis_tvalid;
+wire [PORT_COUNT-1:0]			   recon_s_axis_tready;
 
 wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] tap_s_axis_sync_tx_tdata;
 wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] tap_s_axis_sync_tx_tkeep;
@@ -898,6 +905,28 @@ axis_tap_inst (
     .m_axis_tdest(),
     .m_axis_tuser(tap_s_axis_sync_tx_tuser)
     );
+
+
+rmt #(
+    .DATA_WIDTH(512)
+)
+rmt_inst (
+    .clk(clk),
+    .rst(rst),
+
+    .s_axis_tdata(tap_s_axis_sync_tx_tdata),
+    .s_axis_tkeep(tap_s_axis_sync_tx_tkeep),
+    .s_axis_tvalid(tap_s_axis_sync_tx_tvalid),
+    .s_axis_tready(tap_s_axis_sync_tx_tready),
+    .s_axis_tlast(tap_s_axis_sync_tx_tlast),
+
+    .m_axis_tdata(rmt_s_axis_tdata),
+    .m_axis_tkeep(rmt_s_axis_tkeep),
+    .m_axis_tvalid(rmt_s_axis_tvalid),
+    .m_axis_tready(rmt_s_axis_tready),
+    .m_axis_tlast(rmt_s_axis_tlast)
+ );
+
 
 reg					      startCapture;
 reg [1:0]				      stateCapture = 2'b00;
@@ -938,14 +967,14 @@ axis_switch_inst (
     .rst(rst),
 
     // rx
-    .s00_axis_tdata(tap_s_axis_sync_tx_tdata),
-    .s00_axis_tkeep(tap_s_axis_sync_tx_tkeep),
-    .s00_axis_tvalid(tap_s_axis_sync_tx_tvalid),
-    .s00_axis_tready(tap_s_axis_sync_tx_tready),
-    .s00_axis_tlast(tap_s_axis_sync_tx_tlast),
+    .s00_axis_tdata(rmt_s_axis_tdata),
+    .s00_axis_tkeep(rmt_s_axis_tkeep),
+    .s00_axis_tvalid(rmt_s_axis_tvalid),
+    .s00_axis_tready(rmt_s_axis_tready),
+    .s00_axis_tlast(rmt_s_axis_tlast),
     .s00_axis_tid(),
     .s00_axis_tdest(3'b000),
-    .s00_axis_tuser(tap_s_axis_sync_tx_tuser),
+    .s00_axis_tuser(rmt_s_axis_tuser),
 
     .s01_axis_tdata(),
     .s01_axis_tkeep(),
