@@ -427,6 +427,14 @@ class TB(object):
                         await mac.rx.send(await mac.tx.recv())
 
 
+
+def create_frame(payload):
+    eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
+    ip = IP(src='192.168.1.100', dst='192.168.1.101')
+    udp = UDP(sport=1, dport=2)
+    frame = eth / ip / udp / payload
+    return bytearray(bytes(frame))
+
 @cocotb.test()
 async def run_test_nic(dut):
 
@@ -468,14 +476,76 @@ async def run_test_nic(dut):
     #     if interface.if_feature_rx_csum:
     #         assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
 
-    tb.log.info("RX and TX checksum tests")
+    tb.log.info("1. RX and TX checksum tests")
 
-    payload = bytes([x % 256 for x in range(16)])
+    payload = bytes([x % 256 for x in range(128)])
+    eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
+    ip = IP(src='192.168.1.100', dst='192.168.1.101')
+    udp = UDP(sport=1, dport=2)
+    test_pkt = eth / ip / udp / payload
+    tb.log.info(bytes(test_pkt).hex())
+
+    if tb.driver.interfaces[0].if_feature_tx_csum:
+        test_pkt2 = test_pkt.copy()
+        test_pkt2[UDP].chksum = scapy.utils.checksum(bytes(test_pkt2[UDP]))
+
+        await tb.driver.interfaces[0].start_xmit(test_pkt2.build(), 0, 34, 6)
+    else:
+        await tb.driver.interfaces[0].start_xmit(test_pkt.build(), 0)
+
+    tb.log.info(bytes(test_pkt2.build()).hex())
+
+    pkt = await tb.port_mac[0].tx.recv()
+    tb.log.info("Packet: %s", pkt)
+
+    await tb.port_mac[0].rx.send(pkt)
+
+    pkt = await tb.driver.interfaces[0].recv()
+
+    tb.log.info("Packet: %s", pkt)
+    if tb.driver.interfaces[0].if_feature_rx_csum:
+        assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
+    assert Ether(pkt.data).build() == test_pkt.build()
+
+
+    tb.log.info("2. RX and TX checksum tests")
+
+    payload = bytes([x % 256 for x in range(128)])
+    eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
+    ip = IP(src='192.168.1.100', dst='192.168.1.101')
+    udp = UDP(sport=1, dport=2)
+    test_pkt = eth / ip / udp / payload
+    tb.log.info(bytes(test_pkt).hex())
+
+    if tb.driver.interfaces[0].if_feature_tx_csum:
+        test_pkt2 = test_pkt.copy()
+        test_pkt2[UDP].chksum = scapy.utils.checksum(bytes(test_pkt2[UDP]))
+
+        await tb.driver.interfaces[0].start_xmit(test_pkt2.build(), 0, 34, 6)
+    else:
+        await tb.driver.interfaces[0].start_xmit(test_pkt.build(), 0)
+
+    pkt = await tb.port_mac[0].tx.recv()
+    tb.log.info("Packet: %s", pkt)
+
+    await tb.port_mac[0].rx.send(pkt)
+
+    pkt = await tb.driver.interfaces[0].recv()
+
+    tb.log.info("Packet: %s", pkt)
+    if tb.driver.interfaces[0].if_feature_rx_csum:
+        assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
+    assert Ether(pkt.data).build() == test_pkt.build()
+
+    tb.log.info("3. RX and TX checksum tests")
+
+    payload = bytes([x % 256 for x in range(128)])
     eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
     ip = IP(src='192.168.1.100', dst='192.168.1.101')
     udp = UDP(sport=1, dport=2)
     test_pkt = eth / ip / udp / payload
 
+    tb.log.info(bytes(test_pkt).hex())
     if tb.driver.interfaces[0].if_feature_tx_csum:
         test_pkt2 = test_pkt.copy()
         test_pkt2[UDP].chksum = scapy.utils.checksum(bytes(test_pkt2[UDP]))
@@ -562,20 +632,22 @@ async def run_test_nic(dut):
 
     tb.log.info("Multiple small packets")
 
-    count = 20
+    count = 64
 
-    pkts = [bytearray([(x) % 256 for x in range(128)]) for k in range(count)]
+    pkts = [bytearray([(x + k) % 256 for x in range(256)]) for k in range(count)]
+
+    framed_pkts = [create_frame(pkt) for pkt in pkts]
 
     tb.loopback_enable = True
 
-    for p in pkts:
+    for p in framed_pkts:
         await tb.driver.interfaces[0].start_xmit(p, 0)
 
     for k in range(count):
         pkt = await tb.driver.interfaces[0].recv()
 
         tb.log.info("Packet: %s", pkt)
-        assert pkt.data == pkts[k]
+        assert pkt.data == framed_pkts[k]
         if tb.driver.interfaces[0].if_feature_rx_csum:
             assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
 
@@ -813,6 +885,7 @@ def test_mqnic_core_pcie_us(request, if_count, ports_per_if, axis_pcie_data_widt
         os.path.join(rtl_dir, "axis_fifo.v"),
         os.path.join(rtl_dir, "async_fifo.v"),
         os.path.join(rtl_dir, "streamCapture.v"),
+        os.path.join(rtl_dir, "rmt.v"),
         os.path.join(eth_rtl_dir, "mac_ctrl_rx.v"),
         os.path.join(eth_rtl_dir, "mac_ctrl_tx.v"),
         os.path.join(eth_rtl_dir, "mac_pause_ctrl_rx.v"),
