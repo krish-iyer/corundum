@@ -71,11 +71,13 @@ always @* begin
 
     case (state_reg)
 	STATE_IDLE : begin
-	    if (s_axis_tready && s_axis_tvalid && !s_axis_tlast) begin
+	    if (s_axis_tready && s_axis_tvalid) begin
 		// received frame with header
 		// check for udp due to byte ordering 0800 becomes 0008
 		if (ether_type ==  16'h0008) begin
-		    state_next = STATE_TRANSFER;
+		    if (!s_axis_tlast) begin // if single packet, no need to change state
+			state_next = STATE_TRANSFER;
+		    end
 		    if (reg_axis_tready) begin
 			reg_axis_tdata = s_axis_tdata;
 			reg_axis_tkeep = s_axis_tkeep;
@@ -84,7 +86,7 @@ always @* begin
 			reg_axis_tuser = s_axis_tuser;
 		    end
 		end
-		else begin
+		else if (!s_axis_tlast) begin
 		    state_next = STATE_DROP;
 		end
 	    end // if (s_axis_tready && s_axis_tvalid && !s_axis_tlast)

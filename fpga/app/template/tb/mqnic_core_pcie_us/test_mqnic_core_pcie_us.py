@@ -8,7 +8,8 @@ import sys
 
 import scapy.utils
 from scapy.layers.l2 import Ether
-from scapy.layers.inet import IP, UDP
+from scapy.layers.inet import IP, UDP, ICMP
+from scapy.all import Raw, ARP
 
 import cocotb_test.simulator
 import pytest
@@ -478,7 +479,7 @@ async def run_test_nic(dut):
 
     tb.log.info("1. RX and TX checksum tests")
 
-    payload = bytes([x % 256 for x in range(128)])
+    payload = bytes([x % 256 for x in range(22)])
     eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
     ip = IP(src='192.168.1.100', dst='192.168.1.101')
     udp = UDP(sport=1, dport=2)
@@ -510,32 +511,22 @@ async def run_test_nic(dut):
 
     tb.log.info("2. RX and TX checksum tests")
 
-    payload = bytes([x % 256 for x in range(128)])
-    eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
-    ip = IP(src='192.168.1.100', dst='192.168.1.101')
-    udp = UDP(sport=1, dport=2)
-    test_pkt = eth / ip / udp / payload
-    tb.log.info(bytes(test_pkt).hex())
+    payload = bytes([x % 256 for x in range(22)])
+    eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5', type=0x0806)
+    arp = ARP(op=1,  # ARP request
+              pdst='192.168.1.101',  # Target IP address
+              psrc='192.168.1.100',  # Source IP address
+              hwdst='DA:D1:D2:D3:D4:D5',  # Target MAC address (broadcast)
+              hwsrc='5A:51:52:53:54:55')  # Source MAC address
+    test_pkt = eth / arp / Raw(load=payload)
 
-    if tb.driver.interfaces[0].if_feature_tx_csum:
-        test_pkt2 = test_pkt.copy()
-        test_pkt2[UDP].chksum = scapy.utils.checksum(bytes(test_pkt2[UDP]))
+    tb.log.info("Sending ARP Packet: %s", bytes(test_pkt).hex())
 
-        await tb.driver.interfaces[0].start_xmit(test_pkt2.build(), 0, 34, 6)
-    else:
-        await tb.driver.interfaces[0].start_xmit(test_pkt.build(), 0)
+    await tb.driver.interfaces[0].start_xmit(bytes(test_pkt), 0)
 
     pkt = await tb.port_mac[0].tx.recv()
-    tb.log.info("Packet: %s", pkt)
+    assert pkt.data == bytes(test_pkt)
 
-    await tb.port_mac[0].rx.send(pkt)
-
-    pkt = await tb.driver.interfaces[0].recv()
-
-    tb.log.info("Packet: %s", pkt)
-    if tb.driver.interfaces[0].if_feature_rx_csum:
-        assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
-    assert Ether(pkt.data).build() == test_pkt.build()
 
     tb.log.info("3. RX and TX checksum tests")
 
@@ -651,7 +642,7 @@ async def run_test_nic(dut):
         if tb.driver.interfaces[0].if_feature_rx_csum:
             assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
 
-    tb.loopback_enable = False
+    # tb.loopback_enable = False
 
     # tb.log.info("Multiple large packets")
 
