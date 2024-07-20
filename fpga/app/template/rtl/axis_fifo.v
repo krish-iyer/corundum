@@ -6,7 +6,7 @@ module axis_fifo_ex #
    )
    (
     // slave interface
-    input wire		    s_axis_aresetn,
+    input wire		    s_axis_areset,
     input wire		    s_axis_aclk,
     input wire		    s_axis_tvalid,
     input		    s_axis_tready,
@@ -46,7 +46,7 @@ fifo #
 )
 fifo_inst
 (
-    .resetn(s_axis_aresetn),
+    .reset(s_axis_areset),
     .wr_clk(s_axis_aclk),
     .rd_clk(m_axis_aclk),
     .wr_en(s_axis_tvalid),

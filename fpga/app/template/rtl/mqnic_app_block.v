@@ -1057,7 +1057,7 @@ streamCapture #(
 stream_capture_inst (
     .clk_stream(clk),
     .m_axi_aclk(clk),
-    .resetn_stream(!rst),
+    .reset_stream(rst),
     //input stream
     .s_axis_tvalid(recon_s_axis_tvalid),
     .s_axis_tdata(recon_s_axis_tdata),

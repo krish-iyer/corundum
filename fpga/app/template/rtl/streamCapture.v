@@ -7,7 +7,7 @@ module streamCapture #(
 (
     input			clk_stream,
     input wire			m_axi_aclk,
-    input			resetn_stream,
+    input			reset_stream,
     //input stream
     input			s_axis_tvalid,
     input [DATA_WIDTH-1:0]	s_axis_tdata,
@@ -152,7 +152,7 @@ end
 
 
 always @(posedge clk_stream) begin
-    if(!resetn_stream) begin
+    if(reset_stream) begin
         state <= IDLE;
         resetCounter <= 1'b1;
         done <= 1'b0;
@@ -186,7 +186,7 @@ end
 
 
 always @(posedge m_axi_aclk) begin
-    if(!resetn_stream) begin
+    if(reset_stream) begin
         axi_awvalid  <= 1'b0;
         axi_wd_valid <= 1'b0;
         wrState <= IDLE;
@@ -238,7 +238,7 @@ end
 
 
 always @(posedge m_axi_aclk) begin
-    if(!resetn_stream)
+    if(reset_stream)
         axi_wd_bready <= 1'b0;
     else if(axi_wd_bready)
         axi_wd_bready <= 1'b0;
@@ -289,7 +289,7 @@ axis_fifo_ex #
 	)
 axis_fifo_inst
     (
-    .s_axis_aresetn(resetn_stream),
+    .s_axis_areset(reset_stream),
     .s_axis_aclk(clk_stream),
     .s_axis_tvalid(fifo_tvalid),  // fifo: wr_en
     .s_axis_tready(s_axis_tready),

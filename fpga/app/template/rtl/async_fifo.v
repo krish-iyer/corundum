@@ -14,7 +14,7 @@ module fifo #
    parameter integer WIDTH = 512 // bits
    )
    (
-    input		     resetn,
+    input		     reset,
     input		     wr_clk,
     input		     rd_clk,
     input		     wr_en,
@@ -37,7 +37,7 @@ module fifo #
 
 
    always @(posedge wr_clk) begin
-      if (!resetn) begin
+      if (reset) begin
 	 wr_ptr <= 0;
       end
       else if (wr_en) begin
@@ -54,7 +54,7 @@ module fifo #
 
 
    always @(posedge rd_clk) begin
-      if (!resetn) begin
+      if (reset) begin
 	 rd_ptr <= DEPTH-1;
       end
       else if (rd_en) begin
@@ -82,7 +82,7 @@ module fifo #
 
 
    always @(posedge wr_clk or posedge rd_clk) begin
-      if (!resetn & wr_clk) begin
+      if (reset & wr_clk) begin
 	 fifo_full <= 0;
 	 fifo_empty <= 1;
       end
