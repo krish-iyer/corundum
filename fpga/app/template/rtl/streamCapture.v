@@ -82,6 +82,37 @@ localparam			IDLE    = 'd0,
 				WR_ADDR = 'd1,
 				WR_DATA = 'd2;
 
+localparam [2:0]
+		HDR_CAPTURE = 3'd0,
+		FRAME_MEM_TRANSFER = 3'd1,
+		FRAME_DROP = 3'd2,
+		DMA_INIT = 3'd3,
+		CAPTURE_DONE = 3'd4,
+		RECON_CPL = 3'd5;
+
+reg [KEEP_WIDTH-1:0] REMOVE_HDR_MASK = { {(KEEP_WIDTH-8){1'b1}}, 8'b0 };
+
+reg [2:0]	capture_state = HDR_CAPTURE, capture_state_next = HDR_CAPTURE;
+reg [63:0]	recon_hdr;
+reg [1:0]	func_type;
+reg [7:0]	bitstream_id;
+reg [15:0]	bitstream_size;
+reg [7:0]	bitstream_id_int;
+reg [15:0]	bitstream_size_int;
+reg [15:0]	pending_transfer_size;
+reg [$clog2(DATA_WIDTH):0] frame_size;
+reg [KEEP_WIDTH-1:0]	   fifo_tkeep_int;
+reg [DATA_WIDTH-1:0]	   fifo_tdata_int;
+reg			   fifo_tvalid_int;
+reg			   fifo_tlast_int;
+
+reg [7:0]	bitstream_addr_table [0:ADDR_WIDTH+16+1-1]; // [size][ADDR][Valid]
+
+assign recon_hdr = (HDR_CAPTURE && s_axis_tvalid) ? s_axis_tdata[46*8+:64] : 0; // hdr
+assign func_type = (HDR_CAPTURE && s_axis_tvalid) ? recon_hdr [1:0] : 0;
+assign bitstream_id = (HDR_CAPTURE && s_axis_tvalid) ? recon_hdr[2+:8] : 0;
+assign bitstream_size = (HDR_CAPTURE && s_axis_tvalid) ? recon_hdr[10+:16] : 0;
+
 assign s_axis_tready = 1'b1;
 assign rd_en = fifo_rd_en;
 assign rd_ptr = ptr;
@@ -122,6 +153,52 @@ always @(posedge clk_stream) begin
 	end
 end
 
+always @* begin
+    case (capture_state)
+	HDR_CAPTURE: begin
+	    if (s_axis_tready && s_axis_tvalid) begin
+		case (func_type)
+		    2'b00: begin
+			capture_state_next = FRAME_MEM_TRANSFER;
+			for (i = KEEP_WIDTH-1; i >= 8; i = i - 1) begin // don't consider header
+			    frame_size = frame_size + s_axis_tkeep[i];
+			end
+			pending_transfer_size -= frame_size;
+			bitstream_id_int = bitstream_id;
+			bitstream_size_int = bitstream_size;
+			// bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a way to calculate an addr
+			fifo_tdata_int = s_axis_tdata;
+			fifo_tkeep_int = s_axis_tkeep & REMOVE_HDR_MASK;
+			fifo_tvalid_int = s_axis_tvalid;
+			fifo_tlast_int = s_axis_tlast;
+		    end
+		    2'b01: begin
+			capture_state_next = DMA_INIT;
+			// create DMA command
+		    end
+		endcase
+	    end
+	end // case: HDR_CAPTURE
+	FRAME_MEM_TRANSFER: begin
+	    if (s_axis_tready && s_axis_tvalid) begin
+		for (i = KEEP_WIDTH-1; i >= 8; i = i - 1) begin // don't consider header
+		    frame_size = frame_size + s_axis_tkeep[i];
+		end
+		pending_transfer_size -= frame_size; // check for negative conditions do only if frame_size <= pending_transfer_size
+		bitstream_id_int = bitstream_id;
+		bitstream_size_int = bitstream_size;
+		// bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a way to calculate an addr
+		fifo_tdata_int = s_axis_tdata;
+		fifo_tkeep_int = s_axis_tkeep & REMOVE_HDR_MASK;
+		fifo_tvalid_int = s_axis_tvalid;
+		fifo_tlast_int = s_axis_tlast;
+	    end // if (s_axis_tready && s_axis_tvalid)
+	    if (pending_transfer_size == 0) begin
+		capture_state_next = CAPTURE_DONE;
+	    end
+	end
+    endcase
+end // always @ *
 
 // expected 64 byte payload received in chunks of two 64 byte packets.
 // first packet contains header + 22 byte payload
