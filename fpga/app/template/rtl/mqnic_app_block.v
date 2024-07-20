@@ -860,6 +860,7 @@ parameter USER_ENABLE = 1;
 parameter USER_WIDTH = PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH;
 parameter ARB_TYPE_ROUND_ROBIN = 1;
 parameter ARB_LSB_HIGH_PRIORITY = 1;
+parameter DDR_ADDR_WIDTH = 34;
 
 wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] rmt_s_axis_tdata;
 wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] rmt_s_axis_tkeep;
@@ -1048,7 +1049,12 @@ axis_switch_inst (
     );
 
 
-streamCapture stream_capture_inst (
+streamCapture #(
+    .DATA_WIDTH(DATA_WIDTH),
+    .ADDR_WIDTH(DDR_ADDR_WIDTH),
+    .FIFO_DEPTH(32)
+)
+stream_capture_inst (
     .clk_stream(clk),
     .m_axi_aclk(clk),
     .resetn_stream(!rst),
