@@ -436,7 +436,7 @@ def create_frame(payload, recon):
     ip = IP(src='192.168.1.100', dst='192.168.1.101')
     udp = UDP(sport=1, dport=2)
     if recon == True:
-        pkt_hdr = struct.pack('>HHQ', 0xF0E1, 0x0001, 0)
+        pkt_hdr = struct.pack('<HHQ', 0xF0E1, 0x0001, 0)
         frame = eth / ip / udp / (pkt_hdr + payload)
     else:
         frame = eth / ip / udp / payload

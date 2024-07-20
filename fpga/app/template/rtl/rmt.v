@@ -81,7 +81,7 @@ always @* begin
 	    if (s_axis_tready && s_axis_tvalid) begin
 		// received frame with header
 		// check for udp due to byte ordering 0800 becomes 0008
-		if (ether_type ==  16'h0008 && pkt_type == 16'hE1F0) begin
+		if (ether_type ==  16'h0008 && pkt_type == 16'hF0E1) begin
 		    if (!s_axis_tlast) begin // if single packet, no need to change state
 			state_next = STATE_TRANSFER;
 		    end
@@ -93,7 +93,7 @@ always @* begin
 			reg_axis_tuser = s_axis_tuser;
 
 			case (func_type)
-			    16'h0100:
+			    16'h0001:
 				reg_axis_tdest = 2'b01;
 			    default:
 				reg_axis_tdest = 2'b00;
