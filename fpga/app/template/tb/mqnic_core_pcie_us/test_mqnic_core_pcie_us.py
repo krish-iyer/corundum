@@ -11,6 +11,8 @@ from scapy.layers.l2 import Ether
 from scapy.layers.inet import IP, UDP, ICMP
 from scapy.all import Raw, ARP
 
+import struct
+
 import cocotb_test.simulator
 import pytest
 
@@ -429,11 +431,15 @@ class TB(object):
 
 
 
-def create_frame(payload):
+def create_frame(payload, recon):
     eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
     ip = IP(src='192.168.1.100', dst='192.168.1.101')
     udp = UDP(sport=1, dport=2)
-    frame = eth / ip / udp / payload
+    if recon == True:
+        pkt_hdr = struct.pack('>HHQ', 0xF0E1, 0x0001, 0)
+        frame = eth / ip / udp / (pkt_hdr + payload)
+    else:
+        frame = eth / ip / udp / payload
     return bytearray(bytes(frame))
 
 @cocotb.test()
@@ -627,7 +633,7 @@ async def run_test_nic(dut):
 
     pkts = [bytearray([(x + k) % 256 for x in range(256)]) for k in range(count)]
 
-    framed_pkts = [create_frame(pkt) for pkt in pkts]
+    framed_pkts = [create_frame(pkt, True) for pkt in pkts]
 
     tb.loopback_enable = True
 

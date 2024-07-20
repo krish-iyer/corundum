@@ -38,9 +38,11 @@ localparam [1:0]
 reg [1:0]	state_reg = STATE_IDLE, state_next = STATE_IDLE;
 wire [15:0]	ether_type;
 wire [15:0]	pkt_type;
+wire [15:0]	func_type;
 
 assign ether_type = state_reg == (STATE_IDLE && s_axis_tvalid) ? s_axis_tdata[12*8+:16] : 0;
-assign pkt_type = state_reg == (STATE_IDLE && s_axis_tvalid) ? s_axis_tdata[12*8+:16] : 0;
+assign pkt_type = state_reg == (STATE_IDLE && s_axis_tvalid) ? s_axis_tdata[42*8+:16] : 0; // delimeter
+assign func_type = state_reg == (STATE_IDLE && s_axis_tvalid) ? s_axis_tdata[44*8+:16] : 0; // function type
 
 
 reg [PORT_COUNT*DATA_WIDTH-1:0]	reg_axis_tdata;
@@ -49,7 +51,7 @@ reg [PORT_COUNT-1:0]		reg_axis_tvalid;
 reg [PORT_COUNT-1:0]		reg_axis_tready;
 reg [PORT_COUNT-1:0]		reg_axis_tlast;
 reg [PORT_COUNT*USER_WIDTH-1:0]	reg_axis_tuser;
-reg [DEST_WIDTH-1:0]		reg_axis_tdest;
+reg [DEST_WIDTH-1:0]		reg_axis_tdest = 2'b00;
 
 always @(posedge clk) begin
     state_reg <= state_next;
@@ -79,7 +81,7 @@ always @* begin
 	    if (s_axis_tready && s_axis_tvalid) begin
 		// received frame with header
 		// check for udp due to byte ordering 0800 becomes 0008
-		if (ether_type ==  16'h0008) begin
+		if (ether_type ==  16'h0008 && pkt_type == 16'hE1F0) begin
 		    if (!s_axis_tlast) begin // if single packet, no need to change state
 			state_next = STATE_TRANSFER;
 		    end
@@ -89,6 +91,13 @@ always @* begin
 			reg_axis_tvalid = s_axis_tvalid && s_axis_tready;
 			reg_axis_tlast = s_axis_tlast;
 			reg_axis_tuser = s_axis_tuser;
+
+			case (func_type)
+			    16'h0100:
+				reg_axis_tdest = 2'b01;
+			    default:
+				reg_axis_tdest = 2'b00;
+			endcase
 		    end
 		end
 		else if (!s_axis_tlast) begin
@@ -101,6 +110,7 @@ always @* begin
 		reg_axis_tvalid = 1'b0;
 		reg_axis_tlast = 1'b0;
 		reg_axis_tuser = {USER_WIDTH{1'b0}};
+		reg_axis_tdest = {DEST_WIDTH{1'b0}};
 	    end
 	end
 	STATE_TRANSFER : begin

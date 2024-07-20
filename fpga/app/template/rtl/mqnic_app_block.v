@@ -867,6 +867,7 @@ wire [PORT_COUNT-1:0]			   rmt_s_axis_tlast;
 wire [PORT_COUNT-1:0]			   rmt_s_axis_tvalid;
 wire [PORT_COUNT-1:0]			   rmt_s_axis_tready;
 wire [PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH-1:0] rmt_s_axis_tuser;
+wire [1:0]				      rmt_s_axis_tdest;
 
 wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] recon_s_axis_tdata;
 wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] recon_s_axis_tkeep;
@@ -924,7 +925,9 @@ rmt_inst (
     .m_axis_tkeep(rmt_s_axis_tkeep),
     .m_axis_tvalid(rmt_s_axis_tvalid),
     .m_axis_tready(rmt_s_axis_tready),
-    .m_axis_tlast(rmt_s_axis_tlast)
+    .m_axis_tlast(rmt_s_axis_tlast),
+    .m_axis_tdest(rmt_s_axis_tdest)
+
  );
 
 
@@ -973,7 +976,7 @@ axis_switch_inst (
     .s00_axis_tready(rmt_s_axis_tready),
     .s00_axis_tlast(rmt_s_axis_tlast),
     .s00_axis_tid(),
-    .s00_axis_tdest(3'b000),
+    .s00_axis_tdest(rmt_s_axis_tdest),
     .s00_axis_tuser(rmt_s_axis_tuser),
 
     .s01_axis_tdata(),
@@ -1005,23 +1008,23 @@ axis_switch_inst (
 
 
     // rx
-    .m00_axis_tdata(recon_s_axis_tdata),
-    .m00_axis_tkeep(recon_s_axis_tkeep),
-    .m00_axis_tvalid(recon_s_axis_tvalid),
-    .m00_axis_tready(recon_s_axis_tready),
-    .m00_axis_tlast(recon_s_axis_tlast),
+    .m00_axis_tdata(),
+    .m00_axis_tkeep(),
+    .m00_axis_tvalid(),
+    .m00_axis_tready(),
+    .m00_axis_tlast(),
     .m00_axis_tid(),
     .m00_axis_tdest(),
     .m00_axis_tuser(),
 
-    .m01_axis_tdata(),
-    .m01_axis_tkeep(),
-    .m01_axis_tvalid(),
-    .m01_axis_tready(),
-    .m01_axis_tlast(),
-    .m01_axis_tid(),
-    .m01_axis_tdest(),
-    .m01_axis_tuser(),
+    .m01_axis_tdata(recon_s_axis_tdata),
+    .m01_axis_tkeep(recon_s_axis_tkeep),
+    .m01_axis_tvalid(recon_s_axis_tvalid),
+    .m01_axis_tready(recon_s_axis_tready),
+    .m01_axis_tlast(recon_s_axis_tlast),
+    .m00_axis_tid(),
+    .m00_axis_tdest(),
+    .m00_axis_tuser(),
 
     .m02_axis_tdata(),
     .m02_axis_tkeep(),
