@@ -901,6 +901,7 @@ def test_mqnic_core_pcie_us(request, if_count, ports_per_if, axis_pcie_data_widt
         os.path.join(axi_rtl_dir, "axil_register_rd.v"),
         os.path.join(axi_rtl_dir, "axil_register_wr.v"),
         os.path.join(axi_rtl_dir, "arbiter.v"),
+        os.path.join(axi_rtl_dir, "axi_ram.v"),
         os.path.join(axi_rtl_dir, "priority_encoder.v"),
         os.path.join(axis_rtl_dir, "axis_adapter.v"),
         os.path.join(axis_rtl_dir, "axis_ram_switch.v"),

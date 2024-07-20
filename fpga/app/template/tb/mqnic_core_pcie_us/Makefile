@@ -62,6 +62,7 @@ VERILOG_SOURCES += ../../rtl/rmt.v
 VERILOG_SOURCES += ../../lib/axis/rtl/axis_ram_switch_4x4.v
 VERILOG_SOURCES += ../../lib/axis/rtl/axis_ram_switch.v
 VERILOG_SOURCES += ../../lib/axis/rtl/axis_tap.v
+VERILOG_SOURCES += ../../lib/axi/rtl/axi_ram.v
 ##################################################################################
 VERILOG_SOURCES += ../../lib/eth/rtl/mac_ctrl_rx.v
 VERILOG_SOURCES += ../../lib/eth/rtl/mac_ctrl_tx.v

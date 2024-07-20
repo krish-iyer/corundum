@@ -860,7 +860,6 @@ parameter USER_ENABLE = 1;
 parameter USER_WIDTH = PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH;
 parameter ARB_TYPE_ROUND_ROBIN = 1;
 parameter ARB_LSB_HIGH_PRIORITY = 1;
-parameter DDR_ADDR_WIDTH = 34;
 
 wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] rmt_s_axis_tdata;
 wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] rmt_s_axis_tkeep;
@@ -1051,7 +1050,7 @@ axis_switch_inst (
 
 streamCapture #(
     .DATA_WIDTH(DATA_WIDTH),
-    .ADDR_WIDTH(DDR_ADDR_WIDTH),
+    .ADDR_WIDTH(AXI_DDR_ADDR_WIDTH),
     .FIFO_DEPTH(32)
 )
 stream_capture_inst (
@@ -1065,29 +1064,29 @@ stream_capture_inst (
     .s_axis_tlast(recon_s_axis_tlast),
     .s_axis_tready(recon_s_axis_tready),
     // AXI MM Interface
-    .axi_awready(m_axi_ddr_awready),   // Indicates slave is ready to accept a write address
-    .axi_awid(m_axi_ddr_awid),      // Write ID
-    .axi_awaddr(m_axi_ddr_awaddr),    // Write address
-    .axi_awlen(m_axi_ddr_awlen),     // Write Burst Length
-    .axi_awsize(m_axi_ddr_awsize),    // Write Burst size
-    .axi_awburst(m_axi_ddr_awburst),   // Write Burst type
-    .axi_awlock(m_axi_ddr_awlock),    // Write lock type
-    .axi_awcache(m_axi_ddr_awcache),   // Write Cache type
-    .axi_awprot(m_axi_ddr_awprot),    // Write Protection type
-    .axi_awvalid(m_axi_ddr_awvalid),   // Write address valid
+    .axi_awready(ram_s_axi_awready),   // Indicates slave is ready to accept a write address
+    .axi_awid(ram_s_axi_awid),      // Write ID
+    .axi_awaddr(ram_s_axi_awaddr),    // Write address
+    .axi_awlen(ram_s_axi_awlen),     // Write Burst Length
+    .axi_awsize(ram_s_axi_awsize),    // Write Burst size
+    .axi_awburst(ram_s_axi_awburst),   // Write Burst type
+    .axi_awlock(ram_s_axi_awlock),    // Write lock type
+    .axi_awcache(ram_s_axi_awcache),   // Write Cache type
+    .axi_awprot(ram_s_axi_awprot),    // Write Protection type
+    .axi_awvalid(ram_s_axi_awvalid),   // Write address valid
     ////////////////////////////////////////////////////////////////////////////
     // Master Interface Write Data
-    .axi_wd_wready(m_axi_ddr_wready), // Write data ready
-    .axi_wd_data(m_axi_ddr_wdata),   // Write data
-    .axi_wd_strb(m_axi_ddr_wstrb),   // Write strobes
-    .axi_wd_last(m_axi_ddr_wlast),   // Last write transaction
-    .axi_wd_valid(m_axi_ddr_wvalid),  // Write valid
+    .axi_wd_wready(ram_s_axi_wready), // Write data ready
+    .axi_wd_data(ram_s_axi_wdata),   // Write data
+    .axi_wd_strb(ram_s_axi_wstrb),   // Write strobes
+    .axi_wd_last(ram_s_axi_wlast),   // Last write transaction
+    .axi_wd_valid(ram_s_axi_wvalid),  // Write valid
     ////////////////////////////////////////////////////////////////////////////
     // Master Interface Write Response
-    .axi_wd_bid(m_axi_ddr_bid),    // Response ID
-    .axi_wd_bresp(m_axi_ddr_bresp),  // Write response
-    .axi_wd_bvalid(m_axi_ddr_bvalid), // Write reponse valid
-    .axi_wd_bready(m_axi_ddr_bready), // Response read
+    .axi_wd_bid(ram_s_axi_bid),    // Response ID
+    .axi_wd_bresp(ram_s_axi_bresp),  // Write response
+    .axi_wd_bvalid(ram_s_axi_bvalid), // Write reponse valid
+    .axi_wd_bready(ram_s_axi_bready), // Response read
 
     .startCapture(startCapture),
     .start_addr(32'h00000000),
@@ -1101,6 +1100,75 @@ stream_capture_inst (
     .full()
     );
 
+
+wire [AXI_DDR_ID_WIDTH-1:0]   ram_s_axi_awid;
+wire [AXI_DDR_ADDR_WIDTH-1:0] ram_s_axi_awaddr;
+wire			      ram_s_axi_awready;
+wire			      ram_s_axi_awlen;
+wire			      ram_s_axi_awsize;
+wire			      ram_s_axi_awburst;
+wire			      ram_s_axi_awlock;
+wire			      ram_s_axi_awcache;
+wire			      ram_s_axi_awprot;
+wire			      ram_s_axi_awqos;
+wire			      ram_s_axi_awuser;
+wire			      ram_s_axi_awvalid;
+wire [DATA_WIDTH-1:0]	      ram_s_axi_wdata;
+wire [AXI_DDR_STRB_WIDTH-1:0] ram_s_axi_wstrb;
+wire			      ram_s_axi_wlast;
+wire			      ram_s_axi_wuser;
+wire			      ram_s_axi_wvalid;
+wire			      ram_s_axi_wready;
+wire			      ram_s_axi_bid;
+wire [1:0]		      ram_s_axi_bresp;
+wire			      ram_s_axi_bvalid;
+wire			      ram_s_axi_bready;
+
+axi_ram #(
+    .DATA_WIDTH(DATA_WIDTH),
+    .ADDR_WIDTH(16),
+    .ID_WIDTH(AXI_DDR_ID_WIDTH)
+    )
+axi_ram_inst(
+    .clk(clk),
+    .rst(rst),
+
+    .s_axi_awid(ram_s_axi_awid),
+    .s_axi_awaddr(ram_s_axi_awaddr),
+    .s_axi_awlen(ram_s_axi_awlen),
+    .s_axi_awsize(ram_s_axi_awsize),
+    .s_axi_awburst(ram_s_axi_awburst),
+    .s_axi_awlock(ram_s_axi_awlock),
+    .s_axi_awcache(ram_s_axi_awcache),
+    .s_axi_awprot(ram_s_axi_awprot),
+    .s_axi_awvalid(ram_s_axi_awvalid),
+    .s_axi_awready(ram_s_axi_awready),
+    .s_axi_wdata(ram_s_axi_wdata),
+    .s_axi_wstrb(ram_s_axi_wstrb),
+    .s_axi_wlast(ram_s_axi_wlast),
+    .s_axi_wvalid(ram_s_axi_wvalid),
+    .s_axi_wready(ram_s_axi_wready),
+    .s_axi_bid(ram_s_axi_bid),
+    .s_axi_bresp(ram_s_axi_bresp),
+    .s_axi_bvalid(ram_s_axi_bvalid),
+    .s_axi_bready(ram_s_axi_bready),
+    .s_axi_arid(),
+    .s_axi_araddr(),
+    .s_axi_arlen(),
+    .s_axi_arsize(),
+    .s_axi_arburst(),
+    .s_axi_arlock(),
+    .s_axi_arcache(),
+    .s_axi_arprot(),
+    .s_axi_arvalid(),
+    .s_axi_arready(),
+    .s_axi_rid(),
+    .s_axi_rdata(),
+    .s_axi_rresp(),
+    .s_axi_rlast(),
+    .s_axi_rvalid(),
+    .s_axi_rready()
+    );
 
    /*
     ila_axis recon_debug (
