@@ -40,9 +40,9 @@ wire [15:0]	ether_type;
 wire [15:0]	pkt_type;
 wire [15:0]	func_type;
 
-assign ether_type = state_reg == (STATE_IDLE && s_axis_tvalid) ? s_axis_tdata[12*8+:16] : 0;
-assign pkt_type = state_reg == (STATE_IDLE && s_axis_tvalid) ? s_axis_tdata[42*8+:16] : 0; // delimeter
-assign func_type = state_reg == (STATE_IDLE && s_axis_tvalid) ? s_axis_tdata[44*8+:16] : 0; // function type
+assign ether_type = ((state_reg == STATE_IDLE) && s_axis_tvalid) ? s_axis_tdata[12*8+:16] : 0;
+assign pkt_type = ((state_reg == STATE_IDLE) && s_axis_tvalid) ? s_axis_tdata[42*8+:16] : 0; // delimeter
+assign func_type = ((state_reg == STATE_IDLE) && s_axis_tvalid) ? s_axis_tdata[44*8+:16] : 0; // function type
 
 
 reg [PORT_COUNT*DATA_WIDTH-1:0]	reg_axis_tdata;
