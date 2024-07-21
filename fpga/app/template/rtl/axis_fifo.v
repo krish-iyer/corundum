@@ -1,15 +1,15 @@
 module axis_fifo_ex #
   (
-   parameter integer DATA_WIDTH = 8,
-   parameter integer KEEP_WIDTH = ((DATA_WIDTH+7)/8),
-   parameter integer FIFO_DEPTH = 8
+    parameter DATA_WIDTH = 8,
+    parameter KEEP_WIDTH = ((DATA_WIDTH+7)/8),
+    parameter FIFO_DEPTH = 8
    )
    (
     // slave interface
     input wire		    s_axis_areset,
     input wire		    s_axis_aclk,
     input wire		    s_axis_tvalid,
-    input		    s_axis_tready,
+    output		    s_axis_tready,
     input [DATA_WIDTH-1:0]  s_axis_tdata,
     input [KEEP_WIDTH-1:0]  s_axis_tkeep,
     input		    s_axis_tlast,
@@ -31,6 +31,8 @@ wire [fifo_width-1:0]	      data_in;
 wire [fifo_width-1:0]	      data_out;
 
 localparam integer	      fifo_width = DATA_WIDTH + KEEP_WIDTH + 3; // tvalid + tready + tlast
+
+assign s_axis_tready = full == 0 ? 1'b1 : 1'b0; // make ready false if fifo is false
 
 assign data_in = {s_axis_tvalid, s_axis_tready, s_axis_tdata, s_axis_tkeep, s_axis_tlast};
 assign m_axis_tvalid = data_out[fifo_width - 1];
