@@ -114,15 +114,17 @@ always @* begin
 	    end
 	end
 	STATE_TRANSFER : begin
-	    if (reg_axis_tready) begin
-		reg_axis_tdata = s_axis_tdata;
-		reg_axis_tkeep = s_axis_tkeep;
-		reg_axis_tvalid = s_axis_tvalid && s_axis_tready;
-		reg_axis_tlast = s_axis_tlast;
-		reg_axis_tuser = s_axis_tuser;
-	    end
-	    if (s_axis_tlast) begin
-		state_next = STATE_IDLE;
+	    if (s_axis_tready && s_axis_tvalid) begin
+		if (reg_axis_tready) begin
+		    reg_axis_tdata = s_axis_tdata;
+		    reg_axis_tkeep = s_axis_tkeep;
+		    reg_axis_tvalid = s_axis_tvalid && s_axis_tready;
+		    reg_axis_tlast = s_axis_tlast;
+		    reg_axis_tuser = s_axis_tuser;
+		end
+		if (s_axis_tlast) begin
+		    state_next = STATE_IDLE;
+		end
 	    end
 	end
 	STATE_DROP : begin
