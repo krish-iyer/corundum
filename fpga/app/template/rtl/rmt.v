@@ -105,6 +105,8 @@ always @* begin
 		end
 	    end // if (s_axis_tready && s_axis_tvalid && !s_axis_tlast)
 	    else begin
+		// this cannot be moved to the begin as with
+		// subsequent packet, the state cannot to IDLE till tlast
 		reg_axis_tdata = {DATA_WIDTH{1'b0}};
 		reg_axis_tkeep = {KEEP_WIDTH{1'b0}};
 		reg_axis_tvalid = 1'b0;
