@@ -1054,9 +1054,9 @@ streamCapture #(
     .FIFO_DEPTH(32)
 )
 stream_capture_inst (
-    .clk_stream(clk),
+    .s_axis_clk(clk),
     .m_axi_aclk(clk),
-    .reset_stream(rst),
+    .rst(rst),
     //input stream
     .s_axis_tvalid(recon_s_axis_tvalid),
     .s_axis_tdata(recon_s_axis_tdata),
