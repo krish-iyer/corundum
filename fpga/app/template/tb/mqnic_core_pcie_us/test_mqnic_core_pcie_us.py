@@ -431,12 +431,15 @@ class TB(object):
 
 
 
-def create_frame(payload, recon):
+def create_frame(payload, recon, index):
     eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
     ip = IP(src='192.168.1.100', dst='192.168.1.101')
     udp = UDP(sport=1, dport=2)
     if recon == True:
-        pkt_hdr = struct.pack('<HHQ', 0xF0E1, 0x0001, 0)
+        if index == 0:
+            pkt_hdr = struct.pack('<HHII', 0xF0E1, 0x0001, 0x80000000, 256)
+        else:
+            pkt_hdr = struct.pack('<HHII', 0xF0E1, 0x0001, 0, 256)
         frame = eth / ip / udp / (pkt_hdr + payload)
     else:
         frame = eth / ip / udp / payload
@@ -633,7 +636,7 @@ async def run_test_nic(dut):
 
     pkts = [bytearray([(x + k) % 256 for x in range(256)]) for k in range(count)]
 
-    framed_pkts = [create_frame(pkt, True) for pkt in pkts]
+    framed_pkts = [create_frame(pkt, True, index) for index, pkt in enumerate(pkts)]
 
     tb.loopback_enable = True
 

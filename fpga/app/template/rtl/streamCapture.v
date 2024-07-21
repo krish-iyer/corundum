@@ -53,7 +53,6 @@ module streamCapture #(
 
 
 
-integer				dataCounter;
 wire [31:0]			captureSize;
 reg				startCapture_p;
 reg				startCapture_p1;
@@ -87,11 +86,12 @@ reg [2:0]	capture_state = HDR_CAPTURE, capture_state_next = HDR_CAPTURE;
 reg [63:0]	recon_hdr;
 reg [1:0]	func_type;
 reg [7:0]	bitstream_id;
-reg [15:0]	bitstream_size;
+reg [31:0]	bitstream_size;
+reg		bitstream_size_valid;
 reg [7:0]	bitstream_id_int;
-reg [15:0]	bitstream_size_int;
-reg [15:0]	pending_transfer_size;
-reg [$clog2(DATA_WIDTH):0] frame_size;
+reg [31:0]	bitstream_size_int;
+reg [31:0]	pending_transfer_size = 0;
+reg [$clog2(DATA_WIDTH):0] frame_size = 0;
 
 wire [DATA_WIDTH-1:0]		fifo_tdata;
 wire [KEEP_WIDTH-1:0]		fifo_tkeep;
@@ -119,11 +119,14 @@ reg				s_fifo_tready_int;
 
 reg [7:0]	bitstream_addr_table [0:ADDR_WIDTH+16+1-1]; // [size][ADDR][Valid]
 
+localparam integer ETH_IP_RMT_HDR_DATA_WIDTH = 46; // bytes
+localparam [63:0]  ETH_IP_RMT_HDR_KEEP_MASK = 64'h0000000000003FFFF;
 
-assign recon_hdr = (HDR_CAPTURE && s_axis_tvalid) ? s_axis_tdata[46*8+:64] : 0; // hdr
-assign func_type = (HDR_CAPTURE && s_axis_tvalid) ? recon_hdr [1:0] : 0;
-assign bitstream_id = (HDR_CAPTURE && s_axis_tvalid) ? recon_hdr[2+:8] : 0;
-assign bitstream_size = (HDR_CAPTURE && s_axis_tvalid) ? recon_hdr[10+:16] : 0;
+assign recon_hdr = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? s_axis_tdata[46*8+:64] : 0; // hdr
+assign func_type = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr [1:0] : 0;
+assign bitstream_id = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[2+:8] : 0;
+assign bitstream_size_valid = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[31+:1] : 0;
+assign bitstream_size = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[32+:32] : 0;
 
 
 assign axi_wd_data = m_fifo_tdata;
@@ -152,18 +155,6 @@ always @(posedge s_axis_clk) begin
     capturePulse <= startCapture_p&~startCapture_p1;
 end
 
-
-always @(posedge s_axis_clk) begin
-    if(resetCounter)
-        dataCounter <= 0;
-    else if(s_axis_tvalid & dataCounter == captureSize-1)
-    	dataCounter <= 0;
-    else if(startCaptureInt & s_axis_tvalid)
-	begin
-    	    dataCounter <= dataCounter + 1;
-	end
-end
-
 always @(posedge s_axis_clk) begin
     capture_state <= capture_state_next;
     if (rst) begin
@@ -183,92 +174,68 @@ always @(posedge s_axis_clk) begin
 end
 
 always @* begin
-
-    capture_state_next = HDR_CAPTURE;
-
-    s_fifo_tdata_int = {DATA_WIDTH{1'b0}};
-    s_fifo_tkeep_int = {KEEP_WIDTH{1'b0}};
-    s_fifo_tlast_int = 1'b0;
-    s_fifo_tvalid_int = 1'b0;
-
+    frame_size = 0;
     case (capture_state)
 	HDR_CAPTURE: begin
 	    if (s_axis_tready && s_axis_tvalid) begin
 		case (func_type)
 		    2'b00: begin
-			capture_state_next = FRAME_MEM_TRANSFER;
-			for (i = KEEP_WIDTH-1; i >= 8; i = i - 1) begin // don't consider header
-			    frame_size = frame_size + s_axis_tkeep[i];
+			if (!s_axis_tlast) begin
+			    capture_state_next = FRAME_MEM_TRANSFER;
 			end
-			pending_transfer_size -= frame_size;
 			bitstream_id_int = bitstream_id;
 			bitstream_size_int = bitstream_size;
+			if (bitstream_size_valid) begin
+			    pending_transfer_size = bitstream_size;
+			end
 			// bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a way to calculate an addr
-			s_fifo_tdata_int = s_axis_tdata;
-			s_fifo_tkeep_int = s_axis_tkeep;
+			s_fifo_tdata_int = s_axis_tdata >> (ETH_IP_RMT_HDR_DATA_WIDTH * 8);
+			s_fifo_tkeep_int = ((s_axis_tkeep >> ETH_IP_RMT_HDR_DATA_WIDTH) & ETH_IP_RMT_HDR_KEEP_MASK) ;
 			s_fifo_tvalid_int = s_axis_tvalid & s_axis_tready; // only commit if there's space
 			s_fifo_tlast_int = s_axis_tlast;
+			for (i = (KEEP_WIDTH - ETH_IP_RMT_HDR_DATA_WIDTH - 1); i >= 0; i = i - 1) begin // don't consider header
+			    frame_size = frame_size + s_fifo_tkeep_int[i];
+			end
+			if (pending_transfer_size >= frame_size) begin
+			    pending_transfer_size -= frame_size;
+			end
 		    end
 		    2'b01: begin
 			capture_state_next = DMA_INIT;
 			// create DMA command
 		    end
 		endcase
+	    end // if (s_axis_tready && s_axis_tvalid)
+	    else begin
+	        s_fifo_tdata_int = {DATA_WIDTH{1'b0}};
+		s_fifo_tkeep_int = {KEEP_WIDTH{1'b0}};
+		s_fifo_tlast_int = 1'b0;
+		s_fifo_tvalid_int = 1'b0;
 	    end
 	end // case: HDR_CAPTURE
 	FRAME_MEM_TRANSFER: begin
 	    if (s_axis_tready && s_axis_tvalid) begin
-		for (i = KEEP_WIDTH-1; i >= 8; i = i - 1) begin // don't consider header
+		if (s_axis_tlast) begin
+		    capture_state_next = HDR_CAPTURE;
+		end
+		for (i = KEEP_WIDTH-1; i >= 0; i = i - 1) begin // don't consider header
 		    frame_size = frame_size + s_axis_tkeep[i];
 		end
-		pending_transfer_size -= frame_size; // check for negative conditions do only if frame_size <= pending_transfer_size, if not then enable bad frame signal
-		bitstream_id_int = bitstream_id;
-		bitstream_size_int = bitstream_size;
+		if(pending_transfer_size >= frame_size) begin
+		    pending_transfer_size -= frame_size; // check for negative conditions do only if frame_size <= pending_transfer_size, if not then enable bad frame signal
+		end
 		// bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a way to calculate an addr
 		s_fifo_tdata_int = s_axis_tdata;
 		s_fifo_tkeep_int = s_axis_tkeep;
 		s_fifo_tvalid_int = s_axis_tvalid & s_axis_tready;
 		s_fifo_tlast_int = s_axis_tlast;
 	    end // if (s_axis_tready && s_axis_tvalid)
-	    if (pending_transfer_size == 0) begin
-		capture_state_next = CAPTURE_DONE;
-	    end
-	end
+	    // if (pending_transfer_size == 0) begin
+	    // 	capture_state_next = CAPTURE_DONE;
+	    // end
+	end // case: FRAME_MEM_TRANSFER
     endcase
 end // always @ *
-
-always @(posedge s_axis_clk) begin
-    if(rst) begin
-        state <= IDLE;
-        resetCounter <= 1'b1;
-        done <= 1'b0;
-    end
-    else begin
-        case(state)
-            IDLE:begin
-		if(startCapture_p1) begin
-                    resetCounter <= 1'b1;
-                    state <= CAPTURE;
-		end
-            end
-            CAPTURE:begin
-		startCaptureInt <= 1'b1;
-		resetCounter <= 1'b0;
-		if((dataCounter == captureSize-1) & s_axis_tvalid) begin
-                    startCaptureInt <= 1'b0;
-                    state <= DONE;
-		end
-            end
-            DONE:begin
-		done <= 1'b1;
-		if(!startCapture_p1) begin
-                    state <= IDLE;
-                    done <= 1'b0;
-		end
-            end
-        endcase
-    end
-end
 
 
 always @(posedge m_axi_aclk) begin
