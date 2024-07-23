@@ -5,74 +5,61 @@ module streamCapture #(
     parameter FIFO_DEPTH = 32
 )
 (
-    input			s_axis_clk,
-    input wire			m_axi_aclk,
-    input			rst,
+    input		    s_axis_clk,
+    input wire		    m_axi_aclk,
+    input		    rst,
     //input stream
-    input			s_axis_tvalid,
-    input [DATA_WIDTH-1:0]	s_axis_tdata,
-    input [KEEP_WIDTH-1:0]	s_axis_tkeep,
-    input			s_axis_tlast,
-    output reg			s_axis_tready,
-    // AXI MM Interface
-    input			axi_awready, // Indicates slave is ready to accept a write address
-    output reg [5 : 0]		axi_awid, // Write ID
-    output reg [ADDR_WIDTH-1:0]	axi_awaddr, // Write address
-    output [7 : 0]		axi_awlen, // Write Burst Length
-    output [2 : 0]		axi_awsize, // Write Burst size
-    output [1 : 0]		axi_awburst, // Write Burst type
-    output			axi_awlock, // Write lock type
-    output [3 : 0]		axi_awcache, // Write Cache type
-    output [2 : 0]		axi_awprot, // Write Protection type
-    output reg			axi_awvalid, // Write address valid
-    ////////////////////////////////////////////////////////////////////////////
-    // Master Interface Write Data
-    input			axi_wd_wready, // Write data ready
-    output [DATA_WIDTH-1:0]	axi_wd_data, // Write data
-    output [KEEP_WIDTH-1:0]	axi_wd_strb, // Write strobes
-    output			axi_wd_last, // Last write transaction
-    output reg			axi_wd_valid, // Write valid
-    ////////////////////////////////////////////////////////////////////////////
-    // Master Interface Write Response
-    input			axi_wd_bid, // Response ID
-    input [1:0]			axi_wd_bresp, // Write response
-    input			axi_wd_bvalid, // Write reponse valid
-    output reg			axi_wd_bready, // Response ready
+    input		    s_axis_tvalid,
+    input [DATA_WIDTH-1:0]  s_axis_tdata,
+    input [KEEP_WIDTH-1:0]  s_axis_tkeep,
+    input		    s_axis_tlast,
+    output reg		    s_axis_tready,
 
-    input			startCapture,
-    input [ADDR_WIDTH-1:0]	start_addr,
-    output			o_capture_start,
-    output			o_done,
-    output wire			rd_en,
-    output wire [31 : 0]	rd_ptr,
-    output wire [31 : 0]	rd_prev_ptr,
-    output wire [1 : 0]		wr_state,
-    output wire			empty,
-    output wire			full
+    input		    m_axi_awready,
+    output [5 : 0]	    m_axi_awid,
+    output [ADDR_WIDTH-1:0] m_axi_awaddr,
+    output [7 : 0]	    m_axi_awlen,
+    output [2 : 0]	    m_axi_awsize,
+    output [1 : 0]	    m_axi_awburst,
+    output		    m_axi_awlock,
+    output [3 : 0]	    m_axi_awcache,
+    output [2 : 0]	    m_axi_awprot,
+    output		    m_axi_awvalid,
+    input		    m_axi_wready,
+    output [DATA_WIDTH-1:0] m_axi_wdata,
+    output [KEEP_WIDTH-1:0] m_axi_wstrb,
+    output		    m_axi_wlast,
+    output		    m_axi_wvalid,
+    input		    m_axi_bid,
+    input [1:0]		    m_axi_bresp,
+    input		    m_axi_bvalid,
+    output		    m_axi_bready,
+
+    input		    startCapture,
+    input [ADDR_WIDTH-1:0]  start_addr,
+    output		    o_capture_start,
+    output		    o_done,
+    output wire		    rd_en,
+    output wire [31 : 0]    rd_ptr,
+    output wire [31 : 0]    rd_prev_ptr,
+    output wire [1 : 0]	    wr_state,
+    output wire		    empty,
+    output wire		    full
     );
 
 
+reg [ADDR_WIDTH-1:0]	    axi_base_addr = {ADDR_WIDTH{1'b0}};
+reg [ADDR_WIDTH-1:0]	    axi_base_addr_in = {ADDR_WIDTH{1'b0}};
 
-wire [31:0]			captureSize;
-reg				startCapture_p;
-reg				startCapture_p1;
-reg				startCaptureInt;
-reg				resetCounter;
-reg				done;
-reg [1:0]			state;
-reg [1:0]			wrState;
-reg				capturePulse;
-//wire [31 : 0]	 start_addr;
+reg			    cmd_wr_base_addr;
+wire			    ack_wr_base_addr;
+reg			    cmd_wr_base_addr_int;
+wire			    ack_wr_base_addr_int;
+
 integer				i;
-reg				fifo_rd_en = 1'b1;
 wire [31 : 0]			ptr;
 reg [31 : 0]			prev_ptr = FIFO_DEPTH - 1;
 
-localparam			IDLE    = 'd0,
-				CAPTURE = 'd1,
-				DONE    = 'd2,
-				WR_ADDR = 'd1,
-				WR_DATA = 'd2;
 
 localparam [2:0]
 		HDR_CAPTURE = 3'd0,
@@ -109,7 +96,7 @@ wire [DATA_WIDTH-1:0]		m_fifo_tdata;
 wire [KEEP_WIDTH-1:0]		m_fifo_tkeep;
 wire				m_fifo_tlast;
 wire				m_fifo_tvalid;
-reg				m_fifo_tready = 1'b1;
+wire				m_fifo_tready;
 
 reg [KEEP_WIDTH-1:0]		s_fifo_tkeep_int;
 reg [DATA_WIDTH-1:0]		s_fifo_tdata_int;
@@ -120,7 +107,7 @@ reg				s_fifo_tready_int;
 reg [7:0]	bitstream_addr_table [0:ADDR_WIDTH+16+1-1]; // [size][ADDR][Valid]
 
 localparam integer ETH_IP_RMT_HDR_DATA_WIDTH = 46; // bytes
-localparam [63:0]  ETH_IP_RMT_HDR_KEEP_MASK = 64'h0000000000003FFFF;
+localparam [63:0]  ETH_IP_RMT_HDR_KEEP_MASK = 64'h000000000003FFFF;
 
 assign recon_hdr = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? s_axis_tdata[46*8+:64] : 0; // hdr
 assign func_type = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr [1:0] : 0;
@@ -129,31 +116,8 @@ assign bitstream_size_valid = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) 
 assign bitstream_size = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[32+:32] : 0;
 
 
-assign axi_wd_data = m_fifo_tdata;
-assign axi_wd_strb = m_fifo_tkeep;
-
-assign rd_en = m_fifo_tready;
-assign rd_ptr = ptr;
-assign rd_prev_ptr = prev_ptr;
-assign wr_state = wrState;
-//assign fifo_tkeep    =  s_axis_tkeep;
-assign o_done = done;
-assign o_capture_start = startCapture_p1;
-assign axi_awlen     = 8'd0;
-assign axi_awsize    = 3'd6;
-assign axi_awburst   = 2'd1;
-assign axi_awcache   = 4'd0;
-assign axi_awprot    = 3'd0;
-//assign axi_awid      = 1'd0;
-assign axi_awlock    = 1'd0;
-assign axi_wd_last   = axi_wd_valid;
-
-
-always @(posedge s_axis_clk) begin
-    startCapture_p <= startCapture;
-    startCapture_p1 <= startCapture_p;
-    capturePulse <= startCapture_p&~startCapture_p1;
-end
+assign o_done = 1'b1;
+assign o_capture_start = 1'b1;
 
 always @(posedge s_axis_clk) begin
     capture_state <= capture_state_next;
@@ -173,6 +137,16 @@ always @(posedge s_axis_clk) begin
     end
 end
 
+always @(posedge m_axi_aclk) begin
+    axi_base_addr <= axi_base_addr_int;
+    if (cmd_wr_base_addr_int) begin
+	cmd_wr_base_addr <= cmd_wr_base_addr_int;
+    end
+    if (ack_wr_base_addr) begin
+	cmd_wr_base_addr <= 1'b0;
+    end
+end
+
 always @* begin
     frame_size = 0;
     case (capture_state)
@@ -185,6 +159,8 @@ always @* begin
 			end
 			bitstream_id_int = bitstream_id;
 			bitstream_size_int = bitstream_size;
+			cmd_wr_base_addr_int  = 1'b1; // needs a state machine
+			axi_base_addr_int = {ADDR_WIDTH{1'b0}};
 			if (bitstream_size_valid) begin
 			    pending_transfer_size = bitstream_size;
 			end
@@ -238,67 +214,6 @@ always @* begin
 end // always @ *
 
 
-always @(posedge m_axi_aclk) begin
-    if(rst) begin
-        axi_awvalid  <= 1'b0;
-        axi_wd_valid <= 1'b0;
-        wrState <= IDLE;
-    end
-    else begin
-        case(wrState)
-            IDLE:begin
-		if(capturePulse) begin
-                    axi_awaddr <= start_addr;
-		end
-		// check is there's something to send
-		if(m_fifo_tvalid && (ptr!=prev_ptr)) begin
-                    axi_awvalid  <= 1'b1;
-		    wrState      <= WR_ADDR;
-                    //axi_awid <= axi_awid + 1'b1;
-		    m_fifo_tready <= 1'b0; // no more read from the fifo in sending process
-		end
-            end
-            WR_ADDR:begin
-		if(axi_awready) begin
-                    axi_awvalid  <= 1'b0;
-                    axi_wd_valid <= 1'b1;
-                    // for(i = 0; i < 64; i=i+1) begin
-                    //    if(m_fifo_tkeep[i])
-                    //      axi_awaddr = axi_awaddr+1;
-		    // end
-		    // increment address by 64 byte
-		    axi_awaddr <= axi_awaddr + 64;
-                    wrState <= WR_DATA;
-		end
-            end
-            WR_DATA:begin
-		if(axi_wd_wready) begin
-                    axi_wd_valid <= 1'b0;
-		    // account for cirular buffer
-		    if(prev_ptr == (FIFO_DEPTH - 1)) begin
-			prev_ptr <= 0;
-		    end
-		    else begin
-			prev_ptr <= prev_ptr + 1;
-		    end
-		    m_fifo_tready <= 1'b1;
-		    wrState <= IDLE;
-		end
-            end
-        endcase
-    end
-end
-
-
-always @(posedge m_axi_aclk) begin
-    if(rst)
-        axi_wd_bready <= 1'b0;
-    else if(axi_wd_bready)
-        axi_wd_bready <= 1'b0;
-    else if(axi_wd_bvalid)
-        axi_wd_bready <= 1'b1;
-end
-
 axis_fifo_ex #
 (
     .DATA_WIDTH(DATA_WIDTH),
@@ -324,7 +239,43 @@ axis_fifo_inst
     .full(full),
     .ptr(ptr),
     .mon_ptr(prev_ptr)
-);
+    );
 
+
+axi_ctrl #
+(
+    .DATA_WIDTH(DATA_WIDTH),
+    .KEEP_WIDTH(KEEP_WIDTH),
+    .ADDR_WIDTH(ADDR_WIDTH),
+    .FIFO_DEPTH(FIFO_DEPTH)
+)
+axi_ctrl_inst
+(
+    .s_axis_tdata(m_fifo_tdata),
+    .s_axis_tkeep(m_fifo_tkeep),
+    .s_axis_tlast(m_fifo_tlast),
+    .s_axis_tvalid(m_fifo_tvalid),
+    .s_axis_tready(m_fifo_tready),
+
+    .m_axi_awready(m_axi_awready),
+    .m_axi_awid(m_axi_awid),
+    .m_axi_awaddr(m_axi_awaddr),
+    .m_axi_awlen(m_axi_awlen),
+    .m_axi_awsize(m_axi_awsize),
+    .m_axi_awburst(m_axi_awburst),
+    .m_axi_awlock(m_axi_awlock),
+    .m_axi_awcache(m_axi_awcache),
+    .m_axi_awprot(m_axi_awprot),
+    .m_axi_awvalid(m_axi_awvalid),
+    .m_axi_wready(m_axi_wready),
+    .m_axi_wdata(m_axi_wdata),
+    .m_axi_wstrb(m_axi_wstrb),
+    .m_axi_wlast(m_axi_wlast),
+    .m_axi_wvalid(m_axi_wvalid),
+    .m_axi_bid(m_axi_bid),
+    .m_axi_bresp(m_axi_bresp),
+    .m_axi_bvalid(m_axi_bvalid),
+    .m_axi_bready(m_axi_bready)
+    );
 
 endmodule

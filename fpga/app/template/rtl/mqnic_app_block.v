@@ -1064,29 +1064,29 @@ stream_capture_inst (
     .s_axis_tlast(recon_s_axis_tlast),
     .s_axis_tready(recon_s_axis_tready),
     // AXI MM Interface
-    .axi_awready(ram_s_axi_awready),   // Indicates slave is ready to accept a write address
-    .axi_awid(ram_s_axi_awid),      // Write ID
-    .axi_awaddr(ram_s_axi_awaddr),    // Write address
-    .axi_awlen(ram_s_axi_awlen),     // Write Burst Length
-    .axi_awsize(ram_s_axi_awsize),    // Write Burst size
-    .axi_awburst(ram_s_axi_awburst),   // Write Burst type
-    .axi_awlock(ram_s_axi_awlock),    // Write lock type
-    .axi_awcache(ram_s_axi_awcache),   // Write Cache type
-    .axi_awprot(ram_s_axi_awprot),    // Write Protection type
-    .axi_awvalid(ram_s_axi_awvalid),   // Write address valid
+    .m_axi_awready(ram_s_axi_awready),   // Indicates slave is ready to accept a write address
+    .m_axi_awid(ram_s_axi_awid),      // Write ID
+    .m_axi_awaddr(ram_s_axi_awaddr),    // Write address
+    .m_axi_awlen(ram_s_axi_awlen),     // Write Burst Length
+    .m_axi_awsize(ram_s_axi_awsize),    // Write Burst size
+    .m_axi_awburst(ram_s_axi_awburst),   // Write Burst type
+    .m_axi_awlock(ram_s_axi_awlock),    // Write lock type
+    .m_axi_awcache(ram_s_axi_awcache),   // Write Cache type
+    .m_axi_awprot(ram_s_axi_awprot),    // Write Protection type
+    .m_axi_awvalid(ram_s_axi_awvalid),   // Write address valid
     ////////////////////////////////////////////////////////////////////////////
     // Master Interface Write Data
-    .axi_wd_wready(ram_s_axi_wready), // Write data ready
-    .axi_wd_data(ram_s_axi_wdata),   // Write data
-    .axi_wd_strb(ram_s_axi_wstrb),   // Write strobes
-    .axi_wd_last(ram_s_axi_wlast),   // Last write transaction
-    .axi_wd_valid(ram_s_axi_wvalid),  // Write valid
+    .m_axi_wready(ram_s_axi_wready), // Write data ready
+    .m_axi_wdata(ram_s_axi_wdata),   // Write data
+    .m_axi_wstrb(ram_s_axi_wstrb),   // Write strobes
+    .m_axi_wlast(ram_s_axi_wlast),   // Last write transaction
+    .m_axi_wvalid(ram_s_axi_wvalid),  // Write valid
     ////////////////////////////////////////////////////////////////////////////
     // Master Interface Write Response
-    .axi_wd_bid(ram_s_axi_bid),    // Response ID
-    .axi_wd_bresp(ram_s_axi_bresp),  // Write response
-    .axi_wd_bvalid(ram_s_axi_bvalid), // Write reponse valid
-    .axi_wd_bready(ram_s_axi_bready), // Response read
+    .m_axi_bid(ram_s_axi_bid),    // Response ID
+    .m_axi_bresp(ram_s_axi_bresp),  // Write response
+    .m_axi_bvalid(ram_s_axi_bvalid), // Write reponse valid
+    .m_axi_bready(ram_s_axi_bready), // Response read
 
     .startCapture(startCapture),
     .start_addr(32'h00000000),
