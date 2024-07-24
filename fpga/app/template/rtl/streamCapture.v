@@ -49,16 +49,14 @@ module streamCapture #(
 
 
 reg [ADDR_WIDTH-1:0]	    axi_base_addr = {ADDR_WIDTH{1'b0}};
-reg [ADDR_WIDTH-1:0]	    axi_base_addr_in = {ADDR_WIDTH{1'b0}};
+reg [ADDR_WIDTH-1:0]	    axi_base_addr_int = {ADDR_WIDTH{1'b0}};
 
-reg			    cmd_wr_base_addr;
-wire			    ack_wr_base_addr;
-reg			    cmd_wr_base_addr_int;
-wire			    ack_wr_base_addr_int;
+reg			    axi_base_addr_valid = 1'b0;
+reg			    axi_base_addr_valid_int = 1'b0;
 
-integer				i;
-wire [31 : 0]			ptr;
-reg [31 : 0]			prev_ptr = FIFO_DEPTH - 1;
+integer			    i;
+wire [31 : 0]		    ptr;
+reg [31 : 0]		    prev_ptr = FIFO_DEPTH - 1;
 
 
 localparam [2:0]
@@ -139,12 +137,7 @@ end
 
 always @(posedge m_axi_aclk) begin
     axi_base_addr <= axi_base_addr_int;
-    if (cmd_wr_base_addr_int) begin
-	cmd_wr_base_addr <= cmd_wr_base_addr_int;
-    end
-    if (ack_wr_base_addr) begin
-	cmd_wr_base_addr <= 1'b0;
-    end
+    axi_base_addr_valid <= axi_base_addr_valid_int;
 end
 
 always @* begin
@@ -159,10 +152,13 @@ always @* begin
 			end
 			bitstream_id_int = bitstream_id;
 			bitstream_size_int = bitstream_size;
-			cmd_wr_base_addr_int  = 1'b1; // needs a state machine
 			axi_base_addr_int = {ADDR_WIDTH{1'b0}};
 			if (bitstream_size_valid) begin
 			    pending_transfer_size = bitstream_size;
+			    axi_base_addr_valid_int  = 1'b1;
+			end
+			else begin
+			    axi_base_addr_valid_int = 1'b0;
 			end
 			// bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a way to calculate an addr
 			s_fifo_tdata_int = s_axis_tdata >> (ETH_IP_RMT_HDR_DATA_WIDTH * 8);
@@ -187,6 +183,7 @@ always @* begin
 		s_fifo_tkeep_int = {KEEP_WIDTH{1'b0}};
 		s_fifo_tlast_int = 1'b0;
 		s_fifo_tvalid_int = 1'b0;
+		axi_base_addr_valid_int = 1'b0;
 	    end
 	end // case: HDR_CAPTURE
 	FRAME_MEM_TRANSFER: begin
@@ -205,6 +202,7 @@ always @* begin
 		s_fifo_tkeep_int = s_axis_tkeep;
 		s_fifo_tvalid_int = s_axis_tvalid & s_axis_tready;
 		s_fifo_tlast_int = s_axis_tlast;
+		axi_base_addr_valid_int = 1'b0;
 	    end // if (s_axis_tready && s_axis_tvalid)
 	    // if (pending_transfer_size == 0) begin
 	    // 	capture_state_next = CAPTURE_DONE;
@@ -213,7 +211,7 @@ always @* begin
     endcase
 end // always @ *
 
-
+// TODO: when fifo full pull down ready
 axis_fifo_ex #
 (
     .DATA_WIDTH(DATA_WIDTH),
@@ -256,6 +254,9 @@ axi_ctrl_inst
     .s_axis_tlast(m_fifo_tlast),
     .s_axis_tvalid(m_fifo_tvalid),
     .s_axis_tready(m_fifo_tready),
+
+    .axi_base_addr(axi_base_addr),
+    .axi_base_addr_valid(axi_base_addr_valid),
 
     .m_axi_awready(m_axi_awready),
     .m_axi_awid(m_axi_awid),

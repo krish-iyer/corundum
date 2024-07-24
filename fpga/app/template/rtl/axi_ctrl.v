@@ -8,6 +8,9 @@ module axi_ctrl #(
     input			 clk,
     input			 rst,
 
+    input [ADDR_WIDTH-1:0]	 axi_base_addr,
+    input			 axi_base_addr_valid,
+
     input [KEEP_WIDTH-1:0]	 s_axis_tkeep,
     input [DATA_WIDTH-1:0]	 s_axis_tdata,
     input			 s_axis_tlast,
