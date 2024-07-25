@@ -1,3 +1,7 @@
+`resetall
+`timescale 1ns / 1ps
+`default_nettype none
+
 module axis_fifo_ex #
   (
     parameter DATA_WIDTH = 8,
@@ -15,31 +19,32 @@ module axis_fifo_ex #
     input		    s_axis_tlast,
     // master interface
     input wire		    m_axis_aclk,
-    output		    m_axis_tvalid,
-    input wire		    m_axis_tready,
+    output reg		    m_axis_tvalid,
+    input		    m_axis_tready,
     output [DATA_WIDTH-1:0] m_axis_tdata,
     output [KEEP_WIDTH-1:0] m_axis_tkeep,
-    output		    m_axis_tlast,
-    // aux signals
-    output wire		    full,
-    output wire		    empty,
-    output [31:0]	    ptr,
-    input wire [31:0]	    mon_ptr
-    );
+    output		    m_axis_tlast
+	      );
 
 wire [fifo_width-1:0]	      data_in;
 wire [fifo_width-1:0]	      data_out;
-
+wire			      empty;
+wire			      full;
+wire [31:0]		      ptr;
 localparam integer	      fifo_width = DATA_WIDTH + KEEP_WIDTH + 3; // tvalid + tready + tlast
 
 assign s_axis_tready = full == 0 ? 1'b1 : 1'b0; // make ready false if fifo is false
 
 assign data_in = {s_axis_tvalid, s_axis_tready, s_axis_tdata, s_axis_tkeep, s_axis_tlast};
-assign m_axis_tvalid = data_out[fifo_width - 1];
+// assign m_axis_tvalid = data_out[fifo_width - 1];
 assign m_axis_tdata = data_out[(fifo_width - 3) -: DATA_WIDTH]; // data_out [(fifo_width - 3) :  (fifo_width - 3) - 512]
 assign m_axis_tkeep = data_out[ 1+: KEEP_WIDTH]; // data_out [1 : 65]
 assign m_axis_tlast = data_out[0];
 
+// TODO: get arst and reset
+always @(posedge m_axis_aclk) begin
+    m_axis_tvalid <= (!empty) & m_axis_tready;
+end
 
 fifo #
 (
@@ -57,9 +62,9 @@ fifo_inst
     .data_out(data_out),
     .fifo_full(full),
     .fifo_empty(empty),
-    .ptr(ptr),
-    .mon_ptr(mon_ptr)
+    .ptr(ptr)
 );
 
-
 endmodule
+
+`resetall

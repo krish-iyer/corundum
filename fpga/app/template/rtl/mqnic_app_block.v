@@ -1051,7 +1051,7 @@ axis_switch_inst (
 streamCapture #(
     .DATA_WIDTH(DATA_WIDTH),
     .ADDR_WIDTH(AXI_DDR_ADDR_WIDTH),
-    .FIFO_DEPTH(32)
+    .FIFO_DEPTH(128)
 )
 stream_capture_inst (
     .s_axis_clk(clk),
@@ -1125,7 +1125,7 @@ wire			      ram_s_axi_bvalid;
 wire			      ram_s_axi_bready;
 
 axi_ram #(
-    .DATA_WIDTH(DATA_WIDTH),
+    .DATA_WIDTH(AXI_DDR_DATA_WIDTH),
     .ADDR_WIDTH(16),
     .ID_WIDTH(AXI_DDR_ID_WIDTH)
     )

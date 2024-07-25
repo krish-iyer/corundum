@@ -1,3 +1,7 @@
+`resetall
+`timescale 1ns / 1ps
+`default_nettype none
+
 /*
  1. On fifo full, write overwrites the data and reader reads the most recent data, flushing
  the rest of the output.
@@ -23,8 +27,7 @@ module fifo #
     output reg [WIDTH-1 : 0] data_out,
     output reg		     fifo_full,
     output reg		     fifo_empty,
-    output reg [31 : 0]	     ptr,
-    input [31 : 0]	     mon_ptr
+    output reg [31 : 0]	     ptr
     );
 
    reg [WIDTH-1 : 0]	     mem [0 : DEPTH-1];
@@ -64,22 +67,19 @@ module fifo #
 	 // 1. make this optional
 	 // 2. reimplement with fewer signals, this might result to only allow track monitor
 	 //    module to only lag fewer steps behind.
-	 if (mon_ptr == rd_ptr) begin
-	    // edge case:
-	    // 1. Donot increment ahead to equal to write ptr
-	    // 2. handle for circular buffer case
-	    if (~(((rd_ptr + 1) == wr_ptr) || ((rd_ptr == (DEPTH - 1)) && (wr_ptr == 0)))) begin
-	       if( rd_ptr == (DEPTH - 1)) begin
+	  // edge case:
+	  // 1. Donot increment ahead to equal to write ptr
+	  // 2. handle for circular buffer case
+	  if (~(((rd_ptr + 1) == wr_ptr) || ((rd_ptr == (DEPTH - 1)) && (wr_ptr == 0)))) begin
+	      if( rd_ptr == (DEPTH - 1)) begin
 		  rd_ptr <= 0;
-	       end
-	       else begin
+	      end
+	      else begin
 		  rd_ptr <= rd_ptr + 1;
-	       end
-	    end
-	 end
+	      end
+	  end
       end
    end
-
 
    always @(posedge wr_clk or posedge rd_clk) begin
       if (reset & wr_clk) begin
@@ -104,3 +104,5 @@ module fifo #
 
 
 endmodule
+
+`resetall
