@@ -35,7 +35,7 @@ localparam [1:0]
     STATE_TRANSFER = 2'd1,
     STATE_DROP = 2'd2;
 
-reg [1:0]	state_reg = STATE_IDLE, state_next = STATE_IDLE;
+reg [1:0]	state_reg = STATE_IDLE, state_next;
 wire [15:0]	ether_type;
 wire [15:0]	pkt_type;
 wire [15:0]	func_type;
@@ -59,7 +59,6 @@ always @(posedge clk) begin
     if (rst) begin
         reg_axis_tvalid <= 1'b0;
         reg_axis_tready <= 1'b0;
-	state_next <= STATE_IDLE;
 	state_reg <= STATE_IDLE;
     end
     else begin
@@ -75,7 +74,7 @@ always @(posedge clk) begin
 end // always @ (posedge clk)
 
 always @* begin
-
+    state_next = STATE_IDLE;
     case (state_reg)
 	STATE_IDLE : begin
 	    if (s_axis_tready && s_axis_tvalid) begin
@@ -113,6 +112,7 @@ always @* begin
 		reg_axis_tlast = 1'b0;
 		reg_axis_tuser = {USER_WIDTH{1'b0}};
 		reg_axis_tdest = {DEST_WIDTH{1'b0}};
+		state_next = STATE_IDLE;
 	    end
 	end
 	STATE_TRANSFER : begin
@@ -127,6 +127,12 @@ always @* begin
 		if (s_axis_tlast) begin
 		    state_next = STATE_IDLE;
 		end
+		else begin
+		    state_next = STATE_TRANSFER;
+		end
+	    end // if (s_axis_tready && s_axis_tvalid)
+	    else begin
+		state_next = STATE_TRANSFER;
 	    end
 	end
 	STATE_DROP : begin
@@ -134,6 +140,12 @@ always @* begin
 	       if (s_axis_tlast) begin
 		   state_next = STATE_IDLE;
 	       end
+	       else begin
+		   state_next = STATE_DROP;
+	       end
+	   end
+	   else begin
+	       state_next = STATE_DROP;
 	   end
 	end
     endcase

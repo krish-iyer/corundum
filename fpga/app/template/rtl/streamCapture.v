@@ -1,3 +1,7 @@
+`resetall
+`timescale 1ns / 1ps
+`default_nettype none
+
 module streamCapture #(
     parameter DATA_WIDTH = 8,
     parameter KEEP_WIDTH = ((DATA_WIDTH+7)/8),
@@ -67,7 +71,7 @@ localparam [2:0]
 		CAPTURE_DONE = 3'd4,
 		RECON_CPL = 3'd5;
 
-reg [2:0]	capture_state = HDR_CAPTURE, capture_state_next = HDR_CAPTURE;
+reg [2:0]	capture_state = HDR_CAPTURE, capture_state_next;
 reg [63:0]	recon_hdr;
 reg [1:0]	func_type;
 reg [7:0]	bitstream_id;
@@ -78,17 +82,11 @@ reg [31:0]	bitstream_size_int;
 reg [31:0]	pending_transfer_size = 0;
 reg [$clog2(DATA_WIDTH):0] frame_size = 0;
 
-wire [DATA_WIDTH-1:0]		fifo_tdata;
-wire [KEEP_WIDTH-1:0]		fifo_tkeep;
-wire				fifo_tlast;
-wire				fifo_tvalid;
-wire				fifo_data_ready;
-
-
 reg [DATA_WIDTH-1:0]		s_fifo_tdata;
 reg [KEEP_WIDTH-1:0]		s_fifo_tkeep;
 reg				s_fifo_tlast;
 reg				s_fifo_tvalid;
+reg				s_fifo_tready;
 
 wire [DATA_WIDTH-1:0]		m_fifo_tdata;
 wire [KEEP_WIDTH-1:0]		m_fifo_tkeep;
@@ -121,7 +119,6 @@ always @(posedge s_axis_clk) begin
     capture_state <= capture_state_next;
     if (rst) begin
 	capture_state <= HDR_CAPTURE;
-	capture_state_next <= HDR_CAPTURE;
 	s_fifo_tvalid_int <= 1'b0;
 	s_fifo_tready_int <= 1'b0;
     end
@@ -141,6 +138,7 @@ always @(posedge m_axi_aclk) begin
 end
 
 always @* begin
+    capture_state_next = HDR_CAPTURE;
     frame_size = 0;
     case (capture_state)
 	HDR_CAPTURE: begin
@@ -184,12 +182,16 @@ always @* begin
 		s_fifo_tlast_int = 1'b0;
 		s_fifo_tvalid_int = 1'b0;
 		axi_base_addr_valid_int = 1'b0;
+		capture_state_next = HDR_CAPTURE;
 	    end
 	end // case: HDR_CAPTURE
 	FRAME_MEM_TRANSFER: begin
 	    if (s_axis_tready && s_axis_tvalid) begin
 		if (s_axis_tlast) begin
 		    capture_state_next = HDR_CAPTURE;
+		end
+		else begin
+		    capture_state_next = FRAME_MEM_TRANSFER;
 		end
 		for (i = KEEP_WIDTH-1; i >= 0; i = i - 1) begin // don't consider header
 		    frame_size = frame_size + s_axis_tkeep[i];
@@ -203,7 +205,10 @@ always @* begin
 		s_fifo_tvalid_int = s_axis_tvalid & s_axis_tready;
 		s_fifo_tlast_int = s_axis_tlast;
 		axi_base_addr_valid_int = 1'b0;
-	    end // if (s_axis_tready && s_axis_tvalid)
+	    end
+	    else begin
+		capture_state_next = FRAME_MEM_TRANSFER;
+	    end// if (s_axis_tready && s_axis_tvalid)
 	    // if (pending_transfer_size == 0) begin
 	    // 	capture_state_next = CAPTURE_DONE;
 	    // end
@@ -280,3 +285,5 @@ axi_ctrl_inst
     );
 
 endmodule
+
+`resetall
