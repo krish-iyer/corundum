@@ -37,19 +37,8 @@ module streamCapture #(
     input		    m_axi_bid,
     input [1:0]		    m_axi_bresp,
     input		    m_axi_bvalid,
-    output		    m_axi_bready,
-
-    input		    startCapture,
-    input [ADDR_WIDTH-1:0]  start_addr,
-    output		    o_capture_start,
-    output		    o_done,
-    output wire		    rd_en,
-    output wire [31 : 0]    rd_ptr,
-    output wire [31 : 0]    rd_prev_ptr,
-    output wire [1 : 0]	    wr_state,
-    output wire		    empty,
-    output wire		    full
-    );
+    output		    m_axi_bready
+);
 
 
 reg [ADDR_WIDTH-1:0]	    axi_base_addr = {ADDR_WIDTH{1'b0}};
@@ -111,9 +100,6 @@ assign bitstream_id = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_
 assign bitstream_size_valid = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[31+:1] : 0;
 assign bitstream_size = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[32+:32] : 0;
 
-
-assign o_done = 1'b1;
-assign o_capture_start = 1'b1;
 
 always @(posedge s_axis_clk) begin
     capture_state <= capture_state_next;
