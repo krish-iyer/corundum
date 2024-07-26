@@ -2,7 +2,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module streamCapture #(
+module recon_controller #(
     parameter DATA_WIDTH = 8,
     parameter KEEP_WIDTH = ((DATA_WIDTH+7)/8),
     parameter ADDR_WIDTH = 34,
@@ -75,7 +75,7 @@ reg [DATA_WIDTH-1:0]		s_fifo_tdata;
 reg [KEEP_WIDTH-1:0]		s_fifo_tkeep;
 reg				s_fifo_tlast;
 reg				s_fifo_tvalid;
-reg				s_fifo_tready;
+wire				s_fifo_tready;
 
 wire [DATA_WIDTH-1:0]		m_fifo_tdata;
 wire [KEEP_WIDTH-1:0]		m_fifo_tkeep;
@@ -128,7 +128,7 @@ always @* begin
     frame_size = 0;
     case (capture_state)
 	HDR_CAPTURE: begin
-	    if (s_axis_tready && s_axis_tvalid) begin
+	    if (s_axis_tvalid && s_fifo_tready) begin
 		case (func_type)
 		    2'b00: begin
 			if (!s_axis_tlast) begin
@@ -147,7 +147,7 @@ always @* begin
 			// bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a way to calculate an addr
 			s_fifo_tdata_int = s_axis_tdata >> (ETH_IP_RMT_HDR_DATA_WIDTH * 8);
 			s_fifo_tkeep_int = ((s_axis_tkeep >> ETH_IP_RMT_HDR_DATA_WIDTH) & ETH_IP_RMT_HDR_KEEP_MASK) ;
-			s_fifo_tvalid_int = s_axis_tvalid & s_axis_tready; // only commit if there's space
+			s_fifo_tvalid_int = s_axis_tvalid && s_fifo_tready; // only commit if there's space
 			s_fifo_tlast_int = s_axis_tlast;
 			for (i = (KEEP_WIDTH - ETH_IP_RMT_HDR_DATA_WIDTH - 1); i >= 0; i = i - 1) begin // don't consider header
 			    frame_size = frame_size + s_fifo_tkeep_int[i];
@@ -172,7 +172,7 @@ always @* begin
 	    end
 	end // case: HDR_CAPTURE
 	FRAME_MEM_TRANSFER: begin
-	    if (s_axis_tready && s_axis_tvalid) begin
+	    if (s_axis_tvalid && s_fifo_tready) begin
 		if (s_axis_tlast) begin
 		    capture_state_next = HDR_CAPTURE;
 		end
@@ -188,7 +188,7 @@ always @* begin
 		// bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a way to calculate an addr
 		s_fifo_tdata_int = s_axis_tdata;
 		s_fifo_tkeep_int = s_axis_tkeep;
-		s_fifo_tvalid_int = s_axis_tvalid & s_axis_tready;
+		s_fifo_tvalid_int = s_axis_tvalid && s_fifo_tready;
 		s_fifo_tlast_int = s_axis_tlast;
 		axi_base_addr_valid_int = 1'b0;
 	    end
@@ -227,7 +227,8 @@ end // always @ *
 
 axis_async_fifo #(
     .DEPTH(FIFO_DEPTH),
-    .DATA_WIDTH(DATA_WIDTH)
+    .DATA_WIDTH(DATA_WIDTH),
+    .DROP_WHEN_FULL(1)
 )
 axis_async_fifo_inst
 (
@@ -270,13 +271,13 @@ axis_async_fifo_inst
     .m_status_good_frame()
  );
 
-axi_ctrl #
+axis_mm_bridge #
 (
     .DATA_WIDTH(DATA_WIDTH),
     .ADDR_WIDTH(ADDR_WIDTH),
     .FIFO_DEPTH(FIFO_DEPTH)
 )
-axi_ctrl_inst
+axis_mm_bridge_inst
 (
     .clk(m_axi_aclk),
     .rst(rst),

@@ -1024,12 +1024,12 @@ axis_switch_inst (
     );
 
 
-streamCapture #(
+recon_controller #(
     .DATA_WIDTH(DATA_WIDTH),
     .ADDR_WIDTH(AXI_DDR_ADDR_WIDTH),
-    .FIFO_DEPTH(128)
+    .FIFO_DEPTH(2048)
 )
-stream_capture_inst (
+recon_controller_inst (
     .s_axis_clk(clk),
     .m_axi_aclk(clk),
     .rst(rst),

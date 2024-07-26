@@ -2,7 +2,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module axi_ctrl #(
+module axis_mm_bridge #(
     parameter DATA_WIDTH = 8,
     parameter KEEP_WIDTH = ((DATA_WIDTH+7)/8),
     parameter ADDR_WIDTH = 34
@@ -75,7 +75,7 @@ always @(posedge clk) begin
 	state <= IDLE;
     end
     else begin
-	s_axis_tready <= s_axis_tready_int;
+	s_axis_tready <= s_axis_tready_int && m_axi_awready;
 	m_axi_awaddr <= m_axi_awaddr_int;
 	m_axi_awvalid <= m_axi_awvalid_int;
 	m_axi_wvalid <= m_axi_wvalid_int;

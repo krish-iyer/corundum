@@ -57,9 +57,9 @@ VERILOG_SOURCES += ../../rtl/mqnic_app_block.v
 ################################## streamCapture IP ##############################
 VERILOG_SOURCES += ../../rtl/axis_fifo.v
 VERILOG_SOURCES += ../../rtl/async_fifo.v
-VERILOG_SOURCES += ../../rtl/streamCapture.v
+VERILOG_SOURCES += ../../rtl/recon_controller.v
 VERILOG_SOURCES += ../../rtl/rmt.v
-VERILOG_SOURCES += ../../rtl/axi_ctrl.v
+VERILOG_SOURCES += ../../rtl/axis_mm_bridge.v
 VERILOG_SOURCES += ../../lib/axis/rtl/axis_ram_switch_4x4.v
 VERILOG_SOURCES += ../../lib/axis/rtl/axis_ram_switch.v
 VERILOG_SOURCES += ../../lib/axis/rtl/axis_tap.v
