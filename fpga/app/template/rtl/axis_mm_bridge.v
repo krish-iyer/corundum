@@ -75,7 +75,7 @@ always @(posedge clk) begin
 	state <= IDLE;
     end
     else begin
-	s_axis_tready <= s_axis_tready_int && m_axi_awready;
+	s_axis_tready <= s_axis_tready_int;
 	m_axi_awaddr <= m_axi_awaddr_int;
 	m_axi_awvalid <= m_axi_awvalid_int;
 	m_axi_wvalid <= m_axi_wvalid_int;
@@ -95,8 +95,8 @@ always @* begin
 		state_next = WR_ADDR;
 	    end
 	    else begin
+		s_axis_tready_int = m_axi_awready;
 		state_next = IDLE;
-		s_axis_tready_int = 1'b1;
 		//m_axi_awaddr_int = 1'b0;
 	    end
 	end // case: begin...

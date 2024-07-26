@@ -632,7 +632,7 @@ async def run_test_nic(dut):
 
     tb.log.info("Multiple small packets")
 
-    count = 64
+    count = 1024
 
     pkts = [bytearray([(x + k) % 256 for x in range(256)]) for k in range(count)]
 

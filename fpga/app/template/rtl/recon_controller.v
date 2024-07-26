@@ -225,10 +225,12 @@ end // always @ *
 //     .m_axis_tlast(m_fifo_tlast)
 //     );
 
+
 axis_async_fifo #(
-    .DEPTH(FIFO_DEPTH),
+    .DEPTH(KEEP_WIDTH*512),
     .DATA_WIDTH(DATA_WIDTH),
-    .DROP_WHEN_FULL(1)
+    .FRAME_FIFO(1),
+    .RAM_PIPELINE(1)
 )
 axis_async_fifo_inst
 (

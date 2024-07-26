@@ -860,6 +860,7 @@ parameter USER_ENABLE = 1;
 parameter USER_WIDTH = PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH;
 parameter ARB_TYPE_ROUND_ROBIN = 1;
 parameter ARB_LSB_HIGH_PRIORITY = 1;
+parameter AXIS_AXI_FIFO_DEPTH = 2048;
 
 wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] rmt_s_axis_tdata;
 wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] rmt_s_axis_tkeep;
@@ -909,7 +910,7 @@ axis_tap_inst (
 
 
 rmt #(
-    .DATA_WIDTH(512)
+    .DATA_WIDTH(DATA_WIDTH)
 )
 rmt_inst (
     .clk(clk),
@@ -1027,7 +1028,7 @@ axis_switch_inst (
 recon_controller #(
     .DATA_WIDTH(DATA_WIDTH),
     .ADDR_WIDTH(AXI_DDR_ADDR_WIDTH),
-    .FIFO_DEPTH(2048)
+    .FIFO_DEPTH(AXIS_AXI_FIFO_DEPTH)
 )
 recon_controller_inst (
     .s_axis_clk(clk),
