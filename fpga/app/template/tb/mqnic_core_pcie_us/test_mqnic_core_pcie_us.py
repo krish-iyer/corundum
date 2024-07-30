@@ -882,7 +882,7 @@ def test_mqnic_core_pcie_us(request, if_count, ports_per_if, axis_pcie_data_widt
         os.path.join(rtl_dir, "common", "mqnic_tx_scheduler_block_rr.v"),
         os.path.join(rtl_dir, "common", "tx_scheduler_rr.v"),
         os.path.join(rtl_dir, "mqnic_app_block.v"),
-        os.path.join(rtl_dir, "axis_fifo.v"),
+        os.path.join(rtl_dir, "axis_fifo_ex.v"),
         os.path.join(rtl_dir, "async_fifo.v"),
         os.path.join(rtl_dir, "recon_controller.v"),
         os.path.join(rtl_dir, "rmt.v"),

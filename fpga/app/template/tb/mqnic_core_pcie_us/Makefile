@@ -55,7 +55,7 @@ VERILOG_SOURCES += ../../rtl/common/mqnic_tx_scheduler_block_rr.v
 VERILOG_SOURCES += ../../rtl/common/tx_scheduler_rr.v
 VERILOG_SOURCES += ../../rtl/mqnic_app_block.v
 ################################## streamCapture IP ##############################
-VERILOG_SOURCES += ../../rtl/axis_fifo.v
+VERILOG_SOURCES += ../../rtl/axis_fifo_ex.v
 VERILOG_SOURCES += ../../rtl/async_fifo.v
 VERILOG_SOURCES += ../../rtl/recon_controller.v
 VERILOG_SOURCES += ../../rtl/rmt.v
