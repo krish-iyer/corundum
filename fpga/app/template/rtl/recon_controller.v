@@ -226,11 +226,9 @@ end // always @ *
 //     );
 
 
-axis_async_fifo #(
-    .DEPTH(KEEP_WIDTH*512),
+axis_fifo_ex #(
     .DATA_WIDTH(DATA_WIDTH),
-    .FRAME_FIFO(1),
-    .RAM_PIPELINE(1)
+    .FIFO_DEPTH(1024)
 )
 axis_async_fifo_inst
 (
@@ -240,7 +238,7 @@ axis_async_fifo_inst
     .s_axis_tkeep(s_fifo_tkeep),
     .s_axis_tvalid(s_fifo_tvalid),
     .s_axis_tready(s_fifo_tready),
-    .s_axis_tlast(s_fifo_tlast),
+    .s_axis_tlast(s_axis_tlast),
     .s_axis_tid(),
     .s_axis_tdest(),
     .s_axis_tuser(),
@@ -254,23 +252,7 @@ axis_async_fifo_inst
     .m_axis_tlast(m_fifo_tlast),
     .m_axis_tid(),
     .m_axis_tdest(),
-    .m_axis_tuser(),
-
-    .s_pause_req(),
-    .s_pause_ack(),
-    .m_pause_req(),
-    .m_pause_ack(),
-
-    .s_status_depth(),
-    .s_status_depth_commit(),
-    .s_status_overflow(),
-    .s_status_bad_frame(),
-    .s_status_good_frame(),
-    .m_status_depth(),
-    .m_status_depth_commit(),
-    .m_status_overflow(),
-    .m_status_bad_frame(),
-    .m_status_good_frame()
+    .m_axis_tuser()
  );
 
 axis_mm_bridge #
