@@ -46,6 +46,7 @@ reg [ADDR_WIDTH-1:0]		m_axi_awaddr_int = {KEEP_WIDTH{1'b0}};
 reg				m_axi_awvalid_int;
 reg				m_axi_wvalid_int;
 reg				s_axis_tready_int = 1'b1;
+reg [KEEP_WIDTH-1:0]		s_axis_tkeep_int;
 
 localparam [1:0]
 		IDLE    = 'd0,
@@ -92,12 +93,12 @@ always @* begin
 	    if(s_axis_tvalid && m_axi_awready) begin
 		m_axi_awvalid_int = 1'b1;
 		s_axis_tready_int = 1'b0;
+		s_axis_tkeep_int = s_axis_tkeep;
 		state_next = WR_ADDR;
 	    end
 	    else begin
 		s_axis_tready_int = m_axi_awready;
 		state_next = IDLE;
-		//m_axi_awaddr_int = 1'b0;
 	    end
 	end // case: begin...
 	WR_ADDR: begin
@@ -105,7 +106,7 @@ always @* begin
 		m_axi_awvalid_int = 1'b0;
 		m_axi_wvalid_int = 1'b1;
 		for(i = 0; i < KEEP_WIDTH-1; i=i+1) begin
-                    m_axi_awaddr_int = m_axi_awaddr_int + s_axis_tkeep[i];
+                    m_axi_awaddr_int = m_axi_awaddr_int + s_axis_tkeep_int[i];
 		end
 		state_next = WR_DATA;
 	    end
