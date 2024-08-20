@@ -52,7 +52,7 @@ reg [ADDR_WIDTH-1:0]	   wr_sync_commit_ptr = {ADDR_WIDTH{1'b0}};
 assign full = ((wr_ptr + 1'b1) == rd_ptr);
 assign empty =  wr_ptr == rd_ptr;
 
-assign data_out = rd_en ? mem[rd_ptr] : 0;
+assign data_out = mem[rd_ptr];
 
 reg			   wr_sync_rst = 1'b0;
 reg			   rd_sync_rst = 1'b0;
