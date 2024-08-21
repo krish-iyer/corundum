@@ -41,10 +41,10 @@ module mqnic_app_block #
 
     // RAM configuration
     parameter DDR_CH = 1,
-    parameter DDR_ENABLE = 0,
+    parameter DDR_ENABLE = 1,
     parameter DDR_GROUP_SIZE = 1,
-    parameter AXI_DDR_DATA_WIDTH = 256,
-    parameter AXI_DDR_ADDR_WIDTH = 32,
+    parameter AXI_DDR_DATA_WIDTH = 512,
+    parameter AXI_DDR_ADDR_WIDTH = 34,
     parameter AXI_DDR_STRB_WIDTH = (AXI_DDR_DATA_WIDTH/8),
     parameter AXI_DDR_ID_WIDTH = 8,
     parameter AXI_DDR_AWUSER_ENABLE = 0,
@@ -769,7 +769,7 @@ assign m_axis_if_rx_tuser = s_axis_if_rx_tuser;
 /*
  * DDR
  */
-// assign m_axi_ddr_awid = 0;
+assign m_axi_ddr_awid = 0;
 // assign m_axi_ddr_awaddr = 0;
 // assign m_axi_ddr_awlen = 0;
 // assign m_axi_ddr_awsize = 0;
@@ -1032,7 +1032,7 @@ recon_controller #(
 )
 recon_controller_inst (
     .s_axis_clk(clk),
-    .m_axi_aclk(clk),
+    .m_axi_aclk(ddr_clk),
     .rst(rst),
 
     .s_axis_tvalid(recon_s_axis_tvalid),
@@ -1041,25 +1041,25 @@ recon_controller_inst (
     .s_axis_tlast(recon_s_axis_tlast),
     .s_axis_tready(recon_s_axis_tready),
 
-    .m_axi_awready(ram_s_axi_awready),
-    .m_axi_awid(ram_s_axi_awid),
-    .m_axi_awaddr(ram_s_axi_awaddr),
-    .m_axi_awlen(ram_s_axi_awlen),
-    .m_axi_awsize(ram_s_axi_awsize),
-    .m_axi_awburst(ram_s_axi_awburst),
-    .m_axi_awlock(ram_s_axi_awlock),
-    .m_axi_awcache(ram_s_axi_awcache),
-    .m_axi_awprot(ram_s_axi_awprot),
-    .m_axi_awvalid(ram_s_axi_awvalid),
-    .m_axi_wready(ram_s_axi_wready),
-    .m_axi_wdata(ram_s_axi_wdata),
-    .m_axi_wstrb(ram_s_axi_wstrb),
-    .m_axi_wlast(ram_s_axi_wlast),
-    .m_axi_wvalid(ram_s_axi_wvalid),
-    .m_axi_bid(ram_s_axi_bid),
-    .m_axi_bresp(ram_s_axi_bresp),
-    .m_axi_bvalid(ram_s_axi_bvalid),
-    .m_axi_bready(ram_s_axi_bready)
+    .m_axi_awready(m_axi_ddr_awready),
+    .m_axi_awid(),
+    .m_axi_awaddr(m_axi_ddr_awaddr),
+    .m_axi_awlen(m_axi_ddr_awlen),
+    .m_axi_awsize(m_axi_ddr_awsize),
+    .m_axi_awburst(m_axi_ddr_awburst),
+    .m_axi_awlock(m_axi_ddr_awlock),
+    .m_axi_awcache(m_axi_ddr_awcache),
+    .m_axi_awprot(m_axi_ddr_awprot),
+    .m_axi_awvalid(m_axi_ddr_awvalid),
+    .m_axi_wready(m_axi_ddr_wready),
+    .m_axi_wdata(m_axi_ddr_wdata),
+    .m_axi_wstrb(m_axi_ddr_wstrb),
+    .m_axi_wlast(m_axi_ddr_wlast),
+    .m_axi_wvalid(m_axi_ddr_wvalid),
+    .m_axi_bid(m_axi_ddr_bid),
+    .m_axi_bresp(m_axi_ddr_bresp),
+    .m_axi_bvalid(m_axi_ddr_bvalid),
+    .m_axi_bready(m_axi_ddr_bready)
     );
 
 

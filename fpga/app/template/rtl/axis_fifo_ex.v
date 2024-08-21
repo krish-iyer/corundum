@@ -45,9 +45,9 @@ assign s_axis_tready = full == 0 ? 1'b1 : 1'b0; // make ready false if fifo is f
 
 assign data_in = {s_axis_tdata, s_axis_tkeep, s_axis_tlast, s_axis_tid, s_axis_tdest, s_axis_tuser};
 
-assign m_axis_tdata = data_out[(FIFO_WIDTH-1) -: DATA_WIDTH]; // data_out [(fifo_width-1):(fifo_width-1)-512]
-assign m_axis_tkeep = data_out[(USER_WIDTH+DEST_WIDTH+ID_WIDTH+1)+: KEEP_WIDTH]; // data_out [1:65]
-assign m_axis_tlast = data_out[(USER_WIDTH+DEST_WIDTH+ID_WIDTH)];
+assign m_axis_tdata = m_axis_tvalid == 1 ? data_out[(FIFO_WIDTH-1) -: DATA_WIDTH] : 0; // data_out [(fifo_width-1):(fifo_width-1)-512]
+assign m_axis_tkeep = m_axis_tvalid == 1 ? data_out[(USER_WIDTH+DEST_WIDTH+ID_WIDTH+1)+: KEEP_WIDTH] : 0; // data_out [1:65]
+assign m_axis_tlast = m_axis_tvalid == 1 ? data_out[(USER_WIDTH+DEST_WIDTH+ID_WIDTH)] : 0;
 assign m_axis_tid =   data_out[(USER_WIDTH+DEST_WIDTH)+:ID_WIDTH];
 assign m_axis_tdest = data_out[USER_WIDTH+:DEST_WIDTH];
 assign m_axis_tuser = data_out[USER_WIDTH-1:0];

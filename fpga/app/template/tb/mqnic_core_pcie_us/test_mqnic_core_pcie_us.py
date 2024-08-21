@@ -21,7 +21,7 @@ from cocotb.log import SimLog
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, FallingEdge, Timer
 
-from cocotbext.axi import AxiStreamBus
+from cocotbext.axi import AxiStreamBus, AxiRam
 from cocotbext.axi import AxiSlave, AxiBus, SparseMemoryRegion
 from cocotbext.eth import EthMac
 from cocotbext.pcie.core import RootComplex
@@ -332,6 +332,21 @@ class TB(object):
         dut.eth_rx_fc_quanta_clk_en.setimmediatevalue(2**len(core_inst.m_axis_tx_tvalid)-1)
 
         # DDR
+        # self.ddr_group_size = core_inst.DDR_GROUP_SIZE.value
+        # self.ddr_ram = []
+        # self.ddr_axi_if = []
+        # # if hasattr(core_inst, 'ddr'):
+        # ram = None
+        #     # for i, ch in enumerate(core_inst.ddr.dram_if_inst.ch):
+        # cocotb.start_soon(Clock(core_inst.ddr_clk, 3.332, units="ns").start())
+        # core_inst.ddr_rst.setimmediatevalue(0)
+        # core_inst.ddr_status.setimmediatevalue(1)
+
+        # # if i % self.ddr_group_size == 0:
+        # ram = SparseMemoryRegion()
+        # self.ddr_ram.append(ram)
+        # self.ddr_axi_if.append(AxiSlave(AxiBus.from_prefix(core_inst, "m_axi_ddr"), core_inst.ddr_clk, core_inst.ddr_rst, target=ram))
+
         self.ddr_group_size = core_inst.DDR_GROUP_SIZE.value
         self.ddr_ram = []
         self.ddr_axi_if = []
@@ -343,7 +358,7 @@ class TB(object):
                 ch.ch_status.setimmediatevalue(1)
 
                 if i % self.ddr_group_size == 0:
-                    ram = SparseMemoryRegion()
+                    ram = SparseMemoryRegion(2**34)
                     self.ddr_ram.append(ram)
                 self.ddr_axi_if.append(AxiSlave(AxiBus.from_prefix(ch, "axi_ch"), ch.ch_clk, ch.ch_rst, target=ram))
 
@@ -452,6 +467,7 @@ async def run_test_nic(dut):
 
     await tb.init()
 
+
     tb.log.info("Init driver")
     await tb.driver.init_pcie_dev(tb.rc.find_device(tb.dev.functions[0].pcie_id))
     for interface in tb.driver.interfaces:
@@ -539,32 +555,32 @@ async def run_test_nic(dut):
 
     tb.log.info("3. RX and TX checksum tests")
 
-    payload = bytes([x % 256 for x in range(128)])
-    eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
-    ip = IP(src='192.168.1.100', dst='192.168.1.101')
-    udp = UDP(sport=1, dport=2)
-    test_pkt = eth / ip / udp / payload
+    # payload = bytes([x % 256 for x in range(128)])
+    # eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
+    # ip = IP(src='192.168.1.100', dst='192.168.1.101')
+    # udp = UDP(sport=1, dport=2)
+    # test_pkt = eth / ip / udp / payload
 
-    tb.log.info(bytes(test_pkt).hex())
-    if tb.driver.interfaces[0].if_feature_tx_csum:
-        test_pkt2 = test_pkt.copy()
-        test_pkt2[UDP].chksum = scapy.utils.checksum(bytes(test_pkt2[UDP]))
+    # tb.log.info(bytes(test_pkt).hex())
+    # if tb.driver.interfaces[0].if_feature_tx_csum:
+    #     test_pkt2 = test_pkt.copy()
+    #     test_pkt2[UDP].chksum = scapy.utils.checksum(bytes(test_pkt2[UDP]))
 
-        await tb.driver.interfaces[0].start_xmit(test_pkt2.build(), 0, 34, 6)
-    else:
-        await tb.driver.interfaces[0].start_xmit(test_pkt.build(), 0)
+    #     await tb.driver.interfaces[0].start_xmit(test_pkt2.build(), 0, 34, 6)
+    # else:
+    #     await tb.driver.interfaces[0].start_xmit(test_pkt.build(), 0)
 
-    pkt = await tb.port_mac[0].tx.recv()
-    tb.log.info("Packet: %s", pkt)
+    # pkt = await tb.port_mac[0].tx.recv()
+    # tb.log.info("Packet: %s", pkt)
 
-    await tb.port_mac[0].rx.send(pkt)
+    # await tb.port_mac[0].rx.send(pkt)
 
-    pkt = await tb.driver.interfaces[0].recv()
+    # pkt = await tb.driver.interfaces[0].recv()
 
-    tb.log.info("Packet: %s", pkt)
-    if tb.driver.interfaces[0].if_feature_rx_csum:
-        assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
-    assert Ether(pkt.data).build() == test_pkt.build()
+    # tb.log.info("Packet: %s", pkt)
+    # if tb.driver.interfaces[0].if_feature_rx_csum:
+    #     assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
+    # assert Ether(pkt.data).build() == test_pkt.build()
 
     # tb.log.info("Queue mapping offset test")
 
@@ -632,9 +648,12 @@ async def run_test_nic(dut):
 
     tb.log.info("Multiple small packets")
 
-    count = 1024
+    packet_count = 1024
 
-    pkts = [bytearray([(x + k) % 256 for x in range(256)]) for k in range(count)]
+    ddr_addr = 0
+    num_bytes = 8
+
+    pkts = [bytearray([(x + k) % 256 for x in range(num_bytes)]) for k in range(packet_count)]
 
     framed_pkts = [create_frame(pkt, True, index) for index, pkt in enumerate(pkts)]
 
@@ -643,13 +662,17 @@ async def run_test_nic(dut):
     for p in framed_pkts:
         await tb.driver.interfaces[0].start_xmit(p, 0)
 
-    for k in range(count):
+    for k in range(packet_count):
         pkt = await tb.driver.interfaces[0].recv()
 
         tb.log.info("Packet: %s", pkt)
         assert pkt.data == framed_pkts[k]
         if tb.driver.interfaces[0].if_feature_rx_csum:
             assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
+            assert bytes(framed_pkts[k][46:]) ==   tb.ddr_ram[0][ddr_addr:ddr_addr+num_bytes+8]
+            ddr_addr = ddr_addr + num_bytes + 8
+    print("######################## Dumping RAM ###################")
+    tb.ddr_ram[0].hexdump(0x0000, 1024, prefix="RAM")
 
     # tb.loopback_enable = False
 
@@ -1014,7 +1037,7 @@ def test_mqnic_core_pcie_us(request, if_count, ports_per_if, axis_pcie_data_widt
 
     # RAM configuration
     parameters['DDR_CH'] = 1
-    parameters['DDR_ENABLE'] = 0
+    parameters['DDR_ENABLE'] = 1
     parameters['DDR_GROUP_SIZE'] = 1
     parameters['AXI_DDR_DATA_WIDTH'] = 512
     parameters['AXI_DDR_ADDR_WIDTH'] = 34

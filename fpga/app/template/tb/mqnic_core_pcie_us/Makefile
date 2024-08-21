@@ -187,7 +187,7 @@ export PARAM_RX_RAM_SIZE := 131072
 
 # RAM configuration
 export PARAM_DDR_CH := 1
-export PARAM_DDR_ENABLE := 0
+export PARAM_DDR_ENABLE := 1
 export PARAM_DDR_GROUP_SIZE := 1
 export PARAM_AXI_DDR_DATA_WIDTH := 512
 export PARAM_AXI_DDR_ADDR_WIDTH := 34

@@ -31,8 +31,8 @@ module axis_mm_bridge #(
     output [2:0]		 m_axi_awprot,
     output reg			 m_axi_awvalid,
     input			 m_axi_wready,
-    output wire [DATA_WIDTH-1:0] m_axi_wdata,
-    output wire [KEEP_WIDTH-1:0] m_axi_wstrb,
+    output reg [DATA_WIDTH-1:0] m_axi_wdata,
+    output reg [KEEP_WIDTH-1:0] m_axi_wstrb,
     output			 m_axi_wlast,
     output reg			 m_axi_wvalid,
     input			 m_axi_bid,
@@ -42,11 +42,12 @@ module axis_mm_bridge #(
 );
 
 integer				 i;
-reg [ADDR_WIDTH-1:0]		m_axi_awaddr_int = {KEEP_WIDTH{1'b0}};
+reg [ADDR_WIDTH-1:0]		m_axi_awaddr_int = {ADDR_WIDTH{1'b0}};
 reg				m_axi_awvalid_int;
 reg				m_axi_wvalid_int;
 reg				s_axis_tready_int = 1'b1;
-reg [KEEP_WIDTH-1:0]		s_axis_tkeep_int;
+reg [KEEP_WIDTH-1:0]		s_axis_tkeep_int = {KEEP_WIDTH{1'b0}};
+reg [DATA_WIDTH-1:0]		s_axis_tdata_int = {DATA_WIDTH{1'b0}};
 
 localparam [1:0]
 		IDLE    = 'd0,
@@ -64,22 +65,43 @@ assign m_axi_awprot    = 3'd0;
 assign m_axi_awlock  = 1'd0;
 assign m_axi_wlast   = m_axi_wvalid;
 
-assign m_axi_wdata = s_axis_tdata;
-assign m_axi_wstrb = s_axis_tkeep;
+// assign m_axi_wdata = s_axis_tdata;
+// assign m_axi_wstrb = s_axis_tkeep;
+
+integer	count = 0;
+reg [5:0] wstrb_pos = 0;
+reg [8:0] wdata_pos = 0;
+reg [5:0] wstrb_pos_int = 0;
+
+function integer count_ones;
+    input reg [KEEP_WIDTH-1:0] data;
+    integer i;
+    begin
+        count_ones = 0;
+        for (i = 0; i < KEEP_WIDTH-1 ; i = i + 1) begin
+            count_ones = count_ones + data[i];
+        end
+    end
+endfunction
 
 always @(posedge clk) begin
     state <= state_next;
     if(rst) begin
 	m_axi_awvalid  <= 1'b0;
         m_axi_wvalid <= 1'b0;
-        s_axis_tready <= 1'b0;
+	s_axis_tready <= 1'b0;
+	wstrb_pos <= 1'b0;
+	wdata_pos <= 1'b0;
 	state <= IDLE;
     end
     else begin
+	wstrb_pos <= wstrb_pos_int;
+	m_axi_wdata <= s_axis_tdata_int << wdata_pos;
 	s_axis_tready <= s_axis_tready_int;
 	m_axi_awaddr <= m_axi_awaddr_int;
 	m_axi_awvalid <= m_axi_awvalid_int;
 	m_axi_wvalid <= m_axi_wvalid_int;
+	m_axi_wstrb = s_axis_tkeep_int << wstrb_pos;
     end
 end
 
@@ -94,6 +116,7 @@ always @* begin
 		m_axi_awvalid_int = 1'b1;
 		s_axis_tready_int = 1'b0;
 		s_axis_tkeep_int = s_axis_tkeep;
+		s_axis_tdata_int = s_axis_tdata;
 		state_next = WR_ADDR;
 	    end
 	    else begin
@@ -105,9 +128,10 @@ always @* begin
 	    if(m_axi_wready) begin
 		m_axi_awvalid_int = 1'b0;
 		m_axi_wvalid_int = 1'b1;
-		for(i = 0; i < KEEP_WIDTH-1; i=i+1) begin
-                    m_axi_awaddr_int = m_axi_awaddr_int + s_axis_tkeep_int[i];
-		end
+		count = count_ones(s_axis_tkeep_int);
+		wstrb_pos_int = wstrb_pos + count;
+		wdata_pos = wstrb_pos << 3;
+		m_axi_awaddr_int = m_axi_awaddr + count;
 		state_next = WR_DATA;
 	    end
 	    else begin
