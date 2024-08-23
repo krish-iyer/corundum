@@ -203,28 +203,6 @@ always @* begin
 end // always @ *
 
 // TODO: when fifo full pull down ready
-// axis_fifo_ex #
-// (
-//     .DATA_WIDTH(DATA_WIDTH),
-//     .FIFO_DEPTH(FIFO_DEPTH)
-// )
-// axis_fifo_inst
-// (
-//     .s_axis_aclk(s_axis_clk),
-//     .s_axis_areset(rst),
-//     .s_axis_tvalid(s_fifo_tvalid),  // fifo: wr_en
-//     .s_axis_tready(s_fifo_tready),
-//     .s_axis_tdata(s_fifo_tdata),
-//     .s_axis_tkeep(s_fifo_tkeep),
-//     .s_axis_tlast(s_fifo_tlast),
-//     .m_axis_aclk(m_axi_aclk), // for FIFO it is axis and for streamCapture it is axi
-//     .m_axis_tvalid(m_fifo_tvalid),
-//     .m_axis_tready(m_fifo_tready), // fifo: rd_en
-//     .m_axis_tdata(m_fifo_tdata),
-//     .m_axis_tkeep(m_fifo_tkeep),
-//     .m_axis_tlast(m_fifo_tlast)
-//     );
-
 
 axis_fifo_ex #(
     .DATA_WIDTH(DATA_WIDTH),
