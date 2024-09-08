@@ -28,4 +28,5 @@ tags
 *iverilog_dump.v
 *.fst
 *.gtkw
+*#
 TAGS
