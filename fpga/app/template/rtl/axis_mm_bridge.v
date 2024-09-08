@@ -5,40 +5,41 @@
 module axis_mm_bridge #(
     parameter DATA_WIDTH = 8,
     parameter KEEP_WIDTH = ((DATA_WIDTH+7)/8),
-    parameter ADDR_WIDTH = 34
+    parameter ADDR_WIDTH = 34,
+    parameter ID_WIDTH = 8
 )
 (
-    input			 clk,
-    input			 rst,
+    input			clk,
+    input			rst,
 
-    input [ADDR_WIDTH-1:0]	 axi_base_addr,
-    input			 axi_base_addr_valid,
+    input [ADDR_WIDTH-1:0]	axi_base_addr,
+    input			axi_base_addr_valid,
 
-    input [KEEP_WIDTH-1:0]	 s_axis_tkeep,
-    input [DATA_WIDTH-1:0]	 s_axis_tdata,
-    input			 s_axis_tlast,
-    input			 s_axis_tvalid,
-    output reg			 s_axis_tready,
+    input [KEEP_WIDTH-1:0]	s_axis_tkeep,
+    input [DATA_WIDTH-1:0]	s_axis_tdata,
+    input			s_axis_tlast,
+    input			s_axis_tvalid,
+    output reg			s_axis_tready,
 
-    input			 m_axi_awready,
-    output reg [5:0]		 m_axi_awid,
-    output reg [ADDR_WIDTH-1:0]	 m_axi_awaddr,
-    output [7:0]		 m_axi_awlen,
-    output [2:0]		 m_axi_awsize,
-    output [1:0]		 m_axi_awburst,
-    output			 m_axi_awlock,
-    output [3:0]		 m_axi_awcache,
-    output [2:0]		 m_axi_awprot,
-    output reg			 m_axi_awvalid,
-    input			 m_axi_wready,
-    output reg [DATA_WIDTH-1:0] m_axi_wdata,
-    output reg [KEEP_WIDTH-1:0] m_axi_wstrb,
-    output			 m_axi_wlast,
-    output reg			 m_axi_wvalid,
-    input			 m_axi_bid,
-    input [1:0]			 m_axi_bresp,
-    input			 m_axi_bvalid,
-    output reg			 m_axi_bready
+    input			m_axi_awready,
+    output reg [ID_WIDTH-1:0]	m_axi_awid,
+    output reg [ADDR_WIDTH-1:0]	m_axi_awaddr,
+    output [7:0]		m_axi_awlen,
+    output [2:0]		m_axi_awsize,
+    output [1:0]		m_axi_awburst,
+    output			m_axi_awlock,
+    output [3:0]		m_axi_awcache,
+    output [2:0]		m_axi_awprot,
+    output reg			m_axi_awvalid,
+    input			m_axi_wready,
+    output reg [DATA_WIDTH-1:0]	m_axi_wdata,
+    output reg [KEEP_WIDTH-1:0]	m_axi_wstrb,
+    output			m_axi_wlast,
+    output reg			m_axi_wvalid,
+    input [ID_WIDTH-1:0]	m_axi_bid,
+    input [1:0]			m_axi_bresp,
+    input			m_axi_bvalid,
+    output reg			m_axi_bready
 );
 
 integer				 i;
@@ -61,7 +62,7 @@ assign m_axi_awsize    = 3'd6;
 assign m_axi_awburst   = 2'd1;
 assign m_axi_awcache   = 4'd0;
 assign m_axi_awprot    = 3'd0;
-
+assign m_axi_awid = 0;
 assign m_axi_awlock  = 1'd0;
 assign m_axi_wlast   = m_axi_wvalid;
 

@@ -4,41 +4,64 @@
 
 module recon_controller #(
     parameter DATA_WIDTH = 8,
+    parameter ID_WIDTH = 8,
     parameter KEEP_WIDTH = ((DATA_WIDTH+7)/8),
     parameter ADDR_WIDTH = 34,
-    parameter FIFO_DEPTH = 32
+    parameter FIFO_DEPTH = 32,
+    parameter DMA_DESC_LEN_WIDTH = 20,
+    parameter DMA_DESC_TAG_WIDTH = 8,
+    parameter DEST_WIDTH = 8,
+    parameter USER_WIDTH = 8
 )
 (
-    input		    s_axis_clk,
-    input wire		    m_axi_aclk,
-    input		    rst,
+    input				s_axis_clk,
+    input wire				m_axi_aclk,
+    input				rst,
     //input stream
-    input		    s_axis_tvalid,
-    input [DATA_WIDTH-1:0]  s_axis_tdata,
-    input [KEEP_WIDTH-1:0]  s_axis_tkeep,
-    input		    s_axis_tlast,
-    output reg		    s_axis_tready,
+    input				s_axis_tvalid,
+    input [DATA_WIDTH-1:0]		s_axis_tdata,
+    input [KEEP_WIDTH-1:0]		s_axis_tkeep,
+    input				s_axis_tlast,
+    output reg				s_axis_tready,
 
-    input		    m_axi_awready,
-    output [5 : 0]	    m_axi_awid,
-    output [ADDR_WIDTH-1:0] m_axi_awaddr,
-    output [7 : 0]	    m_axi_awlen,
-    output [2 : 0]	    m_axi_awsize,
-    output [1 : 0]	    m_axi_awburst,
-    output		    m_axi_awlock,
-    output [3 : 0]	    m_axi_awcache,
-    output [2 : 0]	    m_axi_awprot,
-    output		    m_axi_awvalid,
-    input		    m_axi_wready,
-    output [DATA_WIDTH-1:0] m_axi_wdata,
-    output [KEEP_WIDTH-1:0] m_axi_wstrb,
-    output		    m_axi_wlast,
-    output		    m_axi_wvalid,
-    input		    m_axi_bid,
-    input [1:0]		    m_axi_bresp,
-    input		    m_axi_bvalid,
-    output		    m_axi_bready
+    input wire [ADDR_WIDTH-1:0]		s_axis_read_desc_addr,
+    input wire [DMA_DESC_LEN_WIDTH-1:0]	s_axis_read_desc_len,
+    input wire [DMA_DESC_TAG_WIDTH-1:0]	s_axis_read_desc_tag,
+    input wire [ID_WIDTH-1:0]		s_axis_read_desc_id,
+    input wire [DEST_WIDTH-1:0]		s_axis_read_desc_dest,
+    input wire [USER_WIDTH-1:0]		s_axis_read_desc_user,
+    input wire				s_axis_read_desc_valid,
+    output wire				s_axis_read_desc_ready,
+
+    input				m_axi_awready,
+    output [ID_WIDTH-1:0]		m_axi_awid,
+    output [ADDR_WIDTH-1:0]		m_axi_awaddr,
+    output [7:0]			m_axi_awlen,
+    output [2:0]			m_axi_awsize,
+    output [1:0]			m_axi_awburst,
+    output				m_axi_awlock,
+    output [3:0]			m_axi_awcache,
+    output [2:0]			m_axi_awprot,
+    output				m_axi_awvalid,
+    input				m_axi_wready,
+    output [DATA_WIDTH-1:0]		m_axi_wdata,
+    output [KEEP_WIDTH-1:0]		m_axi_wstrb,
+    output				m_axi_wlast,
+    output				m_axi_wvalid,
+    input [ID_WIDTH-1:0]		m_axi_bid,
+    input [1:0]				m_axi_bresp,
+    input				m_axi_bvalid,
+    output				m_axi_bready
 );
+
+assign s_axis_read_desc_addr = 0;
+assign s_axis_read_desc_len = 0;
+assign s_axis_read_desc_tag = 0;
+assign s_axis_read_desc_id = 0;
+assign s_axis_read_desc_dest = 0;
+assign s_axis_read_desc_user = 0;
+assign s_axis_read_desc_valid = 0;
+assign s_axis_read_desc_ready = 0;
 
 
 reg [ADDR_WIDTH-1:0]	    axi_base_addr = {ADDR_WIDTH{1'b0}};
@@ -237,7 +260,8 @@ axis_mm_bridge #
 (
     .DATA_WIDTH(DATA_WIDTH),
     .ADDR_WIDTH(ADDR_WIDTH),
-    .FIFO_DEPTH(FIFO_DEPTH)
+    .FIFO_DEPTH(FIFO_DEPTH),
+    .ID_WIDTH(ID_WIDTH)
 )
 axis_mm_bridge_inst
 (

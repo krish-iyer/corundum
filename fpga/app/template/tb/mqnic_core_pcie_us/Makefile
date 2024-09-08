@@ -56,6 +56,7 @@ VERILOG_SOURCES += ../../rtl/common/tx_scheduler_rr.v
 VERILOG_SOURCES += ../../rtl/mqnic_app_block.v
 ################################## streamCapture IP ##############################
 VERILOG_SOURCES += ../../rtl/axis_fifo_ex.v
+VERILOG_SOURCES += ../../rtl/axi_async_fifo.v
 VERILOG_SOURCES += ../../rtl/async_fifo.v
 VERILOG_SOURCES += ../../rtl/recon_controller.v
 VERILOG_SOURCES += ../../rtl/rmt.v
@@ -64,6 +65,10 @@ VERILOG_SOURCES += ../../lib/axis/rtl/axis_ram_switch_4x4.v
 VERILOG_SOURCES += ../../lib/axis/rtl/axis_ram_switch.v
 VERILOG_SOURCES += ../../lib/axis/rtl/axis_tap.v
 VERILOG_SOURCES += ../../lib/axi/rtl/axi_ram.v
+VERILOG_SOURCES += ../../lib/axi/rtl/axi_dma.v
+VERILOG_SOURCES += ../../lib/axi/rtl/axi_dma_rd.v
+VERILOG_SOURCES += ../../lib/axi/rtl/axi_dma_wr.v
+VERILOG_SOURCES += ../../lib/axi/rtl/axi_dma_desc_mux.v
 ##################################################################################
 VERILOG_SOURCES += ../../lib/eth/rtl/mac_ctrl_rx.v
 VERILOG_SOURCES += ../../lib/eth/rtl/mac_ctrl_tx.v

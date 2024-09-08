@@ -65,6 +65,7 @@ module axi_async_fifo #
 
     input wire			   m_clk,
     input wire			   m_rst,
+
     output wire [ID_WIDTH-1:0]	   m_axi_awid,
     output wire [ADDR_WIDTH-1:0]   m_axi_awaddr,
     output wire [7:0]		   m_axi_awlen,

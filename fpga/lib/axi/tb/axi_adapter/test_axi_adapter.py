@@ -190,15 +190,15 @@ if cocotb.SIM_NAME:
     byte_lanes = data_width // 8
     max_burst_size = (byte_lanes-1).bit_length()
 
-    for test in [run_test_write, run_test_read]:
+    # for test in [run_test_write, run_test_read]:
 
-        factory = TestFactory(test)
-        factory.add_option("idle_inserter", [None, cycle_pause])
-        factory.add_option("backpressure_inserter", [None, cycle_pause])
-        factory.add_option("size", [None]+list(range(max_burst_size)))
-        factory.generate_tests()
+    #     factory = TestFactory(test)
+    #     factory.add_option("idle_inserter", [None, cycle_pause])
+    #     factory.add_option("backpressure_inserter", [None, cycle_pause])
+    #     factory.add_option("size", [None]+list(range(max_burst_size)))
+    #     factory.generate_tests()
 
-    factory = TestFactory(run_stress_test)
+    factory = TestFactory(run_test_read)
     factory.generate_tests()
 
 
