@@ -445,16 +445,19 @@ class TB(object):
                         await mac.rx.send(await mac.tx.recv())
 
 
-
-def create_frame(payload, recon, index):
+# size = 256
+def create_frame(payload, recon, index, func_type=0, size=0, address=0):
     eth = Ether(src='5A:51:52:53:54:55', dst='DA:D1:D2:D3:D4:D5')
     ip = IP(src='192.168.1.100', dst='192.168.1.101')
+    id = 0
     udp = UDP(sport=1, dport=2)
     if recon == True:
         if index == 0:
-            pkt_hdr = struct.pack('<HHII', 0xF0E1, 0x0001, 0x80000000, 256)
+            upr_hdr = func_type | 1 << 2 | address << 3 | id << 37 | size << 45
+            pkt_hdr = struct.pack('<HHQH', 0xF0E1, 0x0001, upr_hdr, 0)
         else:
-            pkt_hdr = struct.pack('<HHII', 0xF0E1, 0x0001, 0, 256)
+            upr_hdr = func_type | 0 << 2
+            pkt_hdr = struct.pack('<HHB', 0xF0E1, 0x0001, upr_hdr)
         frame = eth / ip / udp / (pkt_hdr + payload)
     else:
         frame = eth / ip / udp / payload
@@ -655,7 +658,7 @@ async def run_test_nic(dut):
 
     pkts = [bytearray([(x + k) % 256 for x in range(num_bytes)]) for k in range(packet_count)]
 
-    framed_pkts = [create_frame(pkt, True, index) for index, pkt in enumerate(pkts)]
+    framed_pkts = [create_frame(pkt, True, index, func_type = 0, size = 256, address=0) for index, pkt in enumerate(pkts)]
 
     tb.loopback_enable = True
 
@@ -669,8 +672,8 @@ async def run_test_nic(dut):
         assert pkt.data == framed_pkts[k]
         if tb.driver.interfaces[0].if_feature_rx_csum:
             assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
-            assert bytes(framed_pkts[k][46:]) ==   tb.ddr_ram[0][ddr_addr:ddr_addr+num_bytes+8]
-            ddr_addr = ddr_addr + num_bytes + 8
+            assert bytes(pkts[k]) ==   tb.ddr_ram[0][ddr_addr:ddr_addr+num_bytes]
+            ddr_addr = ddr_addr + num_bytes
     print("######################## Dumping RAM ###################")
     tb.ddr_ram[0].hexdump(0x0000, 1024, prefix="RAM")
 

@@ -24,14 +24,14 @@ module recon_controller #(
     input				s_axis_tlast,
     output reg				s_axis_tready,
 
-    input wire [ADDR_WIDTH-1:0]		s_axis_read_desc_addr,
-    input wire [DMA_DESC_LEN_WIDTH-1:0]	s_axis_read_desc_len,
-    input wire [DMA_DESC_TAG_WIDTH-1:0]	s_axis_read_desc_tag,
-    input wire [ID_WIDTH-1:0]		s_axis_read_desc_id,
-    input wire [DEST_WIDTH-1:0]		s_axis_read_desc_dest,
-    input wire [USER_WIDTH-1:0]		s_axis_read_desc_user,
-    input wire				s_axis_read_desc_valid,
-    output wire				s_axis_read_desc_ready,
+    output reg [ADDR_WIDTH-1:0]		s_axis_read_desc_addr,
+    output reg [DMA_DESC_LEN_WIDTH-1:0]	s_axis_read_desc_len,
+    output reg [DMA_DESC_TAG_WIDTH-1:0]	s_axis_read_desc_tag,
+    output reg [ID_WIDTH-1:0]		s_axis_read_desc_id,
+    output reg [DEST_WIDTH-1:0]		s_axis_read_desc_dest,
+    output reg [USER_WIDTH-1:0]		s_axis_read_desc_user,
+    output reg				s_axis_read_desc_valid,
+    input wire				s_axis_read_desc_ready,
 
     input				m_axi_awready,
     output [ID_WIDTH-1:0]		m_axi_awid,
@@ -54,14 +54,19 @@ module recon_controller #(
     output				m_axi_bready
 );
 
-assign s_axis_read_desc_addr = 0;
-assign s_axis_read_desc_len = 0;
-assign s_axis_read_desc_tag = 0;
-assign s_axis_read_desc_id = 0;
-assign s_axis_read_desc_dest = 0;
-assign s_axis_read_desc_user = 0;
-assign s_axis_read_desc_valid = 0;
-assign s_axis_read_desc_ready = 0;
+localparam integer ETH_IP_RMT_HDR_DATA_WIDTH = 46; // bytes
+localparam [63:0]  ETH_IP_RMT_HDR_KEEP_MASK = 64'h000000000003FFFF; // + bitstream_addr
+localparam [63:0]  ETH_IP_RMT_HDR_RECON_HDR_KEEP_MASK = 64'h00000000000000FF; // + bitstream_addr
+localparam integer RECON_HDR_WIDTH = 10; //bytes
+
+reg [ADDR_WIDTH-1:0]			s_axis_read_desc_addr_int = {ADDR_WIDTH{1'b0}};
+reg [DMA_DESC_LEN_WIDTH-1:0]		s_axis_read_desc_len_int = {DMA_DESC_LEN_WIDTH{1'b0}};
+reg [DMA_DESC_TAG_WIDTH-1:0]		s_axis_read_desc_tag_int = {DMA_DESC_TAG_WIDTH{1'b0}};
+reg [ID_WIDTH-1:0]			s_axis_read_desc_id_int = {ID_WIDTH{1'b0}};
+reg [DEST_WIDTH-1:0]			s_axis_read_desc_dest_int = {DEST_WIDTH{1'b0}};
+reg [USER_WIDTH-1:0]			s_axis_read_desc_user_int = {USER_WIDTH{1'b0}};
+reg					s_axis_read_desc_valid_int = 0;
+reg					s_axis_read_desc_ready_int = 0;
 
 
 reg [ADDR_WIDTH-1:0]	    axi_base_addr = {ADDR_WIDTH{1'b0}};
@@ -84,7 +89,7 @@ localparam [2:0]
 		RECON_CPL = 3'd5;
 
 reg [2:0]	capture_state = HDR_CAPTURE, capture_state_next;
-reg [63:0]	recon_hdr;
+reg [RECON_HDR_WIDTH*8:0]	recon_hdr;
 reg [1:0]	func_type;
 reg [7:0]	bitstream_id;
 reg [31:0]	bitstream_size;
@@ -92,6 +97,8 @@ reg		bitstream_size_valid;
 reg [7:0]	bitstream_id_int;
 reg [31:0]	bitstream_size_int;
 reg [31:0]	pending_transfer_size = 0;
+reg [34:0]	bitstream_addr;
+reg [34:0]	bitstream_addr_int;
 reg [$clog2(DATA_WIDTH):0] frame_size = 0;
 
 reg [DATA_WIDTH-1:0]		s_fifo_tdata;
@@ -114,15 +121,13 @@ reg				s_fifo_tready_int;
 
 reg [7:0]	bitstream_addr_table [0:ADDR_WIDTH+16+1-1]; // [size][ADDR][Valid]
 
-localparam integer ETH_IP_RMT_HDR_DATA_WIDTH = 46; // bytes
-localparam [63:0]  ETH_IP_RMT_HDR_KEEP_MASK = 64'h000000000003FFFF;
 
-assign recon_hdr = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? s_axis_tdata[46*8+:64] : 0; // hdr
+assign recon_hdr = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? s_axis_tdata[ETH_IP_RMT_HDR_DATA_WIDTH*8+:RECON_HDR_WIDTH*8] : 0;
 assign func_type = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr [1:0] : 0;
-assign bitstream_id = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[2+:8] : 0;
-assign bitstream_size_valid = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[31+:1] : 0;
-assign bitstream_size = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[32+:32] : 0;
-
+assign bitstream_size_valid = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[2] : 0;
+assign bitstream_addr = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[3+:34] : 0;
+assign bitstream_id = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[37+:8] : 0;
+assign bitstream_size = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[45+:32] : 0;
 
 always @(posedge s_axis_clk) begin
     capture_state <= capture_state_next;
@@ -138,6 +143,16 @@ always @(posedge s_axis_clk) begin
 	s_fifo_tlast <= s_fifo_tlast_int;
 	s_fifo_tready_int <= s_fifo_tready;
 	s_axis_tready <= s_fifo_tready_int;
+
+	// DMA signals
+	s_axis_read_desc_addr = s_axis_read_desc_ready_int;
+	s_axis_read_desc_len = s_axis_read_desc_ready_int;
+	s_axis_read_desc_tag = s_axis_read_desc_ready_int;
+	s_axis_read_desc_id = s_axis_read_desc_ready_int;
+	s_axis_read_desc_dest = s_axis_read_desc_ready_int;
+	s_axis_read_desc_user = s_axis_read_desc_ready_int;
+	s_axis_read_desc_valid = s_axis_read_desc_ready_int;
+	s_axis_read_desc_ready_int = s_axis_read_desc_ready;
     end
 end
 
@@ -157,23 +172,35 @@ always @* begin
 			if (!s_axis_tlast) begin
 			    capture_state_next = FRAME_MEM_TRANSFER;
 			end
-			bitstream_id_int = bitstream_id;
-			bitstream_size_int = bitstream_size;
-			axi_base_addr_int = {ADDR_WIDTH{1'b0}};
 			if (bitstream_size_valid) begin
+			    bitstream_id_int = bitstream_id;
+			    bitstream_size_int = bitstream_size;
+			    bitstream_addr_int = bitstream_addr;
+			    axi_base_addr_int = {ADDR_WIDTH{1'b0}};
+
 			    pending_transfer_size = bitstream_size;
 			    axi_base_addr_valid_int  = 1'b1;
-			end
+
+			    // bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a way to calculate an addr
+			    // also account for bitstream addr
+			    s_fifo_tdata_int = s_axis_tdata >> ((ETH_IP_RMT_HDR_DATA_WIDTH + RECON_HDR_WIDTH)  * 8);
+			    s_fifo_tkeep_int = ((s_axis_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + RECON_HDR_WIDTH)) & ETH_IP_RMT_HDR_RECON_HDR_KEEP_MASK) ;
+			    s_fifo_tvalid_int = s_axis_tvalid && s_fifo_tready; // only commit if there's space
+			    s_fifo_tlast_int = s_axis_tlast;
+			    for (i = (KEEP_WIDTH - ETH_IP_RMT_HDR_DATA_WIDTH - RECON_HDR_WIDTH - 1); i >= 0; i = i - 1) begin // don't consider header
+				frame_size = frame_size + s_fifo_tkeep_int[i];
+			    end
+			end // if (bitstream_size_valid)
 			else begin
+			    // +1 byte for func_type and bitstream_size_valid
+			    s_fifo_tdata_int = s_axis_tdata >> ((ETH_IP_RMT_HDR_DATA_WIDTH + 1)  * 8);
+			    s_fifo_tkeep_int = ((s_axis_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + 1)) & ETH_IP_RMT_HDR_KEEP_MASK);
+			    s_fifo_tvalid_int = s_axis_tvalid && s_fifo_tready; // only commit if there's space
+			    s_fifo_tlast_int = s_axis_tlast;
+			    for (i = (KEEP_WIDTH - ETH_IP_RMT_HDR_DATA_WIDTH - 1); i >= 0; i = i - 1) begin // don't consider header
+				frame_size = frame_size + s_fifo_tkeep_int[i];
+			    end
 			    axi_base_addr_valid_int = 1'b0;
-			end
-			// bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a way to calculate an addr
-			s_fifo_tdata_int = s_axis_tdata >> (ETH_IP_RMT_HDR_DATA_WIDTH * 8);
-			s_fifo_tkeep_int = ((s_axis_tkeep >> ETH_IP_RMT_HDR_DATA_WIDTH) & ETH_IP_RMT_HDR_KEEP_MASK) ;
-			s_fifo_tvalid_int = s_axis_tvalid && s_fifo_tready; // only commit if there's space
-			s_fifo_tlast_int = s_axis_tlast;
-			for (i = (KEEP_WIDTH - ETH_IP_RMT_HDR_DATA_WIDTH - 1); i >= 0; i = i - 1) begin // don't consider header
-			    frame_size = frame_size + s_fifo_tkeep_int[i];
 			end
 			if (pending_transfer_size >= frame_size) begin
 			    pending_transfer_size -= frame_size;
@@ -222,6 +249,14 @@ always @* begin
 	    // 	capture_state_next = CAPTURE_DONE;
 	    // end
 	end // case: FRAME_MEM_TRANSFER
+	// DMA_INIT: begin
+	//     if (s_axis_read_desc_ready) begin
+
+	//     end
+	//     else begin
+	// 	capture_state_next = DMA_INIT;
+	//     end
+	// end
     endcase
 end // always @ *
 
