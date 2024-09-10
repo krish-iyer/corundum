@@ -86,7 +86,8 @@ localparam [2:0]
 		FRAME_DROP = 3'd2,
 		DMA_INIT = 3'd3,
 		CAPTURE_DONE = 3'd4,
-		RECON_CPL = 3'd5;
+		RECON_CPL = 3'd5,
+		DMA_CPL = 3'd6;
 
 reg [2:0]	capture_state = HDR_CAPTURE, capture_state_next;
 reg [RECON_HDR_WIDTH*8:0]	recon_hdr;
@@ -146,13 +147,13 @@ always @(posedge s_axis_clk) begin
 	s_axis_tready <= s_fifo_tready_int;
 
 	// DMA signals
-	s_axis_read_desc_addr = s_axis_read_desc_ready_int;
-	s_axis_read_desc_len = s_axis_read_desc_ready_int;
-	s_axis_read_desc_tag = s_axis_read_desc_ready_int;
-	s_axis_read_desc_id = s_axis_read_desc_ready_int;
-	s_axis_read_desc_dest = s_axis_read_desc_ready_int;
-	s_axis_read_desc_user = s_axis_read_desc_ready_int;
-	s_axis_read_desc_valid = s_axis_read_desc_ready_int;
+	s_axis_read_desc_addr = s_axis_read_desc_addr_int;
+	s_axis_read_desc_len = s_axis_read_desc_len_int;
+	s_axis_read_desc_tag = s_axis_read_desc_tag_int;
+	s_axis_read_desc_id = s_axis_read_desc_id_int;
+	s_axis_read_desc_dest = s_axis_read_desc_dest_int;
+	s_axis_read_desc_user = s_axis_read_desc_user_int;
+	s_axis_read_desc_valid = s_axis_read_desc_valid_int;
 	s_axis_read_desc_ready_int = s_axis_read_desc_ready;
     end
 end
@@ -212,8 +213,15 @@ always @* begin
 			end
 		    end
 		    2'b01: begin
-			capture_state_next = DMA_INIT;
-			// create DMA command
+			if (bitstream_size_valid) begin
+			    bitstream_id_int = bitstream_id;
+			    bitstream_size_int = bitstream_size;
+			    bitstream_addr_int = bitstream_addr;
+			    capture_state_next = DMA_INIT;
+			end
+			else begin
+			    capture_state_next = HDR_CAPTURE;
+			end
 		    end
 		endcase
 	    end // if (s_axis_tready && s_axis_tvalid)
@@ -257,14 +265,21 @@ always @* begin
 	    // 	capture_state_next = CAPTURE_DONE;
 	    // end
 	end // case: FRAME_MEM_TRANSFER
-	// DMA_INIT: begin
-	//     if (s_axis_read_desc_ready) begin
-
-	//     end
-	//     else begin
-	// 	capture_state_next = DMA_INIT;
-	//     end
-	// end
+	DMA_INIT: begin
+	    if (s_axis_read_desc_ready) begin
+		s_axis_read_desc_addr_int = bitstream_addr_int;
+		s_axis_read_desc_len_int = bitstream_size_int;
+		s_axis_read_desc_valid_int = 1'b1;
+		capture_state_next = DMA_CPL;
+	    end
+	    else begin
+		capture_state_next = DMA_INIT;
+	    end
+	end // case: DMA_INIT
+	DMA_CPL: begin
+	    s_axis_read_desc_valid_int = 1'b0;
+	    capture_state_next = HDR_CAPTURE;
+	end
     endcase
 end // always @ *
 

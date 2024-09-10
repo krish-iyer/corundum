@@ -452,13 +452,19 @@ def create_frame(payload, recon, index, func_type=0, size=0, address=0):
     id = 0
     udp = UDP(sport=1, dport=2)
     if recon == True:
-        if index == 0:
-            upr_hdr = func_type | 1 << 2 | address << 3 | id << 37 | size << 45
-            pkt_hdr = struct.pack('<HHQH', 0xF0E1, 0x0001, upr_hdr, 0)
-        else:
-            upr_hdr = func_type | 0 << 2
-            pkt_hdr = struct.pack('<HHB', 0xF0E1, 0x0001, upr_hdr)
-        frame = eth / ip / udp / (pkt_hdr + payload)
+        if func_type == 0:
+            if index == 0:
+                upr_hdr = func_type | 1 << 2 | address << 3 | id << 37 | size << 45
+                pkt_hdr = struct.pack('<HHQH', 0xF0E1, 0x0001, upr_hdr, 0)
+            else:
+                upr_hdr = func_type | 0 << 2
+                pkt_hdr = struct.pack('<HHB', 0xF0E1, 0x0001, upr_hdr)
+            frame = eth / ip / udp / (pkt_hdr + payload)
+        elif func_type == 1:
+            upr_hdr = func_type | 1 << 2 | address << 3 | id << 37 | (size & 0x7ffff) << 45
+            lwr_hdr = size >> 19
+            pkt_hdr = struct.pack('<HHQH', 0xF0E1, 0x0001, upr_hdr, lwr_hdr)
+            frame = eth / ip / udp / pkt_hdr
     else:
         frame = eth / ip / udp / payload
     return bytearray(bytes(frame))
@@ -567,6 +573,44 @@ async def run_test_nic(dut):
     tb.ddr_ram[0].hexdump(0x0000, 1024, prefix="RAM")
 
     tb.loopback_enable = False
+
+    tb.log.info("Single DMA test")
+
+    packet_count = 1024
+
+    ddr_addr = 0x40
+    num_bytes = 8
+
+    pkts = [bytearray([(x + k) % 256 for x in range(num_bytes)]) for k in range(packet_count)]
+
+    for pkt in pkts:
+        await tb.ddr_ram[0].write(ddr_addr, pkt)
+        ddr_addr = ddr_addr + num_bytes
+
+    tb.ddr_ram[0].hexdump(0x000, 1024, prefix="RAM")
+
+    framed_pkts = [create_frame(0, True, index, func_type = 1, size = 1024, address=0x40) for index, _ in
+                    enumerate(pkts)]
+
+    tb.loopback_enable = True
+
+    #for p in framed_pkts:
+    await tb.driver.interfaces[0].start_xmit(framed_pkts[0], 0)
+
+    #for k in range(packet_count):
+    pkt = await tb.driver.interfaces[0].recv()
+
+    tb.log.info("Packet: %s", pkt)
+    assert pkt.data == framed_pkts[k]
+    if tb.driver.interfaces[0].if_feature_rx_csum:
+        assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
+            #assert bytes(pkts[k]) ==   tb.ddr_ram[0][ddr_addr:ddr_addr+num_bytes]
+            #ddr_addr = ddr_addr + num_bytes
+    #print("######################## Dumping RAM ###################")
+    #tb.ddr_ram[0].hexdump(0x0000, 1024, prefix="RAM")
+
+    tb.loopback_enable = False
+
 
     tb.log.info("Read statistics counters")
 

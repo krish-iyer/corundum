@@ -883,7 +883,7 @@ wire [PORT_COUNT-1:0]			   tap_s_axis_sync_tx_tready;
 wire [PORT_COUNT-1:0]			   tap_s_axis_sync_tx_tlast;
 wire [PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH-1:0] tap_s_axis_sync_tx_tuser;
 
-localparam				      DDR_ICAP_DMA_LEN_WIDTH = 20;
+localparam				      DDR_ICAP_DMA_LEN_WIDTH = 24;
 localparam				      DDR_ICAP_DMA_TAG_WIDTH = 8;
 localparam				      DDR_ICAP_DMA_DEST_WIDTH = 8;
 localparam				      DDR_ICAP_DMA_USER_WIDTH = 1;
@@ -903,7 +903,7 @@ wire [AXIS_ICAP_DATA_WIDTH-1:0]		      icap_s_axis_tdata;
 wire [AXIS_ICAP_KEEP_WIDTH-1:0]		      icap_s_axis_tkeep;
 wire					      icap_s_axis_tlast;
 wire					      icap_s_axis_tvalid;
-wire					      icap_s_axis_tready;
+reg					      icap_s_axis_tready = 1'b1;
 
 
 wire [AXI_DDR_ID_WIDTH-1:0]		      m_axi_async_dma_ddr_arid;
@@ -1085,6 +1085,15 @@ recon_controller_inst (
     .s_axis_tlast(recon_s_axis_tlast),
     .s_axis_tready(recon_s_axis_tready),
 
+    .s_axis_read_desc_addr(s_axis_read_desc_addr),
+    .s_axis_read_desc_len(s_axis_read_desc_len),
+    .s_axis_read_desc_tag(s_axis_read_desc_tag),
+    .s_axis_read_desc_id(s_axis_read_desc_id),
+    .s_axis_read_desc_dest(s_axis_read_desc_dest),
+    .s_axis_read_desc_user(s_axis_read_desc_user),
+    .s_axis_read_desc_valid(s_axis_read_desc_valid),
+    .s_axis_read_desc_ready(s_axis_read_desc_ready),
+
     .m_axi_awready(m_axi_ddr_awready),
     .m_axi_awid(m_axi_ddr_awid),
     .m_axi_awaddr(m_axi_ddr_awaddr),
@@ -1110,7 +1119,8 @@ axi_dma #(
     .AXI_DATA_WIDTH(AXI_DDR_DATA_WIDTH),
     .AXI_ADDR_WIDTH(AXI_DDR_ADDR_WIDTH),
     .AXI_STRB_WIDTH(AXI_DDR_STRB_WIDTH),
-    .AXI_ID_WIDTH(AXI_DDR_ID_WIDTH)
+    .AXI_ID_WIDTH(AXI_DDR_ID_WIDTH),
+    .LEN_WIDTH(DDR_ICAP_DMA_LEN_WIDTH)
 ) axi_dma_ddr_icap_inst (
     .clk(clk),
     .rst(rst),
@@ -1198,7 +1208,7 @@ axi_dma #(
 
     .read_enable(1'b1),
     .write_enable(1'b0),
-    .write_abort()
+    .write_abort(1'b0)
 );
 
 axi_async_fifo #(
