@@ -59,14 +59,14 @@ localparam [63:0]  ETH_IP_RMT_HDR_KEEP_MASK = 64'h000000000003FFFF; // + bitstre
 localparam [63:0]  ETH_IP_RMT_HDR_RECON_HDR_KEEP_MASK = 64'h00000000000000FF; // + bitstream_addr
 localparam integer RECON_HDR_WIDTH = 10; //bytes
 
-reg [ADDR_WIDTH-1:0]			s_axis_read_desc_addr_int = {ADDR_WIDTH{1'b0}};
-reg [DMA_DESC_LEN_WIDTH-1:0]		s_axis_read_desc_len_int = {DMA_DESC_LEN_WIDTH{1'b0}};
-reg [DMA_DESC_TAG_WIDTH-1:0]		s_axis_read_desc_tag_int = {DMA_DESC_TAG_WIDTH{1'b0}};
-reg [ID_WIDTH-1:0]			s_axis_read_desc_id_int = {ID_WIDTH{1'b0}};
-reg [DEST_WIDTH-1:0]			s_axis_read_desc_dest_int = {DEST_WIDTH{1'b0}};
-reg [USER_WIDTH-1:0]			s_axis_read_desc_user_int = {USER_WIDTH{1'b0}};
-reg					s_axis_read_desc_valid_int = 0;
-reg					s_axis_read_desc_ready_int = 0;
+reg [ADDR_WIDTH-1:0] s_axis_read_desc_addr_int = {ADDR_WIDTH{1'b0}};
+reg [DMA_DESC_LEN_WIDTH-1:0] s_axis_read_desc_len_int = {DMA_DESC_LEN_WIDTH{1'b0}};
+reg [DMA_DESC_TAG_WIDTH-1:0] s_axis_read_desc_tag_int = {DMA_DESC_TAG_WIDTH{1'b0}};
+reg [ID_WIDTH-1:0]	     s_axis_read_desc_id_int = {ID_WIDTH{1'b0}};
+reg [DEST_WIDTH-1:0]	     s_axis_read_desc_dest_int = {DEST_WIDTH{1'b0}};
+reg [USER_WIDTH-1:0]	     s_axis_read_desc_user_int = {USER_WIDTH{1'b0}};
+reg			     s_axis_read_desc_valid_int = 0;
+reg			     s_axis_read_desc_ready_int = 0;
 
 
 reg [ADDR_WIDTH-1:0]	    axi_base_addr = {ADDR_WIDTH{1'b0}};
@@ -122,7 +122,8 @@ reg				s_fifo_tready_int;
 reg [7:0]	bitstream_addr_table [0:ADDR_WIDTH+16+1-1]; // [size][ADDR][Valid]
 
 
-assign recon_hdr = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? s_axis_tdata[ETH_IP_RMT_HDR_DATA_WIDTH*8+:RECON_HDR_WIDTH*8] : 0;
+assign recon_hdr = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ?
+		   s_axis_tdata[ETH_IP_RMT_HDR_DATA_WIDTH*8+:RECON_HDR_WIDTH*8] : 0;
 assign func_type = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr [1:0] : 0;
 assign bitstream_size_valid = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[2] : 0;
 assign bitstream_addr = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[3+:34] : 0;
@@ -181,29 +182,33 @@ always @* begin
 			    pending_transfer_size = bitstream_size;
 			    axi_base_addr_valid_int  = 1'b1;
 
-			    // bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a way to calculate an addr
+			    // bitstream_addr_table[bitstream_id] = {bitstream_size, 0};
 			    // also account for bitstream addr
 			    s_fifo_tdata_int = s_axis_tdata >> ((ETH_IP_RMT_HDR_DATA_WIDTH + RECON_HDR_WIDTH)  * 8);
-			    s_fifo_tkeep_int = ((s_axis_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + RECON_HDR_WIDTH)) & ETH_IP_RMT_HDR_RECON_HDR_KEEP_MASK) ;
+			    s_fifo_tkeep_int = ((s_axis_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + RECON_HDR_WIDTH)) &
+					       ETH_IP_RMT_HDR_RECON_HDR_KEEP_MASK) ;
 			    s_fifo_tvalid_int = s_axis_tvalid && s_fifo_tready; // only commit if there's space
 			    s_fifo_tlast_int = s_axis_tlast;
-			    for (i = (KEEP_WIDTH - ETH_IP_RMT_HDR_DATA_WIDTH - RECON_HDR_WIDTH - 1); i >= 0; i = i - 1) begin // don't consider header
+			    for (i = (KEEP_WIDTH - ETH_IP_RMT_HDR_DATA_WIDTH - RECON_HDR_WIDTH - 1); i >= 0; i = i - 1)
+				begin // don't consider header
 				frame_size = frame_size + s_fifo_tkeep_int[i];
 			    end
 			end // if (bitstream_size_valid)
 			else begin
 			    // +1 byte for func_type and bitstream_size_valid
 			    s_fifo_tdata_int = s_axis_tdata >> ((ETH_IP_RMT_HDR_DATA_WIDTH + 1)  * 8);
-			    s_fifo_tkeep_int = ((s_axis_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + 1)) & ETH_IP_RMT_HDR_KEEP_MASK);
+			    s_fifo_tkeep_int = ((s_axis_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + 1)) &
+					       ETH_IP_RMT_HDR_KEEP_MASK);
 			    s_fifo_tvalid_int = s_axis_tvalid && s_fifo_tready; // only commit if there's space
 			    s_fifo_tlast_int = s_axis_tlast;
-			    for (i = (KEEP_WIDTH - ETH_IP_RMT_HDR_DATA_WIDTH - 1); i >= 0; i = i - 1) begin // don't consider header
+			    for (i = (KEEP_WIDTH - ETH_IP_RMT_HDR_DATA_WIDTH - 1); i >= 0; i = i - 1) begin
+				// don't consider header
 				frame_size = frame_size + s_fifo_tkeep_int[i];
 			    end
 			    axi_base_addr_valid_int = 1'b0;
 			end
 			if (pending_transfer_size >= frame_size) begin
-			    pending_transfer_size -= frame_size;
+			    pending_transfer_size -= frame_size; // you can't do this, clock this operation
 			end
 		    end
 		    2'b01: begin
@@ -233,9 +238,12 @@ always @* begin
 		    frame_size = frame_size + s_axis_tkeep[i];
 		end
 		if(pending_transfer_size >= frame_size) begin
-		    pending_transfer_size -= frame_size; // check for negative conditions do only if frame_size <= pending_transfer_size, if not then enable bad frame signal
+		    pending_transfer_size -= frame_size; // you can't do this, clock this operation
+		    // check for negative conditions do only if frame_size <= pending_transfer_size,
+		    // if not then enable bad frame signal
 		end
-		// bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a way to calculate an addr
+		// bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a
+		// way to calculate an addr
 		s_fifo_tdata_int = s_axis_tdata;
 		s_fifo_tkeep_int = s_axis_tkeep;
 		s_fifo_tvalid_int = s_axis_tvalid && s_fifo_tready;
