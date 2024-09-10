@@ -21,7 +21,7 @@ from cocotb.log import SimLog
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, FallingEdge, Timer
 
-from cocotbext.axi import AxiStreamBus, AxiRam
+from cocotbext.axi import AxiStreamBus, AxiRam, AxiStreamFrame, AxiStreamSink
 from cocotbext.axi import AxiSlave, AxiBus, SparseMemoryRegion
 from cocotbext.eth import EthMac
 from cocotbext.pcie.core import RootComplex
@@ -378,6 +378,13 @@ class TB(object):
                     self.hbm_ram.append(ram)
                 self.hbm_axi_if.append(AxiSlave(AxiBus.from_prefix(ch, "axi_ch"), ch.ch_clk, ch.ch_rst, target=ram))
 
+
+        self.icap_clk = dut.clk
+        self.icap_rst = dut.rst
+        cocotb.start_soon(Clock(self.icap_clk, 4, units="ns").start())
+        self.icap_axis_if = AxiStreamSink(AxiStreamBus.from_prefix(core_inst.app.app_block_inst.axi_dma_ddr_icap_inst,
+                                                                   "m_axis_read_data"), self.icap_clk, self.icap_rst)
+
         dut.ctrl_reg_wr_wait.setimmediatevalue(0)
         dut.ctrl_reg_wr_ack.setimmediatevalue(0)
         dut.ctrl_reg_rd_data.setimmediatevalue(0)
@@ -592,22 +599,16 @@ async def run_test_nic(dut):
     framed_pkts = [create_frame(0, True, index, func_type = 1, size = 1024, address=0x40) for index, _ in
                     enumerate(pkts)]
 
-    tb.loopback_enable = True
+    #tb.loopback_enable = True
 
     #for p in framed_pkts:
+    ddr_addr = 0x40
     await tb.driver.interfaces[0].start_xmit(framed_pkts[0], 0)
 
-    #for k in range(packet_count):
-    pkt = await tb.driver.interfaces[0].recv()
-
-    tb.log.info("Packet: %s", pkt)
-    assert pkt.data == framed_pkts[k]
-    if tb.driver.interfaces[0].if_feature_rx_csum:
-        assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
-            #assert bytes(pkts[k]) ==   tb.ddr_ram[0][ddr_addr:ddr_addr+num_bytes]
-            #ddr_addr = ddr_addr + num_bytes
-    #print("######################## Dumping RAM ###################")
-    #tb.ddr_ram[0].hexdump(0x0000, 1024, prefix="RAM")
+    #for i in range(int(1024/64)):
+    rx_frame = await tb.icap_axis_if.recv()
+    assert rx_frame.tdata == tb.ddr_ram[0][ddr_addr:ddr_addr+1024]
+    ddr_addr += 64
 
     tb.loopback_enable = False
 

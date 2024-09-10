@@ -903,7 +903,7 @@ wire [AXIS_ICAP_DATA_WIDTH-1:0]		      icap_s_axis_tdata;
 wire [AXIS_ICAP_KEEP_WIDTH-1:0]		      icap_s_axis_tkeep;
 wire					      icap_s_axis_tlast;
 wire					      icap_s_axis_tvalid;
-reg					      icap_s_axis_tready = 1'b1;
+wire					      icap_s_axis_tready;
 
 
 wire [AXI_DDR_ID_WIDTH-1:0]		      m_axi_async_dma_ddr_arid;
