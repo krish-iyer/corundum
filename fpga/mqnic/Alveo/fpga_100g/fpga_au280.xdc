@@ -45,8 +45,8 @@ create_clock -period 10 -name clk_100mhz_1 [get_ports clk_100mhz_1_p]
 #set_input_delay 0 [get_ports {reset}]
 
 # UART
-#set_property -dict {LOC A28 IOSTANDARD LVCMOS18 SLEW SLOW DRIVE 8} [get_ports usb_uart_txd]
-#set_property -dict {LOC B33 IOSTANDARD LVCMOS18} [get_ports usb_uart_rxd]
+set_property -dict {LOC A28 IOSTANDARD LVCMOS18 SLEW SLOW DRIVE 8} [get_ports usb_uart_txd]
+set_property -dict {LOC B33 IOSTANDARD LVCMOS18} [get_ports usb_uart_rxd]
 
 #set_false_path -to [get_ports {uart_txd}]
 #set_output_delay 0 [get_ports {uart_txd}]

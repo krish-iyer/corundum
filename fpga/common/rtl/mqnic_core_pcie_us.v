@@ -211,7 +211,10 @@ module mqnic_core_pcie_us #
     parameter STAT_DMA_ENABLE = 1,
     parameter STAT_PCIE_ENABLE = 1,
     parameter STAT_INC_WIDTH = 24,
-    parameter STAT_ID_WIDTH = 12
+    parameter STAT_ID_WIDTH = 12,
+
+    parameter UART_DATA_WIDTH = 512
+
 )
 (
     input  wire                                          clk,
@@ -553,7 +556,20 @@ module mqnic_core_pcie_us #
     input  wire                                          app_jtag_tdi,
     output wire                                          app_jtag_tdo,
     input  wire                                          app_jtag_tms,
-    input  wire                                          app_jtag_tck
+    input  wire                                          app_jtag_tck,
+
+    /*
+     * UART
+     */
+    input wire						uart_clk,
+    input wire						uart_rst,
+    output wire [UART_DATA_WIDTH-1:0]			uart_tx_axis_tdata,
+    output wire						uart_tx_axis_tvalid,
+    input wire						uart_tx_axis_tready,
+
+    input wire [UART_DATA_WIDTH-1:0]			uart_rx_axis_tdata,
+    input wire						uart_rx_axis_tvalid,
+    output wire						uart_rx_axis_tready
 );
 
 parameter TLP_DATA_WIDTH = AXIS_PCIE_DATA_WIDTH;
@@ -1063,7 +1079,9 @@ mqnic_core_pcie #(
     .STAT_DMA_ENABLE(STAT_DMA_ENABLE),
     .STAT_PCIE_ENABLE(STAT_PCIE_ENABLE),
     .STAT_INC_WIDTH(STAT_INC_WIDTH),
-    .STAT_ID_WIDTH(STAT_ID_WIDTH)
+    .STAT_ID_WIDTH(STAT_ID_WIDTH),
+
+    .UART_DATA_WIDTH(UART_DATA_WIDTH)
 )
 core_pcie_inst (
     .clk(clk),
@@ -1403,7 +1421,20 @@ core_pcie_inst (
     .app_jtag_tdi(app_jtag_tdi),
     .app_jtag_tdo(app_jtag_tdo),
     .app_jtag_tms(app_jtag_tms),
-    .app_jtag_tck(app_jtag_tck)
+    .app_jtag_tck(app_jtag_tck),
+
+    /*
+     * UART
+     */
+    .uart_clk(uart_clk),
+    .uart_rst(uart_rst),
+    .uart_tx_axis_tdata(uart_tx_axis_tdata),
+    .uart_tx_axis_tvalid(uart_tx_axis_tvalid),
+    .uart_tx_axis_tready(uart_tx_axis_tready),
+
+    .uart_rx_axis_tdata(uart_tx_axis_tdata),
+    .uart_rx_axis_tvalid(uart_tx_axis_tvalid),
+    .uart_rx_axis_tready(uart_tx_axis_tready)
 );
 
 endmodule

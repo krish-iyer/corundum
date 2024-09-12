@@ -164,6 +164,9 @@ module fpga #
     output wire         msp_uart_txd,
     input  wire         msp_uart_rxd,
 
+    output wire	       usb_uart_txd,
+    input wire	       usb_uart_rxd,
+
     /*
      * PCI express
      */
@@ -1778,6 +1781,14 @@ end
 
 endgenerate
 
+// usb uart
+
+wire usb_uart_clk;
+wire usb_uart_rst;
+
+assign usb_uart_clk = clk_125mhz_int;
+assign usb_uart_rst = rst_125mhz_int;
+
 fpga_core #(
     // FW and board IDs
     .FPGA_ID(FPGA_ID),
@@ -1963,6 +1974,11 @@ core_inst (
     .qsfp_led_act(),
     .qsfp_led_stat_g(),
     .qsfp_led_stat_y(),
+
+    .usb_uart_clk(usb_uart_clk),
+    .usb_uart_rst(usb_uart_rst),
+    .usb_uart_txd(usb_uart_txd),
+    .usb_uart_rxd(usb_uart_rxd),
 
     /*
      * I2C

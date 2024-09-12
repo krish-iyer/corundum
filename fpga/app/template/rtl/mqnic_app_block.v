@@ -144,7 +144,9 @@ module mqnic_app_block #
     // Statistics counter subsystem
     parameter STAT_ENABLE = 1,
     parameter STAT_INC_WIDTH = 24,
-    parameter STAT_ID_WIDTH = 12
+    parameter STAT_ID_WIDTH = 12,
+
+    parameter UART_DATA_WIDTH = 512
 )
 (
     input  wire                                           clk,
@@ -587,7 +589,20 @@ module mqnic_app_block #
     input  wire                                           jtag_tdi,
     output wire                                           jtag_tdo,
     input  wire                                           jtag_tms,
-    input  wire                                           jtag_tck
+    input  wire                                           jtag_tck,
+
+    /*
+     * UART
+     */
+    input wire						 uart_clk,
+    input wire						 uart_rst,
+    output wire [UART_DATA_WIDTH-1:0]			 uart_tx_axis_tdata,
+    output wire						 uart_tx_axis_tvalid,
+    input wire						 uart_tx_axis_tready,
+
+    input wire [UART_DATA_WIDTH-1:0]			 uart_rx_axis_tdata,
+    input wire						 uart_rx_axis_tvalid,
+    output wire						 uart_rx_axis_tready
 );
 
 // check configuration
@@ -1294,6 +1309,36 @@ axi_async_fifo #(
     .m_axi_rready(m_axi_ddr_rready)
 
 );
+
+axis_fifo_ex #(
+    .DATA_WIDTH(UART_DATA_WIDTH),
+    .FIFO_DEPTH(128)
+)
+uart_axis_async_fifo_inst
+(
+    .s_clk(clk),
+    .s_rst(rst),
+    .s_axis_tdata(icap_s_axis_tdata),
+    .s_axis_tkeep(icap_s_axis_tkeep),
+    .s_axis_tvalid(icap_s_axis_tvalid),
+    .s_axis_tready(icap_s_axis_tready),
+    .s_axis_tlast(icap_s_axis_tlast),
+    .s_axis_tid(),
+    .s_axis_tdest(),
+    .s_axis_tuser(),
+
+    .m_clk(uart_clk),
+    .m_rst(uart_rst),
+    .m_axis_tdata(uart_tx_axis_tdata),
+    .m_axis_tkeep(),
+    .m_axis_tvalid(uart_tx_axis_tvalid),
+    .m_axis_tready(uart_tx_axis_tready),
+    .m_axis_tlast(),
+    .m_axis_tid(),
+    .m_axis_tdest(),
+    .m_axis_tuser()
+ );
+
 
 endmodule
 

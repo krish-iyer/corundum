@@ -199,6 +199,11 @@ module fpga_core #
     output wire [QSFP_CNT-1:0]                qsfp_led_stat_g,
     output wire [QSFP_CNT-1:0]                qsfp_led_stat_y,
 
+    input					   usb_uart_clk,
+    input					   usb_uart_rst,
+    output					   usb_uart_txd,
+    input					   usb_uart_rxd,
+
     /*
      * I2C
      */
@@ -1022,6 +1027,40 @@ mqnic_port_map_mac_axis_inst (
     .rx_pfc_ack(eth_rx_pfc_ack)
 );
 
+wire [AXI_DDR_DATA_WIDTH-1:0] uart_tx_axis_tdata;
+wire			      uart_tx_axis_tvalid;
+wire			      uart_tx_axis_tready;
+wire [AXI_DDR_DATA_WIDTH-1:0] uart_rx_axis_tdata;
+wire			      uart_rx_axis_tvalid;
+wire			      uart_rx_axis_tready;
+
+localparam		      UART_DATA_WIDTH = 512;
+
+uart #(
+    .DATA_WIDTH(UART_DATA_WIDTH)
+) usb_uart_inst (
+    .clk(usb_uart_clk),
+    .rst(usb_uart_rst),
+    // AXI input
+    .s_axis_tdata(uart_tx_axis_tdata),
+    .s_axis_tvalid(uart_tx_axis_tvalid),
+    .s_axis_tready(uart_tx_axis_tready),
+    // AXI output
+    .m_axis_tdata(uart_rx_axis_tdata),
+    .m_axis_tvalid(uart_rx_axis_tvalid),
+    .m_axis_tready(uart_rx_axis_tready),
+    // uart
+    .rxd(usb_uart_rxd),
+    .txd(usb_uart_txd),
+    // status
+    .tx_busy(),
+    .rx_busy(),
+    .rx_overrun_error(),
+    .rx_frame_error(),
+    // configuration
+    .prescale(125000000/(9600*8))
+);
+
 mqnic_core_pcie_us #(
     // FW and board IDs
     .FPGA_ID(FPGA_ID),
@@ -1203,7 +1242,9 @@ mqnic_core_pcie_us #(
     .STAT_DMA_ENABLE(STAT_DMA_ENABLE),
     .STAT_PCIE_ENABLE(STAT_PCIE_ENABLE),
     .STAT_INC_WIDTH(STAT_INC_WIDTH),
-    .STAT_ID_WIDTH(STAT_ID_WIDTH)
+    .STAT_ID_WIDTH(STAT_ID_WIDTH),
+
+    .UART_DATA_WIDTH(UART_DATA_WIDTH)
 )
 core_inst (
     .clk(clk_250mhz),
@@ -1545,7 +1586,21 @@ core_inst (
     .app_jtag_tdi(1'b0),
     .app_jtag_tdo(),
     .app_jtag_tms(1'b0),
-    .app_jtag_tck(1'b0)
+    .app_jtag_tck(1'b0),
+
+    /*
+     * UART
+     */
+    .uart_clk(usb_uart_clk),
+    .uart_rst(usb_uart_rst),
+    .uart_tx_axis_tdata(uart_tx_axis_tdata),
+    .uart_tx_axis_tvalid(uart_tx_axis_tvalid),
+    .uart_tx_axis_tready(uart_tx_axis_tready),
+
+    .uart_rx_axis_tdata(uart_tx_axis_tdata),
+    .uart_rx_axis_tvalid(uart_tx_axis_tvalid),
+    .uart_rx_axis_tready(uart_tx_axis_tready)
+
 );
 
 endmodule
