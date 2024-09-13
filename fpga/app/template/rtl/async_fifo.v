@@ -18,18 +18,18 @@ module async_fifo #
     parameter WIDTH = 512 // bits
 )
 (
-    input		    wr_clk,
-    input		    wr_rst,
-    input		    wr_en,
+    input wire		    wr_clk,
+    input wire		    wr_rst,
+    input wire		    wr_en,
     input [WIDTH-1:0]	    data_in,
 
-    input		    rd_clk,
-    input		    rd_rst,
-    input		    rd_en,
+    input wire		    rd_clk,
+    input wire		    rd_rst,
+    input wire		    rd_en,
     output wire [WIDTH-1:0] data_out,
 
-    output		    full,
-    output		    empty
+    output wire		    full,
+    output wire		    empty
 );
 
 parameter		   ADDR_WIDTH = $clog2(DEPTH);
