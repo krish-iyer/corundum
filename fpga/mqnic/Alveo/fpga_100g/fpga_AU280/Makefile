@@ -115,12 +115,20 @@ SYN_FILES += lib/pcie/rtl/pcie_us_cfg.v
 SYN_FILES += lib/pcie/rtl/pulse_merge.v
 # include app
 SYN_FILES += app/template/rtl/mqnic_app_block.v
-SYN_FILES += app/template/rtl/axis_fifo.v
-SYN_FILES += app/template/rtl/streamCapture.v
+SYN_FILES += app/template/rtl/axis_fifo_ex.v
+SYN_FILES += app/template/rtl/axi_async_fifo.v
 SYN_FILES += app/template/rtl/async_fifo.v
-SYN_FILES += lib/axis/rtl/axis_switch_4x4.v
-SYN_FILES += lib/axis/rtl/axis_switch.v
-
+SYN_FILES += app/template/rtl/recon_controller.v
+SYN_FILES += app/template/rtl/rmt.v
+SYN_FILES += app/template/rtl/axis_mm_bridge.v
+SYN_FILES += lib/axis/rtl/axis_ram_switch_4x4.v
+SYN_FILES += lib/axis/rtl/axis_ram_switch.v
+SYN_FILES += lib/axis/rtl/axis_tap.v
+SYN_FILES += lib/axi/rtl/axi_ram.v
+SYN_FILES += lib/axi/rtl/axi_dma.v
+SYN_FILES += lib/axi/rtl/axi_dma_rd.v
+SYN_FILES += lib/axi/rtl/axi_dma_wr.v
+SYN_FILES += lib/axi/rtl/axi_dma_desc_mux.v
 
 # XDC files
 XDC_FILES = fpga_au280.xdc
