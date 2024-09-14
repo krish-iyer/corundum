@@ -21,7 +21,7 @@ module async_fifo #
     input wire		    wr_clk,
     input wire		    wr_rst,
     input wire		    wr_en,
-    input [WIDTH-1:0]	    data_in,
+    input wire [WIDTH-1:0]	    data_in,
 
     input wire		    rd_clk,
     input wire		    rd_rst,

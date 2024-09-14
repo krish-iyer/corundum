@@ -199,10 +199,10 @@ module fpga_core #
     output wire [QSFP_CNT-1:0]                qsfp_led_stat_g,
     output wire [QSFP_CNT-1:0]                qsfp_led_stat_y,
 
-    input					   usb_uart_clk,
-    input					   usb_uart_rst,
-    output					   usb_uart_txd,
-    input					   usb_uart_rxd,
+    input wire 					   usb_uart_clk,
+    input wire					   usb_uart_rst,
+    output wire					   usb_uart_txd,
+    input wire					   usb_uart_rxd,
 
     /*
      * I2C

@@ -11,8 +11,8 @@ module rmt #(
     parameter DEST_WIDTH = 2
 )
 (
-    input				   clk,
-    input				   rst,
+    input wire				   clk,
+    input wire				   rst,
 
     input wire [PORT_COUNT*DATA_WIDTH-1:0] s_axis_tdata,
     input wire [PORT_COUNT*KEEP_WIDTH-1:0] s_axis_tkeep,

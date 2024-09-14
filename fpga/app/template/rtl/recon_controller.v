@@ -14,14 +14,14 @@ module recon_controller #(
     parameter USER_WIDTH = 8
 )
 (
-    input				s_axis_clk,
+    input wire				s_axis_clk,
     input wire				m_axi_aclk,
-    input				rst,
+    input	wire 			rst,
     //input stream
-    input				s_axis_tvalid,
-    input [DATA_WIDTH-1:0]		s_axis_tdata,
-    input [KEEP_WIDTH-1:0]		s_axis_tkeep,
-    input				s_axis_tlast,
+    input	wire 			s_axis_tvalid,
+    input wire [DATA_WIDTH-1:0]		s_axis_tdata,
+    input wire [KEEP_WIDTH-1:0]		s_axis_tkeep,
+    input wire 				s_axis_tlast,
     output reg				s_axis_tready,
 
     output reg [ADDR_WIDTH-1:0]		s_axis_read_desc_addr,
@@ -33,25 +33,25 @@ module recon_controller #(
     output reg				s_axis_read_desc_valid,
     input wire				s_axis_read_desc_ready,
 
-    input				m_axi_awready,
-    output [ID_WIDTH-1:0]		m_axi_awid,
-    output [ADDR_WIDTH-1:0]		m_axi_awaddr,
-    output [7:0]			m_axi_awlen,
-    output [2:0]			m_axi_awsize,
-    output [1:0]			m_axi_awburst,
-    output				m_axi_awlock,
-    output [3:0]			m_axi_awcache,
-    output [2:0]			m_axi_awprot,
-    output				m_axi_awvalid,
-    input				m_axi_wready,
-    output [DATA_WIDTH-1:0]		m_axi_wdata,
-    output [KEEP_WIDTH-1:0]		m_axi_wstrb,
-    output				m_axi_wlast,
-    output				m_axi_wvalid,
-    input [ID_WIDTH-1:0]		m_axi_bid,
-    input [1:0]				m_axi_bresp,
-    input				m_axi_bvalid,
-    output				m_axi_bready
+    input	wire 			m_axi_awready,
+    output wire [ID_WIDTH-1:0]		m_axi_awid,
+    output wire [ADDR_WIDTH-1:0]		m_axi_awaddr,
+    output wire [7:0]			m_axi_awlen,
+    output wire [2:0]			m_axi_awsize,
+    output wire [1:0]			m_axi_awburst,
+    output wire 				m_axi_awlock,
+    output wire [3:0]			m_axi_awcache,
+    output wire [2:0]			m_axi_awprot,
+    output	wire 			m_axi_awvalid,
+    input	wire 			m_axi_wready,
+    output wire [DATA_WIDTH-1:0]		m_axi_wdata,
+    output wire [KEEP_WIDTH-1:0]		m_axi_wstrb,
+    output	wire 			m_axi_wlast,
+    output	wire 			m_axi_wvalid,
+    input wire [ID_WIDTH-1:0]		m_axi_bid,
+    input wire [1:0]				m_axi_bresp,
+    input wire 				m_axi_bvalid,
+    output wire 				m_axi_bready
 );
 
 localparam integer ETH_IP_RMT_HDR_DATA_WIDTH = 46; // bytes
@@ -90,15 +90,15 @@ localparam [2:0]
 		DMA_CPL = 3'd6;
 
 reg [2:0]	capture_state = HDR_CAPTURE, capture_state_next;
-reg [RECON_HDR_WIDTH*8:0]	recon_hdr;
-reg [1:0]	func_type;
-reg [7:0]	bitstream_id;
-reg [31:0]	bitstream_size;
-reg		bitstream_size_valid;
+wire [RECON_HDR_WIDTH*8:0]	recon_hdr;
+wire [1:0]	func_type;
+wire [7:0]	bitstream_id;
+wire [31:0]	bitstream_size;
+wire		bitstream_size_valid;
 reg [7:0]	bitstream_id_int;
 reg [31:0]	bitstream_size_int;
 reg [31:0]	pending_transfer_size = 0;
-reg [34:0]	bitstream_addr;
+wire [34:0]	bitstream_addr;
 reg [34:0]	bitstream_addr_int;
 reg [$clog2(DATA_WIDTH):0] frame_size = 0;
 
