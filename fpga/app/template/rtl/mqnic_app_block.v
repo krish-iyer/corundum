@@ -867,37 +867,37 @@ assign jtag_tdo = jtag_tdi;
 
 parameter S_COUNT = 4;
 parameter M_COUNT = 4;
-parameter DATA_WIDTH = PORT_COUNT*AXIS_SYNC_DATA_WIDTH;
+parameter DATA_WIDTH = AXIS_SYNC_DATA_WIDTH;
 parameter KEEP_ENABLE = (DATA_WIDTH>8);
 parameter KEEP_WIDTH = (DATA_WIDTH/8);
 parameter ID_ENABLE = 0;
 parameter M_DEST_WIDTH = $clog2(M_COUNT+1);
 parameter USER_ENABLE = 1;
-parameter USER_WIDTH = PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH;
+parameter USER_WIDTH = AXIS_SYNC_TX_USER_WIDTH;
 parameter ARB_TYPE_ROUND_ROBIN = 1;
 parameter ARB_LSB_HIGH_PRIORITY = 1;
 parameter AXIS_AXI_FIFO_DEPTH = 2048;
 
-wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] rmt_s_axis_tdata;
-wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] rmt_s_axis_tkeep;
-wire [PORT_COUNT-1:0]			   rmt_s_axis_tlast;
-wire [PORT_COUNT-1:0]			   rmt_s_axis_tvalid;
-wire [PORT_COUNT-1:0]			   rmt_s_axis_tready;
-wire [PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH-1:0] rmt_s_axis_tuser;
-wire [1:0]				      rmt_s_axis_tdest;
+wire [AXIS_SYNC_DATA_WIDTH-1:0] rmt_s_axis_tdata;
+wire [AXIS_SYNC_KEEP_WIDTH-1:0] rmt_s_axis_tkeep;
+wire				rmt_s_axis_tlast;
+wire				rmt_s_axis_tvalid;
+wire				rmt_s_axis_tready;
+wire [AXIS_SYNC_TX_USER_WIDTH-1:0] rmt_s_axis_tuser;
+wire [1:0]			   rmt_s_axis_tdest;
 
-wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] recon_s_axis_tdata;
-wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] recon_s_axis_tkeep;
-wire [PORT_COUNT-1:0]			   recon_s_axis_tlast;
-wire [PORT_COUNT-1:0]			   recon_s_axis_tvalid;
-wire [PORT_COUNT-1:0]			   recon_s_axis_tready;
+wire [AXIS_SYNC_DATA_WIDTH-1:0] recon_s_axis_tdata;
+wire [AXIS_SYNC_KEEP_WIDTH-1:0] recon_s_axis_tkeep;
+wire				recon_s_axis_tlast;
+wire				recon_s_axis_tvalid;
+wire				recon_s_axis_tready;
 
-wire [PORT_COUNT*AXIS_SYNC_DATA_WIDTH-1:0] tap_s_axis_sync_tx_tdata;
-wire [PORT_COUNT*AXIS_SYNC_KEEP_WIDTH-1:0] tap_s_axis_sync_tx_tkeep;
-wire [PORT_COUNT-1:0]			   tap_s_axis_sync_tx_tvalid;
-wire [PORT_COUNT-1:0]			   tap_s_axis_sync_tx_tready;
-wire [PORT_COUNT-1:0]			   tap_s_axis_sync_tx_tlast;
-wire [PORT_COUNT*AXIS_SYNC_TX_USER_WIDTH-1:0] tap_s_axis_sync_tx_tuser;
+wire [AXIS_SYNC_DATA_WIDTH-1:0] tap_s_axis_sync_tx_tdata;
+wire [AXIS_SYNC_KEEP_WIDTH-1:0] tap_s_axis_sync_tx_tkeep;
+wire				tap_s_axis_sync_tx_tvalid;
+wire				tap_s_axis_sync_tx_tready;
+wire				tap_s_axis_sync_tx_tlast;
+wire [AXIS_SYNC_TX_USER_WIDTH-1:0] tap_s_axis_sync_tx_tuser;
 
 localparam				      DDR_ICAP_DMA_LEN_WIDTH = 24;
 localparam				      DDR_ICAP_DMA_TAG_WIDTH = 8;
