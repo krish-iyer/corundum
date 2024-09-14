@@ -129,6 +129,9 @@ SYN_FILES += lib/axi/rtl/axi_dma.v
 SYN_FILES += lib/axi/rtl/axi_dma_rd.v
 SYN_FILES += lib/axi/rtl/axi_dma_wr.v
 SYN_FILES += lib/axi/rtl/axi_dma_desc_mux.v
+SYN_FILES += lib/axis/rtl/uart.v
+SYN_FILES += lib/axis/rtl/uart_rx.v
+SYN_FILES += lib/axis/rtl/uart_tx.v
 
 # XDC files
 XDC_FILES = fpga_au280.xdc
