@@ -616,7 +616,7 @@ end
 /*
  * AXI-Lite slave interface (control from host)
  */
-
+/*
 axil_ram #(
     .DATA_WIDTH(AXIL_APP_CTRL_DATA_WIDTH),
     .ADDR_WIDTH(12),
@@ -647,6 +647,7 @@ ram_inst (
     .s_axil_rvalid(s_axil_app_ctrl_rvalid),
     .s_axil_rready(s_axil_app_ctrl_rready)
 );
+*/
 
 /*
  * AXI-Lite master interface (control to NIC)
@@ -1057,9 +1058,9 @@ axis_switch_inst (
     .m01_axis_tvalid(recon_s_axis_tvalid),
     .m01_axis_tready(recon_s_axis_tready),
     .m01_axis_tlast(recon_s_axis_tlast),
-    .m00_axis_tid(),
-    .m00_axis_tdest(),
-    .m00_axis_tuser(),
+    .m01_axis_tid(),
+    .m01_axis_tdest(),
+    .m01_axis_tuser(),
 
     .m02_axis_tdata(),
     .m02_axis_tkeep(),

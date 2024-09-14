@@ -135,8 +135,8 @@ always @(posedge s_axis_clk) begin
     capture_state <= capture_state_next;
     if (rst) begin
 	capture_state <= HDR_CAPTURE;
-	s_fifo_tvalid_int <= 1'b0;
-	s_fifo_tready_int <= 1'b0;
+	//s_fifo_tvalid_int <= 1'b0;
+	//s_fifo_tready_int <= 1'b0;
     end
     else begin
 	s_fifo_tdata <= s_fifo_tdata_int;
@@ -208,9 +208,9 @@ always @* begin
 			    end
 			    axi_base_addr_valid_int = 1'b0;
 			end
-			if (pending_transfer_size >= frame_size) begin
-			    pending_transfer_size -= frame_size; // you can't do this, clock this operation
-			end
+			//if (pending_transfer_size >= frame_size) begin
+			//    pending_transfer_size -= frame_size; // you can't do this, clock this operation
+			//end
 		    end
 		    2'b01: begin
 			if (bitstream_size_valid) begin
@@ -245,11 +245,11 @@ always @* begin
 		for (i = KEEP_WIDTH-1; i >= 0; i = i - 1) begin // don't consider header
 		    frame_size = frame_size + s_axis_tkeep[i];
 		end
-		if(pending_transfer_size >= frame_size) begin
-		    pending_transfer_size -= frame_size; // you can't do this, clock this operation
+		//if(pending_transfer_size >= frame_size) begin
+		//    pending_transfer_size -= frame_size; // you can't do this, clock this operation
 		    // check for negative conditions do only if frame_size <= pending_transfer_size,
 		    // if not then enable bad frame signal
-		end
+		//end
 		// bitstream_addr_table[bitstream_id] = {bitstream_size, 0}; //add a check and figure out a
 		// way to calculate an addr
 		s_fifo_tdata_int = s_axis_tdata;
@@ -318,7 +318,6 @@ axis_mm_bridge #
 (
     .DATA_WIDTH(DATA_WIDTH),
     .ADDR_WIDTH(ADDR_WIDTH),
-    .FIFO_DEPTH(FIFO_DEPTH),
     .ID_WIDTH(ID_WIDTH)
 )
 axis_mm_bridge_inst

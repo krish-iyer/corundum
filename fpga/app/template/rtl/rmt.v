@@ -57,8 +57,8 @@ always @(posedge clk) begin
     state_reg <= state_next;
 
     if (rst) begin
-        reg_axis_tvalid <= 1'b0;
-        reg_axis_tready <= 1'b0;
+        //reg_axis_tvalid <= 1'b0;
+        //reg_axis_tready <= 1'b0;
 	state_reg <= STATE_IDLE;
     end
     else begin

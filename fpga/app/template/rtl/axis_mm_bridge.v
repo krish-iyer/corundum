@@ -92,7 +92,7 @@ always @(posedge clk) begin
         m_axi_wvalid <= 1'b0;
 	s_axis_tready <= 1'b0;
 	wstrb_pos <= 1'b0;
-	wdata_pos <= 1'b0;
+	//wdata_pos <= 1'b0;
 	state <= IDLE;
     end
     else begin
