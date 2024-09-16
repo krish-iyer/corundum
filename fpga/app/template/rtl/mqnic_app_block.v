@@ -919,7 +919,7 @@ wire [AXIS_ICAP_DATA_WIDTH-1:0]		      icap_s_axis_tdata;
 wire [AXIS_ICAP_KEEP_WIDTH-1:0]		      icap_s_axis_tkeep;
 wire					      icap_s_axis_tlast;
 wire					      icap_s_axis_tvalid;
-wire					      icap_s_axis_tready;
+reg					      icap_s_axis_tready = 1'b1;
 
 
 wire [AXI_DDR_ID_WIDTH-1:0]		      m_axi_async_dma_ddr_arid;
@@ -1311,34 +1311,34 @@ axi_async_fifo #(
 
 );
 
-axis_fifo_ex #(
-    .DATA_WIDTH(UART_DATA_WIDTH),
-    .FIFO_DEPTH(128)
-)
-uart_axis_async_fifo_inst
-(
-    .s_clk(clk),
-    .s_rst(rst),
-    .s_axis_tdata(icap_s_axis_tdata),
-    .s_axis_tkeep(icap_s_axis_tkeep),
-    .s_axis_tvalid(icap_s_axis_tvalid),
-    .s_axis_tready(icap_s_axis_tready),
-    .s_axis_tlast(icap_s_axis_tlast),
-    .s_axis_tid(),
-    .s_axis_tdest(),
-    .s_axis_tuser(),
+// axis_fifo_ex #(
+//     .DATA_WIDTH(UART_DATA_WIDTH),
+//     .FIFO_DEPTH(128)
+// )
+// uart_axis_async_fifo_inst
+// (
+//     .s_clk(clk),
+//     .s_rst(rst),
+//     .s_axis_tdata(icap_s_axis_tdata),
+//     .s_axis_tkeep(icap_s_axis_tkeep),
+//     .s_axis_tvalid(icap_s_axis_tvalid),
+//     .s_axis_tready(icap_s_axis_tready),
+//     .s_axis_tlast(icap_s_axis_tlast),
+//     .s_axis_tid(),
+//     .s_axis_tdest(),
+//     .s_axis_tuser(),
 
-    .m_clk(uart_clk),
-    .m_rst(uart_rst),
-    .m_axis_tdata(uart_tx_axis_tdata),
-    .m_axis_tkeep(),
-    .m_axis_tvalid(uart_tx_axis_tvalid),
-    .m_axis_tready(uart_tx_axis_tready),
-    .m_axis_tlast(),
-    .m_axis_tid(),
-    .m_axis_tdest(),
-    .m_axis_tuser()
- );
+//     .m_clk(uart_clk),
+//     .m_rst(uart_rst),
+//     .m_axis_tdata(uart_tx_axis_tdata),
+//     .m_axis_tkeep(),
+//     .m_axis_tvalid(uart_tx_axis_tvalid),
+//     .m_axis_tready(uart_tx_axis_tready),
+//     .m_axis_tlast(),
+//     .m_axis_tid(),
+//     .m_axis_tdest(),
+//     .m_axis_tuser()
+//  );
 
 
 design_1_wrapper ila_dbg
@@ -1431,7 +1431,9 @@ design_1_wrapper ila_dbg
         .tap_s_axis_tdata(tap_s_axis_sync_tx_tdata),
         .tap_s_axis_tlast(tap_s_axis_sync_tx_tlast),
         .tap_s_axis_tready(tap_s_axis_sync_tx_tready),
-        .tap_s_axis_tvalid(tap_s_axis_sync_tx_tvalid));
+        .tap_s_axis_tvalid(tap_s_axis_sync_tx_tvalid),
+        .rmt_tdest(rmt_s_axis_tdest),
+        .tap_s_axis_tdest(rmt_s_axis_tdest));
 
 endmodule
 

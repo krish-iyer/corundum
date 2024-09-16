@@ -1036,30 +1036,30 @@ wire			      uart_rx_axis_tready;
 
 localparam		      UART_DATA_WIDTH = 512;
 
-uart #(
-    .DATA_WIDTH(UART_DATA_WIDTH)
-) usb_uart_inst (
-    .clk(usb_uart_clk),
-    .rst(usb_uart_rst),
-    // AXI input
-    .s_axis_tdata(uart_tx_axis_tdata),
-    .s_axis_tvalid(uart_tx_axis_tvalid),
-    .s_axis_tready(uart_tx_axis_tready),
-    // AXI output
-    .m_axis_tdata(uart_rx_axis_tdata),
-    .m_axis_tvalid(uart_rx_axis_tvalid),
-    .m_axis_tready(uart_rx_axis_tready),
-    // uart
-    .rxd(usb_uart_rxd),
-    .txd(usb_uart_txd),
-    // status
-    .tx_busy(),
-    .rx_busy(),
-    .rx_overrun_error(),
-    .rx_frame_error(),
-    // configuration
-    .prescale(125000000/(9600*8))
-);
+// uart #(
+//     .DATA_WIDTH(UART_DATA_WIDTH)
+// ) usb_uart_inst (
+//     .clk(usb_uart_clk),
+//     .rst(usb_uart_rst),
+//     // AXI input
+//     .s_axis_tdata(uart_tx_axis_tdata),
+//     .s_axis_tvalid(uart_tx_axis_tvalid),
+//     .s_axis_tready(uart_tx_axis_tready),
+//     // AXI output
+//     .m_axis_tdata(uart_rx_axis_tdata),
+//     .m_axis_tvalid(uart_rx_axis_tvalid),
+//     .m_axis_tready(uart_rx_axis_tready),
+//     // uart
+//     .rxd(usb_uart_rxd),
+//     .txd(usb_uart_txd),
+//     // status
+//     .tx_busy(),
+//     .rx_busy(),
+//     .rx_overrun_error(),
+//     .rx_frame_error(),
+//     // configuration
+//     .prescale(125000000/(9600*8))
+// );
 
 mqnic_core_pcie_us #(
     // FW and board IDs

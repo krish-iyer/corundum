@@ -1786,8 +1786,8 @@ endgenerate
 wire usb_uart_clk;
 wire usb_uart_rst;
 
-assign usb_uart_clk = clk_125mhz_int;
-assign usb_uart_rst = rst_125mhz_int;
+// assign usb_uart_clk = clk_125mhz_int;
+// assign usb_uart_rst = rst_125mhz_int;
 
 fpga_core #(
     // FW and board IDs
