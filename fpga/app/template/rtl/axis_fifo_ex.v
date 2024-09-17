@@ -27,7 +27,7 @@ module axis_fifo_ex #
     input wire			 m_rst,
     output wire [DATA_WIDTH-1:0] m_axis_tdata,
     output wire [KEEP_WIDTH-1:0] m_axis_tkeep,
-    output wire			 m_axis_tvalid,
+    output reg			 m_axis_tvalid,
     input wire			 m_axis_tready,
     output wire			 m_axis_tlast,
     output wire [ID_WIDTH-1:0]	 m_axis_tid,
@@ -53,11 +53,11 @@ assign m_axis_tdest = data_out[USER_WIDTH+:DEST_WIDTH];
 assign m_axis_tuser = data_out[USER_WIDTH-1:0];
 
 // TODO: get arst and reset
-// always @(posedge m_clk) begin
-//     m_axis_tvalid <= (!empty) && m_axis_tready;
-// end
+always @(posedge m_clk) begin
+    m_axis_tvalid <= (!empty) && m_axis_tready;
+end
 
-assign m_axis_tvalid = (!empty) && m_axis_tready;
+//assign m_axis_tvalid = (!empty) && m_axis_tready;
 
 async_fifo #
 (

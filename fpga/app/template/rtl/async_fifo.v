@@ -21,38 +21,50 @@ module async_fifo #
     input wire		    wr_clk,
     input wire		    wr_rst,
     input wire		    wr_en,
-    input wire [WIDTH-1:0]	    data_in,
+    input wire [WIDTH-1:0]  data_in,
 
     input wire		    rd_clk,
     input wire		    rd_rst,
     input wire		    rd_en,
-    output wire [WIDTH-1:0] data_out,
+    output reg [WIDTH-1:0] data_out,
 
     output wire		    full,
     output wire		    empty
 );
 
 parameter		   ADDR_WIDTH = $clog2(DEPTH);
+
+(* ramstyle = "no_rw_check" *)
 reg [WIDTH-1:0]		   mem [0:DEPTH-1];
 // read ptr is initialised to DEPTH-1 and write ptr to 0
 // read ptr always lags 1 or more steps behind write ptr
 // read ptr points to last read buffer and write ptr points
 // to be written buffer
+(* SHREG_EXTRACT = "NO" *)
 reg [ADDR_WIDTH-1:0]	   rd_ptr = 0;
+(* SHREG_EXTRACT = "NO" *)
 reg [ADDR_WIDTH-1:0]	   wr_ptr = 0;
 
+(* SHREG_EXTRACT = "NO" *)
 reg [ADDR_WIDTH-1:0]	   m_wr_rd_sync_ptr = {ADDR_WIDTH{1'b0}};
+(* SHREG_EXTRACT = "NO" *)
 reg [ADDR_WIDTH-1:0]	   s_wr_rd_sync_ptr = {ADDR_WIDTH{1'b0}};
+(* SHREG_EXTRACT = "NO" *)
 reg [ADDR_WIDTH-1:0]	   m_rd_wr_sync_ptr = {ADDR_WIDTH{1'b0}};
+(* SHREG_EXTRACT = "NO" *)
 reg [ADDR_WIDTH-1:0]	   s_rd_wr_sync_ptr = {ADDR_WIDTH{1'b0}};
 
+(* SHREG_EXTRACT = "NO" *)
 reg [ADDR_WIDTH-1:0]	   rd_sync_commit_ptr = {ADDR_WIDTH{1'b0}};
+(* SHREG_EXTRACT = "NO" *)
 reg [ADDR_WIDTH-1:0]	   wr_sync_commit_ptr = {ADDR_WIDTH{1'b0}};
 
-assign full = ((wr_ptr + 1'b1) == rd_ptr);
-assign empty =  wr_ptr == rd_ptr;
+//assign full = ((wr_ptr + 1'b1) == rd_ptr);
+//assign empty =  wr_ptr == rd_ptr;
+assign full = ((m_wr_rd_sync_ptr + 1'b1) == m_rd_wr_sync_ptr);
+assign empty =  m_wr_rd_sync_ptr == m_rd_wr_sync_ptr;
 
-assign data_out = mem[rd_ptr];
+//assign data_out = mem[rd_ptr];
 
 reg			   wr_sync_rst = 1'b0;
 reg			   rd_sync_rst = 1'b0;
@@ -91,6 +103,7 @@ always @(posedge rd_clk) begin
     end
     else begin
 	if (!empty && rd_en) begin
+	    data_out <= mem[rd_ptr];
 	    rd_ptr <= rd_ptr + 1'b1;
 	    m_rd_wr_sync_ptr <= rd_ptr + 1'b1;
 	end

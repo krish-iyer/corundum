@@ -65,7 +65,6 @@ module axi_async_fifo #
 
     input wire			   m_clk,
     input wire			   m_rst,
-
     output wire [ID_WIDTH-1:0]	   m_axi_awid,
     output wire [ADDR_WIDTH-1:0]   m_axi_awaddr,
     output wire [7:0]		   m_axi_awlen,
@@ -134,7 +133,9 @@ localparam [2:0]
 		TRANSFER_ADDR = 3'd1,
 		TRANSFER_DATA = 3'd2,
 		TRANSFER_DATA_WAIT = 3'd3,
-		ADDR_IDLE_WAIT = 3'd4;
+		ADDR_IDLE_WAIT = 3'd4,
+		TRANSFER_ADDR_WAIT = 3'd5,
+		TRANSFER_DATA_INT = 3'd6;
 
 reg [2:0]	addr_state = IDLE, data_state = IDLE, addr_state_next, data_state_next;
 reg		m_axi_arvalid_int = 1'b0;
@@ -193,7 +194,6 @@ assign s_axi_rlast = rdata_out[(RDATA_FIFO_WIDTH-ID_WIDTH-DATA_WIDTH-RRESP_WIDTH
 assign s_axi_ruser = rdata_out[(RDATA_FIFO_WIDTH-ID_WIDTH-DATA_WIDTH-RRESP_WIDTH-RLAST_WIDTH-1) -:RUSER_WIDTH];
 assign m_axi_rready = !rdata_full ? 1'b1 : 1'b0;
 
-
 always @(posedge m_clk) begin
     addr_state <= addr_state_next;
     if (m_rst) begin
@@ -228,8 +228,6 @@ always @* begin
 	IDLE: begin
 	    if (!raddr_empty && m_axi_arready) begin
 		raddr_fifo_rd_en_int = 1'b1;
-		m_axi_arvalid_int = 1'b1;
-		pending_len_int = m_axi_arlen;
 		addr_state_next = TRANSFER_ADDR;
 	    end
 	    else begin
@@ -240,12 +238,22 @@ always @* begin
 	end
 	TRANSFER_ADDR: begin
 	    if (m_axi_arready) begin
-	    	raddr_fifo_rd_en_int = 1'b0;
+		raddr_fifo_rd_en_int = 1'b0;
+		m_axi_arvalid_int = 1'b1;
+		addr_state_next = TRANSFER_ADDR_WAIT;
+	    end
+	    else begin
+		addr_state_next = TRANSFER_ADDR;
+	    end
+	end
+	TRANSFER_ADDR_WAIT: begin
+	    if (m_axi_arready) begin
+		pending_len_int = m_axi_arlen;
 		m_axi_arvalid_int = 1'b0;
 		addr_state_next = TRANSFER_DATA_WAIT;
 	    end
 	    else begin
-		addr_state_next = TRANSFER_ADDR;
+		addr_state_next = TRANSFER_ADDR_WAIT;
 	    end
 	end
 	TRANSFER_DATA_WAIT: begin
@@ -277,24 +285,42 @@ always @* begin
 	TRANSFER_DATA: begin
 	    if (!rdata_empty && s_axi_rready) begin
 		rdata_fifo_rd_en_int = 1'b1;
+		data_state_next = TRANSFER_DATA_INT;
+		// s_axi_rvalid_int = 1'b1;
+		// if (cur_pending_len == 0) begin
+		//     data_transfer_done = 1'b1;
+		//     data_state_next = ADDR_IDLE_WAIT;
+		// end
+		// else begin
+		//     data_transfer_done = 1'b0;
+		//     cur_pending_len_int = cur_pending_len - 1;
+		//     data_state_next = TRANSFER_DATA;
+		// end
+	    end
+	    else begin
+		data_state_next = TRANSFER_DATA;
+	    end
+	end // case: TRANSFER_DATA
+	TRANSFER_DATA_INT: begin
+	    if (!rdata_empty && s_axi_rready) begin
 		s_axi_rvalid_int = 1'b1;
 		if (cur_pending_len == 0) begin
+		    rdata_fifo_rd_en_int = 1'b0;
 		    data_transfer_done = 1'b1;
 		    data_state_next = ADDR_IDLE_WAIT;
 		end
 		else begin
 		    data_transfer_done = 1'b0;
 		    cur_pending_len_int = cur_pending_len - 1;
-		    data_state_next = TRANSFER_DATA;
+		    data_state_next = TRANSFER_DATA_INT;
 		end
 	    end
 	    else begin
-		data_state_next = TRANSFER_DATA;
+		data_state_next = TRANSFER_DATA_INT;
 	    end
-	end // case: TRANSFER_DATA
+	end
 	ADDR_IDLE_WAIT: begin
 	    if (s_axi_arready) begin
-	    	rdata_fifo_rd_en_int = 1'b0;
 		s_axi_rvalid_int = 1'b0;
 	    end
 	    if (addr_state_next == IDLE) begin
