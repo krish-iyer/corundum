@@ -285,9 +285,39 @@ end // always @ *
 
 // TODO: when fifo full pull down ready
 
-axis_fifo_ex #(
+// axis_fifo_ex #(
+//     .DATA_WIDTH(DATA_WIDTH),
+//     .FIFO_DEPTH(FIFO_DEPTH)
+// )
+// axis_async_fifo_inst
+// (
+//     .s_clk(s_axis_clk),
+//     .s_rst(rst),
+//     .s_axis_tdata(s_fifo_tdata),
+//     .s_axis_tkeep(s_fifo_tkeep),
+//     .s_axis_tvalid(s_fifo_tvalid),
+//     .s_axis_tready(s_fifo_tready),
+//     .s_axis_tlast(s_axis_tlast),
+//     .s_axis_tid(),
+//     .s_axis_tdest(),
+//     .s_axis_tuser(),
+
+//     .m_clk(m_axi_aclk),
+//     .m_rst(rst),
+//     .m_axis_tdata(m_fifo_tdata),
+//     .m_axis_tkeep(m_fifo_tkeep),
+//     .m_axis_tvalid(m_fifo_tvalid),
+//     .m_axis_tready(m_fifo_tready),
+//     .m_axis_tlast(m_fifo_tlast),
+//     .m_axis_tid(),
+//     .m_axis_tdest(),
+//     .m_axis_tuser()
+//  );
+
+
+axis_async_fifo #(
     .DATA_WIDTH(DATA_WIDTH),
-    .FIFO_DEPTH(FIFO_DEPTH)
+    .DEPTH(1024)
 )
 axis_async_fifo_inst
 (
@@ -311,8 +341,25 @@ axis_async_fifo_inst
     .m_axis_tlast(m_fifo_tlast),
     .m_axis_tid(),
     .m_axis_tdest(),
-    .m_axis_tuser()
+    .m_axis_tuser(),
+
+    .s_pause_req(),
+    .s_pause_ack(),
+    .m_pause_req(),
+    .m_pause_ack(),
+
+    .s_status_depth(),
+    .s_status_depth_commit(),
+    .s_status_overflow(),
+    .s_status_bad_frame(),
+    .s_status_good_frame(),
+    .m_status_depth(),
+    .m_status_depth_commit(),
+    .m_status_overflow(),
+    .m_status_bad_frame(),
+    .m_status_good_frame()
  );
+
 
 axis_mm_bridge #
 (
