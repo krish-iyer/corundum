@@ -61,8 +61,8 @@ reg [ADDR_WIDTH-1:0]	   wr_sync_commit_ptr = {ADDR_WIDTH{1'b0}};
 
 //assign full = ((wr_ptr + 1'b1) == rd_ptr);
 //assign empty =  wr_ptr == rd_ptr;
-assign full = ((wr_ptr + 1'b1) == rd_ptr);
-assign empty =  wr_ptr == rd_ptr;
+assign full = ((m_wr_rd_sync_ptr + 1'b1) == m_rd_wr_sync_ptr);
+assign empty =  m_wr_rd_sync_ptr == m_rd_wr_sync_ptr;
 
 //assign data_out = mem[rd_ptr];
 
