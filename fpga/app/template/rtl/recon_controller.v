@@ -287,7 +287,7 @@ end // always @ *
 
 axis_fifo_ex #(
     .DATA_WIDTH(DATA_WIDTH),
-    .FIFO_DEPTH(1024)
+    .FIFO_DEPTH(FIFO_DEPTH)
 )
 axis_async_fifo_inst
 (

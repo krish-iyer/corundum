@@ -876,7 +876,7 @@ parameter USER_ENABLE = 1;
 parameter USER_WIDTH = AXIS_SYNC_TX_USER_WIDTH;
 parameter ARB_TYPE_ROUND_ROBIN = 1;
 parameter ARB_LSB_HIGH_PRIORITY = 1;
-parameter AXIS_AXI_FIFO_DEPTH = 2048;
+parameter AXIS_AXI_FIFO_DEPTH = 32;
 
 wire [AXIS_SYNC_DATA_WIDTH-1:0] rmt_s_axis_tdata;
 wire [AXIS_SYNC_KEEP_WIDTH-1:0] rmt_s_axis_tkeep;
@@ -1432,7 +1432,6 @@ design_1_wrapper ila_dbg
         .tap_s_axis_tlast(tap_s_axis_sync_tx_tlast),
         .tap_s_axis_tready(tap_s_axis_sync_tx_tready),
         .tap_s_axis_tvalid(tap_s_axis_sync_tx_tvalid),
-        .rmt_tdest(rmt_s_axis_tdest),
         .tap_s_axis_tdest(rmt_s_axis_tdest));
 
 endmodule
