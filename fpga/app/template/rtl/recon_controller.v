@@ -67,8 +67,7 @@ reg [DEST_WIDTH-1:0]	     s_axis_read_desc_dest_int = {DEST_WIDTH{1'b0}};
 reg [USER_WIDTH-1:0]	     s_axis_read_desc_user_int = {USER_WIDTH{1'b0}};
 reg			     s_axis_read_desc_valid_int = 0;
 reg			     s_axis_read_desc_ready_int = 0;
-
-
+   
 reg [ADDR_WIDTH-1:0]	    axi_base_addr = {ADDR_WIDTH{1'b0}};
 reg [ADDR_WIDTH-1:0]	    axi_base_addr_int = {ADDR_WIDTH{1'b0}};
 
@@ -98,10 +97,10 @@ wire		bitstream_size_valid;
 reg [7:0]	bitstream_id_int;
 reg [31:0]	bitstream_size_int;
 reg [31:0]	pending_transfer_size = 0;
-wire [34:0]	bitstream_addr;
+wire [34:0]	bitstream_addr; // make it 34-1
 reg [34:0]	bitstream_addr_int;
 reg [$clog2(DATA_WIDTH):0] frame_size = 0;
-
+   
 reg [DATA_WIDTH-1:0]		s_fifo_tdata;
 reg [KEEP_WIDTH-1:0]		s_fifo_tkeep;
 reg				s_fifo_tlast;
@@ -119,6 +118,18 @@ reg [DATA_WIDTH-1:0]		s_fifo_tdata_int;
 reg				s_fifo_tvalid_int = 1'b0;
 reg				s_fifo_tlast_int;
 reg				s_fifo_tready_int;
+
+reg [KEEP_WIDTH-1:0]		s_fifo_tkeep_stage1;
+reg [DATA_WIDTH-1:0]		s_fifo_tdata_stage1;
+reg				s_fifo_tvalid_stage1 = 1'b0;
+reg				s_fifo_tlast_stage1;
+reg				s_fifo_tready_stage1;
+
+reg [KEEP_WIDTH-1:0]		s_fifo_tkeep_stage2;
+reg [DATA_WIDTH-1:0]		s_fifo_tdata_stage2;
+reg				s_fifo_tvalid_stage2 = 1'b0;
+reg				s_fifo_tlast_stage2;
+reg				s_fifo_tready_stage2;
 
 reg [7:0]	bitstream_addr_table [0:ADDR_WIDTH+16+1-1]; // [size][ADDR][Valid]
 
@@ -139,13 +150,24 @@ always @(posedge s_axis_clk) begin
 	//s_fifo_tready_int <= 1'b0;
     end
     else begin
-	s_fifo_tdata <= s_fifo_tdata_int;
-	s_fifo_tkeep <= s_fifo_tkeep_int;
-	s_fifo_tvalid <= s_fifo_tvalid_int;
-	s_fifo_tlast <= s_fifo_tlast_int;
+	s_fifo_tdata_stage1 <= s_fifo_tdata_int;
+	s_fifo_tkeep_stage1 <= s_fifo_tkeep_int;
+	s_fifo_tvalid_stage1 <= s_fifo_tvalid_int;
+	s_fifo_tlast_stage1 <= s_fifo_tlast_int;
 	s_fifo_tready_int <= s_fifo_tready;
 	s_axis_tready <= s_fifo_tready_int;
 
+	s_fifo_tdata_stage2 <= s_fifo_tdata_stage1;
+	s_fifo_tkeep_stage2 <= s_fifo_tkeep_stage1;
+	s_fifo_tvalid_stage2 <= s_fifo_tvalid_stage1;
+	s_fifo_tlast_stage2 <= s_fifo_tlast_stage1;
+
+	s_fifo_tdata <= s_fifo_tdata_stage1;
+	s_fifo_tkeep <= s_fifo_tkeep_stage1;
+	s_fifo_tvalid <= s_fifo_tvalid_stage1;
+	s_fifo_tlast <= s_fifo_tlast_stage1;
+
+       
 	// DMA signals
 	s_axis_read_desc_addr = s_axis_read_desc_addr_int;
 	s_axis_read_desc_len = s_axis_read_desc_len_int;
@@ -315,52 +337,67 @@ end // always @ *
 //  );
 
 
-axis_async_fifo #(
-    .DATA_WIDTH(DATA_WIDTH),
-    .DEPTH(1024)
-)
-axis_async_fifo_inst
-(
-    .s_clk(s_axis_clk),
-    .s_rst(rst),
-    .s_axis_tdata(s_fifo_tdata),
-    .s_axis_tkeep(s_fifo_tkeep),
-    .s_axis_tvalid(s_fifo_tvalid),
-    .s_axis_tready(s_fifo_tready),
-    .s_axis_tlast(s_axis_tlast),
-    .s_axis_tid(),
-    .s_axis_tdest(),
-    .s_axis_tuser(),
+// axis_async_fifo #(
+//     .DATA_WIDTH(DATA_WIDTH),
+//     .DEPTH(1024)
+// )
+// axis_async_fifo_inst
+// (
+//     .s_clk(s_axis_clk),
+//     .s_rst(rst),
+//     .s_axis_tdata(s_fifo_tdata),
+//     .s_axis_tkeep(s_fifo_tkeep),
+//     .s_axis_tvalid(s_fifo_tvalid),
+//     .s_axis_tready(s_fifo_tready),
+//     .s_axis_tlast(s_axis_tlast),
+//     .s_axis_tid(),
+//     .s_axis_tdest(),
+//     .s_axis_tuser(),
 
-    .m_clk(m_axi_aclk),
-    .m_rst(rst),
-    .m_axis_tdata(m_fifo_tdata),
-    .m_axis_tkeep(m_fifo_tkeep),
-    .m_axis_tvalid(m_fifo_tvalid),
-    .m_axis_tready(m_fifo_tready),
-    .m_axis_tlast(m_fifo_tlast),
-    .m_axis_tid(),
-    .m_axis_tdest(),
-    .m_axis_tuser(),
+//     .m_clk(m_axi_aclk),
+//     .m_rst(rst),
+//     .m_axis_tdata(m_fifo_tdata),
+//     .m_axis_tkeep(m_fifo_tkeep),
+//     .m_axis_tvalid(m_fifo_tvalid),
+//     .m_axis_tready(m_fifo_tready),
+//     .m_axis_tlast(m_fifo_tlast),
+//     .m_axis_tid(),
+//     .m_axis_tdest(),
+//     .m_axis_tuser(),
 
-    .s_pause_req(),
-    .s_pause_ack(),
-    .m_pause_req(),
-    .m_pause_ack(),
+//     .s_pause_req(),
+//     .s_pause_ack(),
+//     .m_pause_req(),
+//     .m_pause_ack(),
 
-    .s_status_depth(),
-    .s_status_depth_commit(),
-    .s_status_overflow(),
-    .s_status_bad_frame(),
-    .s_status_good_frame(),
-    .m_status_depth(),
-    .m_status_depth_commit(),
-    .m_status_overflow(),
-    .m_status_bad_frame(),
-    .m_status_good_frame()
- );
+//     .s_status_depth(),
+//     .s_status_depth_commit(),
+//     .s_status_overflow(),
+//     .s_status_bad_frame(),
+//     .s_status_good_frame(),
+//     .m_status_depth(),
+//     .m_status_depth_commit(),
+//     .m_status_overflow(),
+//     .m_status_bad_frame(),
+//     .m_status_good_frame()
+//  );
 
-
+xil_axis_async_fifo axis_async_fifo_inst (
+  .m_aclk(m_axi_aclk),                // input wire m_aclk
+  .s_aclk(s_axis_clk),                // input wire s_aclk
+  .s_aresetn(rst),          // input wire s_aresetn
+  .s_axis_tvalid(s_fifo_tvalid),  // input wire s_axis_tvalid
+  .s_axis_tready(s_fifo_tready),  // output wire s_axis_tready
+  .s_axis_tdata(s_fifo_tdata),    // input wire [511 : 0] s_axis_tdata
+  .s_axis_tkeep(s_fifo_tkeep),    // input wire [63 : 0] s_axis_tkeep
+  .s_axis_tlast(s_fifo_tlast),    // input wire s_axis_tlast
+  .m_axis_tvalid(m_fifo_tvalid),  // output wire m_axis_tvalid
+  .m_axis_tready(m_fifo_tready),  // input wire m_axis_tready
+  .m_axis_tdata(m_fifo_tdata),    // output wire [511 : 0] m_axis_tdata
+  .m_axis_tkeep(m_fifo_tkeep),    // output wire [63 : 0] m_axis_tkeep
+  .m_axis_tlast(m_fifo_tlast)    // output wire m_axis_tlast
+);
+   
 axis_mm_bridge #
 (
     .DATA_WIDTH(DATA_WIDTH),
@@ -402,6 +439,27 @@ axis_mm_bridge_inst
     .m_axi_bready(m_axi_bready)
     );
 
+
+ila_recon recon_ila_inst (
+	.clk(s_axis_clk), // input wire clk
+	.probe0(capture_state), // input wire [2:0]  probe0  
+	.probe1(func_type), // input wire [1:0]  probe1 
+	.probe2(bitstream_id), // input wire [7:0]  probe2 
+	.probe3(bitstream_size), // input wire [31:0]  probe3 
+	.probe4(bitstream_size_valid), // input wire [0:0]  probe4 
+	.probe5(bitstream_addr), // input wire [33:0]  probe5 
+   	.probe6(s_axis_read_desc_len), // input wire [22:0]  probe6 
+	.probe7(0), // input wire [7:0]  probe7 
+	.probe8(0), // input wire [7:0]  probe8 
+	.probe9(s_axis_read_desc_valid), // input wire [0:0]  probe9 
+	.probe10(s_axis_read_desc_addr), // input wire [33:0]  probe10 
+	.probe11(s_axis_read_desc_ready), // input wire [0:0]  probe11 
+	.probe12(0), // input wire [0:0]  probe12 
+	.probe13(0), // input wire [0:0]  probe13 
+	.probe14(0), // input wire [0:0]  probe14 
+	.probe15(0) // input wire [0:0]  probe15
+);
+   
 endmodule
 
 `resetall

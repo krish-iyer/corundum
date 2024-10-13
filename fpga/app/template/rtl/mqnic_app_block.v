@@ -990,7 +990,7 @@ rmt_inst (
 
 );
 
-assign recon_s_axis_tready = 1'b1;
+//assign recon_s_axis_tready = 1'b1;
    
 axis_ram_switch_4x4 #(
     .S_DATA_WIDTH(DATA_WIDTH),
@@ -1089,55 +1089,56 @@ axis_switch_inst (
    // assign rmt_s_axis_tready = recon_s_axis_tready;
    // assign recon_s_axis_tlast = rmt_s_axis_tlast;
    
+assign s_axis_read_desc_ready = 1'b1;
    
-// recon_controller #(
-//     .DATA_WIDTH(DATA_WIDTH),
-//     .ADDR_WIDTH(AXI_DDR_ADDR_WIDTH),
-//     .FIFO_DEPTH(AXIS_AXI_FIFO_DEPTH),
-//     .ID_WIDTH(AXI_DDR_ID_WIDTH),
-//     .DMA_DESC_LEN_WIDTH(DDR_ICAP_DMA_LEN_WIDTH),
-//     .DMA_DESC_TAG_WIDTH(DDR_ICAP_DMA_TAG_WIDTH)
-// )
-// recon_controller_inst (
-//     .s_axis_clk(clk),
-//     .m_axi_aclk(ddr_clk),
-//     .rst(rst),
+recon_controller #(
+    .DATA_WIDTH(DATA_WIDTH),
+    .ADDR_WIDTH(AXI_DDR_ADDR_WIDTH),
+    .FIFO_DEPTH(AXIS_AXI_FIFO_DEPTH),
+    .ID_WIDTH(AXI_DDR_ID_WIDTH),
+    .DMA_DESC_LEN_WIDTH(DDR_ICAP_DMA_LEN_WIDTH),
+    .DMA_DESC_TAG_WIDTH(DDR_ICAP_DMA_TAG_WIDTH)
+)
+recon_controller_inst (
+    .s_axis_clk(clk),
+    .m_axi_aclk(ddr_clk),
+    .rst(rst),
 
-//     .s_axis_tvalid(recon_s_axis_tvalid),
-//     .s_axis_tdata(recon_s_axis_tdata),
-//     .s_axis_tkeep(recon_s_axis_tkeep),
-//     .s_axis_tlast(recon_s_axis_tlast),
-//     .s_axis_tready(recon_s_axis_tready),
+    .s_axis_tvalid(recon_s_axis_tvalid),
+    .s_axis_tdata(recon_s_axis_tdata),
+    .s_axis_tkeep(recon_s_axis_tkeep),
+    .s_axis_tlast(recon_s_axis_tlast),
+    .s_axis_tready(recon_s_axis_tready),
 
-//     .s_axis_read_desc_addr(s_axis_read_desc_addr),
-//     .s_axis_read_desc_len(s_axis_read_desc_len),
-//     .s_axis_read_desc_tag(s_axis_read_desc_tag),
-//     .s_axis_read_desc_id(s_axis_read_desc_id),
-//     .s_axis_read_desc_dest(s_axis_read_desc_dest),
-//     .s_axis_read_desc_user(s_axis_read_desc_user),
-//     .s_axis_read_desc_valid(s_axis_read_desc_valid),
-//     .s_axis_read_desc_ready(s_axis_read_desc_ready),
+    .s_axis_read_desc_addr(s_axis_read_desc_addr),
+    .s_axis_read_desc_len(s_axis_read_desc_len),
+    .s_axis_read_desc_tag(s_axis_read_desc_tag),
+    .s_axis_read_desc_id(s_axis_read_desc_id),
+    .s_axis_read_desc_dest(s_axis_read_desc_dest),
+    .s_axis_read_desc_user(s_axis_read_desc_user),
+    .s_axis_read_desc_valid(s_axis_read_desc_valid),
+    .s_axis_read_desc_ready(s_axis_read_desc_ready),
 
-//     .m_axi_awready(m_axi_ddr_awready),
-//     .m_axi_awid(m_axi_ddr_awid),
-//     .m_axi_awaddr(m_axi_ddr_awaddr),
-//     .m_axi_awlen(m_axi_ddr_awlen),
-//     .m_axi_awsize(m_axi_ddr_awsize),
-//     .m_axi_awburst(m_axi_ddr_awburst),
-//     .m_axi_awlock(m_axi_ddr_awlock),
-//     .m_axi_awcache(m_axi_ddr_awcache),
-//     .m_axi_awprot(m_axi_ddr_awprot),
-//     .m_axi_awvalid(m_axi_ddr_awvalid),
-//     .m_axi_wready(m_axi_ddr_wready),
-//     .m_axi_wdata(m_axi_ddr_wdata),
-//     .m_axi_wstrb(m_axi_ddr_wstrb),
-//     .m_axi_wlast(m_axi_ddr_wlast),
-//     .m_axi_wvalid(m_axi_ddr_wvalid),
-//     .m_axi_bid(m_axi_ddr_bid),
-//     .m_axi_bresp(m_axi_ddr_bresp),
-//     .m_axi_bvalid(m_axi_ddr_bvalid),
-//     .m_axi_bready(m_axi_ddr_bready)
-// );
+    .m_axi_awready(m_axi_ddr_awready),
+    .m_axi_awid(m_axi_ddr_awid),
+    .m_axi_awaddr(m_axi_ddr_awaddr),
+    .m_axi_awlen(m_axi_ddr_awlen),
+    .m_axi_awsize(m_axi_ddr_awsize),
+    .m_axi_awburst(m_axi_ddr_awburst),
+    .m_axi_awlock(m_axi_ddr_awlock),
+    .m_axi_awcache(m_axi_ddr_awcache),
+    .m_axi_awprot(m_axi_ddr_awprot),
+    .m_axi_awvalid(m_axi_ddr_awvalid),
+    .m_axi_wready(m_axi_ddr_wready),
+    .m_axi_wdata(m_axi_ddr_wdata),
+    .m_axi_wstrb(m_axi_ddr_wstrb),
+    .m_axi_wlast(m_axi_ddr_wlast),
+    .m_axi_wvalid(m_axi_ddr_wvalid),
+    .m_axi_bid(m_axi_ddr_bid),
+    .m_axi_bresp(m_axi_ddr_bresp),
+    .m_axi_bvalid(m_axi_ddr_bvalid),
+    .m_axi_bready(m_axi_ddr_bready)
+);
 
 // axi_dma #(
 //     .AXI_DATA_WIDTH(AXI_DDR_DATA_WIDTH),
@@ -1397,7 +1398,7 @@ axis_switch_inst (
 //  );
 
 
-design_1_wrapper ila_dbg
+sys_ila_bd ila_dbg
        (.clk(clk),
         .ddr_clk(ddr_clk),
         .ddr_rst(!ddr_rst),
@@ -1483,12 +1484,13 @@ design_1_wrapper ila_dbg
         .rmt_s_axis_tlast(rmt_s_axis_tlast),
         .rmt_s_axis_tready(rmt_s_axis_tready),
         .rmt_s_axis_tvalid(rmt_s_axis_tvalid),
+	.rmt_s_axis_tdest(rmt_s_axis_tdest),
         .rst(!rst),
         .tap_s_axis_tdata(tap_s_axis_sync_tx_tdata),
         .tap_s_axis_tlast(tap_s_axis_sync_tx_tlast),
         .tap_s_axis_tready(tap_s_axis_sync_tx_tready),
-        .tap_s_axis_tvalid(tap_s_axis_sync_tx_tvalid),
-        .tap_s_axis_tdest(rmt_s_axis_tdest));
+        .tap_s_axis_tvalid(tap_s_axis_sync_tx_tvalid)
+        );
 
 endmodule
 
