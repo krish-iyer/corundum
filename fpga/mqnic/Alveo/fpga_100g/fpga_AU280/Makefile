@@ -148,15 +148,20 @@ XDC_FILES += ../../../common/syn/vivado/mqnic_rb_clk_info.tcl
 XDC_FILES += ../../../common/syn/vivado/rb_drp.tcl
 XDC_FILES += ../../../common/syn/vivado/cmac_gty_wrapper.tcl
 XDC_FILES += ../../../common/syn/vivado/cmac_gty_ch_wrapper.tcl
-#XDC_FILES += hbm.xdc
+XDC_FILES += hbm.xdc
 
 # IP
 IP_TCL_FILES = ip/pcie4c_uscale_plus_0.tcl
 IP_TCL_FILES += ip/cmac_usplus.tcl
 IP_TCL_FILES += ip/cmac_gty.tcl
 IP_TCL_FILES += ip/cms.tcl
-#IP_TCL_FILES += ip/hbm_0.tcl
-IP_TCL_FILES += ip/ddr4_0_au280.tcl
+IP_TCL_FILES += ip/hbm_0.tcl
+#IP_TCL_FILES += ip/ddr4_0_au280.tcl
+IP_TCL_FILES += ip/ila_0.tcl
+IP_TCL_FILES += ip/ila_recon.tcl
+IP_TCL_FILES += ip/sys_ila_bd.tcl
+IP_TCL_FILES += ip/xil_axis_async_fifo.tcl
+IP_TCL_FILES += ip/xil_aximm_async_fifo.tcl
 
 # Configuration
 CONFIG_TCL_FILES = ./config.tcl
