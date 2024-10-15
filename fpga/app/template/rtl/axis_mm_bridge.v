@@ -50,30 +50,41 @@ reg				s_axis_tready_int = 1'b1;
 reg [KEEP_WIDTH-1:0]		s_axis_tkeep_int = {KEEP_WIDTH{1'b0}};
 reg [DATA_WIDTH-1:0]		s_axis_tdata_int = {DATA_WIDTH{1'b0}};
 
+(* shreg_extract = "no" *)
 reg [ADDR_WIDTH-1:0]		m_axi_awaddr_reg = {ADDR_WIDTH{1'b0}};
 reg				m_axi_awvalid_reg;
 reg				m_axi_wvalid_reg;
 reg				s_axis_tready_reg = 1'b1;
+(* shreg_extract = "no" *)
 reg [DATA_WIDTH-1:0]		m_axi_wdata_reg = {DATA_WIDTH{1'b0}};
+(* shreg_extract = "no" *)
 reg [KEEP_WIDTH-1:0]		m_axi_wstrb_reg ={KEEP_WIDTH{1'b0}};
 
+(* shreg_extract = "no" *)
 reg [ADDR_WIDTH-1:0]    m_axi_awaddr_stage1;
 reg                     m_axi_awvalid_stage1;
+(* shreg_extract = "no" *)
 reg [DATA_WIDTH-1:0]    m_axi_wdata_stage1;
+(* shreg_extract = "no" *)
 reg [KEEP_WIDTH-1:0]    m_axi_wstrb_stage1;
 reg                     m_axi_wvalid_stage1;
 
 // Stage 2 registers
+(* shreg_extract = "no" *)
 reg [ADDR_WIDTH-1:0]    m_axi_awaddr_stage2;
 reg                     m_axi_awvalid_stage2;
+(* shreg_extract = "no" *)
 reg [DATA_WIDTH-1:0]    m_axi_wdata_stage2;
+(* shreg_extract = "no" *)
 reg [KEEP_WIDTH-1:0]    m_axi_wstrb_stage2;
 reg                     m_axi_wvalid_stage2;
 
-
+(* shreg_extract = "no" *)
 reg [ADDR_WIDTH-1:0]    m_axi_awaddr_stage3;
 reg                     m_axi_awvalid_stage3;
+(* shreg_extract = "no" *)
 reg [DATA_WIDTH-1:0]    m_axi_wdata_stage3;
+(* shreg_extract = "no" *)
 reg [KEEP_WIDTH-1:0]    m_axi_wstrb_stage3;
 reg                     m_axi_wvalid_stage3;
 

@@ -54,7 +54,9 @@ reg [USER_WIDTH-1:0]	reg_axis_tuser;
 reg [DEST_WIDTH-1:0] reg_axis_tdest = 2'b00;
 
 // Second stage registers (pipelined)
+(* shreg_extract = "no" *)
 reg [DATA_WIDTH-1:0]    reg_axis_tdata_reg;
+(* shreg_extract = "no" *)
 reg [KEEP_WIDTH-1:0]    reg_axis_tkeep_reg;
 reg                     reg_axis_tvalid_reg;
 reg                     reg_axis_tready_reg;
@@ -62,8 +64,9 @@ reg                     reg_axis_tlast_reg;
 reg [USER_WIDTH-1:0]    reg_axis_tuser_reg;
 reg [DEST_WIDTH-1:0]    reg_axis_tdest_reg = 2'b00;
 
-
+(* shreg_extract = "no" *)
 reg [DATA_WIDTH-1:0]    reg_axis_tdata_reg_stage1;
+(* shreg_extract = "no" *)
 reg [KEEP_WIDTH-1:0]    reg_axis_tkeep_reg_stage1;
 reg                     reg_axis_tvalid_reg_stage1;
 reg                     reg_axis_tready_reg_stage1;
@@ -71,7 +74,9 @@ reg                     reg_axis_tlast_reg_stage1;
 reg [USER_WIDTH-1:0]    reg_axis_tuser_reg_stage1;
 reg [DEST_WIDTH-1:0]    reg_axis_tdest_reg_stage1 = 2'b00;
 
+(* shreg_extract = "no" *)
 reg [DATA_WIDTH-1:0]    reg_axis_tdata_reg_stage2;
+(* shreg_extract = "no" *)
 reg [KEEP_WIDTH-1:0]    reg_axis_tkeep_reg_stage2;
 reg                     reg_axis_tvalid_reg_stage2;
 reg                     reg_axis_tready_reg_stage2;

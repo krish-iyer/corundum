@@ -180,7 +180,7 @@ always @(posedge s_axis_clk) begin
     end
 end
 
-always @(posedge m_axi_aclk) begin
+always @(posedge s_axis_clk) begin
     axi_base_addr <= axi_base_addr_int;
     axi_base_addr_valid <= axi_base_addr_valid_int;
 end
@@ -382,21 +382,59 @@ end // always @ *
 //     .m_status_good_frame()
 //  );
 
-xil_axis_async_fifo axis_async_fifo_inst (
-  .m_aclk(m_axi_aclk),                // input wire m_aclk
-  .s_aclk(s_axis_clk),                // input wire s_aclk
-  .s_aresetn(rst),          // input wire s_aresetn
-  .s_axis_tvalid(s_fifo_tvalid),  // input wire s_axis_tvalid
-  .s_axis_tready(s_fifo_tready),  // output wire s_axis_tready
-  .s_axis_tdata(s_fifo_tdata),    // input wire [511 : 0] s_axis_tdata
-  .s_axis_tkeep(s_fifo_tkeep),    // input wire [63 : 0] s_axis_tkeep
-  .s_axis_tlast(s_fifo_tlast),    // input wire s_axis_tlast
-  .m_axis_tvalid(m_fifo_tvalid),  // output wire m_axis_tvalid
-  .m_axis_tready(m_fifo_tready),  // input wire m_axis_tready
-  .m_axis_tdata(m_fifo_tdata),    // output wire [511 : 0] m_axis_tdata
-  .m_axis_tkeep(m_fifo_tkeep),    // output wire [63 : 0] m_axis_tkeep
-  .m_axis_tlast(m_fifo_tlast)    // output wire m_axis_tlast
-);
+axis_fifo #(
+    .DATA_WIDTH(DATA_WIDTH),
+    .DEPTH(1024),
+    .RAM_PIPELINE(3)
+)
+axis_fifo_inst
+(
+    .clk(s_axis_clk),
+    .rst(rst),
+    .s_axis_tdata(s_fifo_tdata),
+    .s_axis_tkeep(s_fifo_tkeep),
+    .s_axis_tvalid(s_fifo_tvalid),
+    .s_axis_tready(s_fifo_tready),
+    .s_axis_tlast(s_axis_tlast),
+    .s_axis_tid(),
+    .s_axis_tdest(),
+    .s_axis_tuser(),
+
+    .m_axis_tdata(m_fifo_tdata),
+    .m_axis_tkeep(m_fifo_tkeep),
+    .m_axis_tvalid(m_fifo_tvalid),
+    .m_axis_tready(m_fifo_tready),
+    .m_axis_tlast(m_fifo_tlast),
+    .m_axis_tid(),
+    .m_axis_tdest(),
+    .m_axis_tuser(),
+
+    .pause_req(),
+    .pause_ack(),
+    
+    .status_depth(),
+    .status_depth_commit(),
+    .status_overflow(),
+    .status_bad_frame(),
+    .status_good_frame()
+ );
+
+   
+// xil_axis_async_fifo axis_async_fifo_inst (
+//   .m_aclk(m_axi_aclk),                // input wire m_aclk
+//   .s_aclk(s_axis_clk),                // input wire s_aclk
+//   .s_aresetn(!rst),          // input wire s_aresetn
+//   .s_axis_tvalid(s_fifo_tvalid),  // input wire s_axis_tvalid
+//   .s_axis_tready(s_fifo_tready),  // output wire s_axis_tready
+//   .s_axis_tdata(s_fifo_tdata),    // input wire [511 : 0] s_axis_tdata
+//   .s_axis_tkeep(s_fifo_tkeep),    // input wire [63 : 0] s_axis_tkeep
+//   .s_axis_tlast(s_fifo_tlast),    // input wire s_axis_tlast
+//   .m_axis_tvalid(m_fifo_tvalid),  // output wire m_axis_tvalid
+//   .m_axis_tready(m_fifo_tready),  // input wire m_axis_tready
+//   .m_axis_tdata(m_fifo_tdata),    // output wire [511 : 0] m_axis_tdata
+//   .m_axis_tkeep(m_fifo_tkeep),    // output wire [63 : 0] m_axis_tkeep
+//   .m_axis_tlast(m_fifo_tlast)    // output wire m_axis_tlast
+// );
    
 axis_mm_bridge #
 (
@@ -406,7 +444,7 @@ axis_mm_bridge #
 )
 axis_mm_bridge_inst
 (
-    .clk(m_axi_aclk),
+    .clk(s_axis_clk),
     .rst(rst),
 
     .s_axis_tdata(m_fifo_tdata),
