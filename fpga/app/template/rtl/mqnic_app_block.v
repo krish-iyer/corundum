@@ -1000,7 +1000,9 @@ assign m_axi_mem_cdc_arqos = 0;
 assign m_axi_mem_cdc_aruser = 0;
 assign m_axi_mem_cdc_arvalid = 0;
 assign m_axi_mem_cdc_rready = 0;
-      
+   assign m_axi_mem_cdc_awqos = 0;
+   
+
 axis_tap #(
     .DATA_WIDTH(DATA_WIDTH)
     )

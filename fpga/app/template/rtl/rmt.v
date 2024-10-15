@@ -104,31 +104,31 @@ always @(posedge clk) begin
     end else begin
         reg_axis_tready <= m_axis_tready;
 
-       	reg_axis_tdata_reg_stage1  <= reg_axis_tdata;
-        reg_axis_tkeep_reg_stage1  <= reg_axis_tkeep;
-        reg_axis_tvalid_reg_stage1 <= reg_axis_tvalid;
-        reg_axis_tlast_reg_stage1  <= reg_axis_tlast;
-        reg_axis_tuser_reg_stage1  <= reg_axis_tuser;
-        reg_axis_tdest_reg_stage1  <= reg_axis_tdest;
-        reg_axis_tready_reg_stage1 <= reg_axis_tready;
+       	reg_axis_tdata_reg  <= reg_axis_tdata;
+        reg_axis_tkeep_reg  <= reg_axis_tkeep;
+        reg_axis_tvalid_reg <= reg_axis_tvalid;
+        reg_axis_tlast_reg  <= reg_axis_tlast;
+        reg_axis_tuser_reg  <= reg_axis_tuser;
+        reg_axis_tdest_reg  <= reg_axis_tdest;
+        reg_axis_tready_reg <= reg_axis_tready;
 
-	reg_axis_tdata_reg_stage2  <= reg_axis_tdata_reg_stage1;
-        reg_axis_tkeep_reg_stage2  <= reg_axis_tkeep_reg_stage1;
-        reg_axis_tvalid_reg_stage2 <= reg_axis_tvalid_reg_stage1;
-        reg_axis_tlast_reg_stage2  <= reg_axis_tlast_reg_stage1;
-        reg_axis_tuser_reg_stage2  <= reg_axis_tuser_reg_stage1;
-        reg_axis_tdest_reg_stage2  <= reg_axis_tdest_reg_stage1;
-        reg_axis_tready_reg_stage2 <= reg_axis_tready_reg_stage1;
+	// reg_axis_tdata_reg_stage2  <= reg_axis_tdata_reg_stage1;
+        // reg_axis_tkeep_reg_stage2  <= reg_axis_tkeep_reg_stage1;
+        // reg_axis_tvalid_reg_stage2 <= reg_axis_tvalid_reg_stage1;
+        // reg_axis_tlast_reg_stage2  <= reg_axis_tlast_reg_stage1;
+        // reg_axis_tuser_reg_stage2  <= reg_axis_tuser_reg_stage1;
+        // reg_axis_tdest_reg_stage2  <= reg_axis_tdest_reg_stage1;
+        // reg_axis_tready_reg_stage2 <= reg_axis_tready_reg_stage1;
 
         // Second stage (reg_axis_*_reg signals)
 
-        reg_axis_tdata_reg  <= reg_axis_tdata_reg_stage2;
-        reg_axis_tkeep_reg  <= reg_axis_tkeep_reg_stage2;
-        reg_axis_tvalid_reg <= reg_axis_tvalid_reg_stage2;
-        reg_axis_tlast_reg  <= reg_axis_tlast_reg_stage2;
-        reg_axis_tuser_reg  <= reg_axis_tuser_reg_stage2;
-        reg_axis_tdest_reg  <= reg_axis_tdest_reg_stage2;
-        reg_axis_tready_reg <= reg_axis_tready_reg_stage2;       
+        // reg_axis_tdata_reg  <= reg_axis_tdata_reg_stage2;
+        // reg_axis_tkeep_reg  <= reg_axis_tkeep_reg_stage2;
+        // reg_axis_tvalid_reg <= reg_axis_tvalid_reg_stage2;
+        // reg_axis_tlast_reg  <= reg_axis_tlast_reg_stage2;
+        // reg_axis_tuser_reg  <= reg_axis_tuser_reg_stage2;
+        // reg_axis_tdest_reg  <= reg_axis_tdest_reg_stage2;
+        // reg_axis_tready_reg <= reg_axis_tready_reg_stage2;       
 
         // Output assignments from second stage
         m_axis_tdata  <= reg_axis_tdata_reg;
