@@ -145,18 +145,18 @@ always @(posedge clk) begin
         // Pipeline stage 1: Capture initial signals
         wstrb_pos <= wstrb_pos_int;
 
-        m_axi_awaddr_reg <= m_axi_awaddr_int;
-        m_axi_awvalid_reg <= m_axi_awvalid_int;
-        m_axi_wdata_reg <= s_axis_tdata_int << wdata_pos;
-        m_axi_wstrb_reg <= s_axis_tkeep_int << wstrb_pos;
-        m_axi_wvalid_reg <= m_axi_wvalid_int;
+        m_axi_awaddr_stage1 <= m_axi_awaddr_int;
+        m_axi_awvalid_stage1 <= m_axi_awvalid_int;
+        m_axi_wdata_stage1 <= s_axis_tdata_int << wdata_pos;
+        m_axi_wstrb_stage1 <= s_axis_tkeep_int << wstrb_pos;
+        m_axi_wvalid_stage1 <= m_axi_wvalid_int;
 
         // Pipeline stage 2: Pass stage 1 to stage 2
-        // m_axi_awaddr_stage2 <= m_axi_awaddr_stage1;
-        // m_axi_awvalid_stage2 <= m_axi_awvalid_stage1;
-        // m_axi_wdata_stage2 <= m_axi_wdata_stage1;
-        // m_axi_wstrb_stage2 <= m_axi_wstrb_stage1;
-        // m_axi_wvalid_stage2 <= m_axi_wvalid_stage1;
+        m_axi_awaddr_stage2 <= m_axi_awaddr_stage1;
+        m_axi_awvalid_stage2 <= m_axi_awvalid_stage1;
+        m_axi_wdata_stage2 <= m_axi_wdata_stage1;
+        m_axi_wstrb_stage2 <= m_axi_wstrb_stage1;
+        m_axi_wvalid_stage2 <= m_axi_wvalid_stage1;
 
         // m_axi_awaddr_stage3 <= m_axi_awaddr_stage2;
         // m_axi_awvalid_stage3 <= m_axi_awvalid_stage2;
@@ -164,11 +164,11 @@ always @(posedge clk) begin
         // m_axi_wstrb_stage3 <= m_axi_wstrb_stage2;
         // m_axi_wvalid_stage3 <= m_axi_wvalid_stage2;
 	// Pipeline stage 3: Pass stage 2 to final stage
-        // m_axi_awaddr_reg <= m_axi_awaddr_stage3;
-        // m_axi_awvalid_reg <= m_axi_awvalid_stage3;
-        // m_axi_wdata_reg <= m_axi_wdata_stage3;
-        // m_axi_wstrb_reg <= m_axi_wstrb_stage3;
-        // m_axi_wvalid_reg <= m_axi_wvalid_stage3;
+        m_axi_awaddr_reg <= m_axi_awaddr_stage2;
+        m_axi_awvalid_reg <= m_axi_awvalid_stage2;
+        m_axi_wdata_reg <= m_axi_wdata_stage2;
+        m_axi_wstrb_reg <= m_axi_wstrb_stage2;
+        m_axi_wvalid_reg <= m_axi_wvalid_stage2;
 
         m_axi_awaddr <= m_axi_awaddr_reg;
         m_axi_awvalid <= m_axi_awvalid_reg;
