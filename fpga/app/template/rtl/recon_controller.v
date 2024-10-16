@@ -147,14 +147,14 @@ always @(posedge s_axis_clk) begin
 	s_axis_tready <= s_fifo_tready_int;
 
 	// DMA signals
-	s_axis_read_desc_addr = s_axis_read_desc_addr_int;
-	s_axis_read_desc_len = s_axis_read_desc_len_int;
-	s_axis_read_desc_tag = s_axis_read_desc_tag_int;
-	s_axis_read_desc_id = s_axis_read_desc_id_int;
-	s_axis_read_desc_dest = s_axis_read_desc_dest_int;
-	s_axis_read_desc_user = s_axis_read_desc_user_int;
-	s_axis_read_desc_valid = s_axis_read_desc_valid_int;
-	s_axis_read_desc_ready_int = s_axis_read_desc_ready;
+	s_axis_read_desc_addr <= s_axis_read_desc_addr_int;
+	s_axis_read_desc_len <= s_axis_read_desc_len_int;
+	s_axis_read_desc_tag <= s_axis_read_desc_tag_int;
+	s_axis_read_desc_id <= s_axis_read_desc_id_int;
+	s_axis_read_desc_dest <= s_axis_read_desc_dest_int;
+	s_axis_read_desc_user <= s_axis_read_desc_user_int;
+	s_axis_read_desc_valid <= s_axis_read_desc_valid_int;
+	s_axis_read_desc_ready_int <= s_axis_read_desc_ready;
     end
 end
 
@@ -283,46 +283,16 @@ always @* begin
     endcase
 end // always @ *
 
-// TODO: when fifo full pull down ready
 
-// axis_fifo_ex #(
-//     .DATA_WIDTH(DATA_WIDTH),
-//     .FIFO_DEPTH(FIFO_DEPTH)
-// )
-// axis_async_fifo_inst
-// (
-//     .s_clk(s_axis_clk),
-//     .s_rst(rst),
-//     .s_axis_tdata(s_fifo_tdata),
-//     .s_axis_tkeep(s_fifo_tkeep),
-//     .s_axis_tvalid(s_fifo_tvalid),
-//     .s_axis_tready(s_fifo_tready),
-//     .s_axis_tlast(s_axis_tlast),
-//     .s_axis_tid(),
-//     .s_axis_tdest(),
-//     .s_axis_tuser(),
-
-//     .m_clk(m_axi_aclk),
-//     .m_rst(rst),
-//     .m_axis_tdata(m_fifo_tdata),
-//     .m_axis_tkeep(m_fifo_tkeep),
-//     .m_axis_tvalid(m_fifo_tvalid),
-//     .m_axis_tready(m_fifo_tready),
-//     .m_axis_tlast(m_fifo_tlast),
-//     .m_axis_tid(),
-//     .m_axis_tdest(),
-//     .m_axis_tuser()
-//  );
-
-
-axis_async_fifo #(
+axis_fifo #(
     .DATA_WIDTH(DATA_WIDTH),
-    .DEPTH(1024)
+    .DEPTH(1024),
+    .RAM_PIPELINE(3)
 )
-axis_async_fifo_inst
+axis_fifo_inst
 (
-    .s_clk(s_axis_clk),
-    .s_rst(rst),
+    .clk(s_axis_clk),
+    .rst(rst),
     .s_axis_tdata(s_fifo_tdata),
     .s_axis_tkeep(s_fifo_tkeep),
     .s_axis_tvalid(s_fifo_tvalid),
@@ -332,8 +302,6 @@ axis_async_fifo_inst
     .s_axis_tdest(),
     .s_axis_tuser(),
 
-    .m_clk(m_axi_aclk),
-    .m_rst(rst),
     .m_axis_tdata(m_fifo_tdata),
     .m_axis_tkeep(m_fifo_tkeep),
     .m_axis_tvalid(m_fifo_tvalid),
@@ -343,23 +311,15 @@ axis_async_fifo_inst
     .m_axis_tdest(),
     .m_axis_tuser(),
 
-    .s_pause_req(),
-    .s_pause_ack(),
-    .m_pause_req(),
-    .m_pause_ack(),
+    .pause_req(),
+    .pause_ack(),
 
-    .s_status_depth(),
-    .s_status_depth_commit(),
-    .s_status_overflow(),
-    .s_status_bad_frame(),
-    .s_status_good_frame(),
-    .m_status_depth(),
-    .m_status_depth_commit(),
-    .m_status_overflow(),
-    .m_status_bad_frame(),
-    .m_status_good_frame()
+    .status_depth(),
+    .status_depth_commit(),
+    .status_overflow(),
+    .status_bad_frame(),
+    .status_good_frame()
  );
-
 
 axis_mm_bridge #
 (
@@ -369,7 +329,7 @@ axis_mm_bridge #
 )
 axis_mm_bridge_inst
 (
-    .clk(m_axi_aclk),
+    .clk(s_axis_clk),
     .rst(rst),
 
     .s_axis_tdata(m_fifo_tdata),

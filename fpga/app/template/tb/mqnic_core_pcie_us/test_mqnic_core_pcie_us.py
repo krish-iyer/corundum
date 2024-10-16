@@ -353,7 +353,7 @@ class TB(object):
         if hasattr(core_inst, 'ddr'):
             ram = None
             for i, ch in enumerate(core_inst.ddr.dram_if_inst.ch):
-                cocotb.start_soon(Clock(ch.ch_clk, 3.332, units="ns").start())
+                cocotb.start_soon(Clock(ch.ch_clk, 4, units="ns").start())
                 ch.ch_rst.setimmediatevalue(0)
                 ch.ch_status.setimmediatevalue(1)
 

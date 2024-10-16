@@ -1205,93 +1205,6 @@ axi_dma #(
     .m_axi_bresp(),
     .m_axi_bvalid(),
     .m_axi_bready(),
-    .m_axi_arid(m_axi_async_dma_ddr_arid),
-    .m_axi_araddr(m_axi_async_dma_ddr_araddr),
-    .m_axi_arlen(m_axi_async_dma_ddr_arlen),
-    .m_axi_arsize(m_axi_async_dma_ddr_arsize),
-    .m_axi_arburst(m_axi_async_dma_ddr_arburst),
-    .m_axi_arlock(m_axi_async_dma_ddr_arlock),
-    .m_axi_arcache(m_axi_async_dma_ddr_arcache),
-    .m_axi_arprot(m_axi_async_dma_ddr_arprot),
-    .m_axi_arvalid(m_axi_async_dma_ddr_arvalid),
-    .m_axi_arready(m_axi_async_dma_ddr_arready),
-    .m_axi_rid(m_axi_async_dma_ddr_rid),
-    .m_axi_rdata(m_axi_async_dma_ddr_rdata),
-    .m_axi_rresp(m_axi_async_dma_ddr_rresp),
-    .m_axi_rlast(m_axi_async_dma_ddr_rlast),
-    .m_axi_rvalid(m_axi_async_dma_ddr_rvalid),
-    .m_axi_rready(m_axi_async_dma_ddr_rready),
-
-    .read_enable(1'b1),
-    .write_enable(1'b0),
-    .write_abort(1'b0)
-);
-
-axi_async_fifo #(
-    .DATA_WIDTH(AXI_DDR_DATA_WIDTH),
-    .ADDR_WIDTH(AXI_DDR_ADDR_WIDTH)
-) axi_async_ddr_read_fifo_inst (
-    .s_clk(clk),
-    .s_rst(rst),
-    .m_clk(ddr_clk),
-    .m_rst(ddr_rst),
-
-    .s_axi_awid(),
-    .s_axi_awaddr(),
-    .s_axi_awlen(),
-    .s_axi_awsize(),
-    .s_axi_awburst(),
-    .s_axi_awlock(),
-    .s_axi_awcache(),
-    .s_axi_awprot(),
-    .s_axi_awvalid(),
-    .s_axi_awready(),
-    .s_axi_wdata(),
-    .s_axi_wstrb(),
-    .s_axi_wlast(),
-    .s_axi_wvalid(),
-    .s_axi_wready(),
-    .s_axi_bid(),
-    .s_axi_bresp(),
-    .s_axi_bvalid(),
-    .s_axi_bready(),
-    .s_axi_arid(m_axi_async_dma_ddr_arid),
-    .s_axi_araddr(m_axi_async_dma_ddr_araddr),
-    .s_axi_arlen(m_axi_async_dma_ddr_arlen),
-    .s_axi_arsize(m_axi_async_dma_ddr_arsize),
-    .s_axi_arburst(m_axi_async_dma_ddr_arburst),
-    .s_axi_arlock(m_axi_async_dma_ddr_arlock),
-    .s_axi_arcache(m_axi_async_dma_ddr_arcache),
-    .s_axi_arprot(m_axi_async_dma_ddr_arprot),
-    .s_axi_arvalid(m_axi_async_dma_ddr_arvalid),
-    .s_axi_arready(m_axi_async_dma_ddr_arready),
-    .s_axi_rid(m_axi_async_dma_ddr_rid),
-    .s_axi_rdata(m_axi_async_dma_ddr_rdata),
-    .s_axi_rresp(m_axi_async_dma_ddr_rresp),
-    .s_axi_rlast(m_axi_async_dma_ddr_rlast),
-    .s_axi_rvalid(m_axi_async_dma_ddr_rvalid),
-    .s_axi_rready(m_axi_async_dma_ddr_rready),
-
-
-    .m_axi_awid(),
-    .m_axi_awaddr(),
-    .m_axi_awlen(),
-    .m_axi_awsize(),
-    .m_axi_awburst(),
-    .m_axi_awlock(),
-    .m_axi_awcache(),
-    .m_axi_awprot(),
-    .m_axi_awvalid(),
-    .m_axi_awready(),
-    .m_axi_wdata(),
-    .m_axi_wstrb(),
-    .m_axi_wlast(),
-    .m_axi_wvalid(),
-    .m_axi_wready(),
-    .m_axi_bid(),
-    .m_axi_bresp(),
-    .m_axi_bvalid(),
-    .m_axi_bready(),
     .m_axi_arid(m_axi_ddr_arid),
     .m_axi_araddr(m_axi_ddr_araddr),
     .m_axi_arlen(m_axi_ddr_arlen),
@@ -1307,38 +1220,13 @@ axi_async_fifo #(
     .m_axi_rresp(m_axi_ddr_rresp),
     .m_axi_rlast(m_axi_ddr_rlast),
     .m_axi_rvalid(m_axi_ddr_rvalid),
-    .m_axi_rready(m_axi_ddr_rready)
+    .m_axi_rready(m_axi_ddr_rready),
 
+    .read_enable(1'b1),
+    .write_enable(1'b0),
+    .write_abort(1'b0)
 );
 
-// axis_fifo_ex #(
-//     .DATA_WIDTH(UART_DATA_WIDTH),
-//     .FIFO_DEPTH(128)
-// )
-// uart_axis_async_fifo_inst
-// (
-//     .s_clk(clk),
-//     .s_rst(rst),
-//     .s_axis_tdata(icap_s_axis_tdata),
-//     .s_axis_tkeep(icap_s_axis_tkeep),
-//     .s_axis_tvalid(icap_s_axis_tvalid),
-//     .s_axis_tready(icap_s_axis_tready),
-//     .s_axis_tlast(icap_s_axis_tlast),
-//     .s_axis_tid(),
-//     .s_axis_tdest(),
-//     .s_axis_tuser(),
-
-//     .m_clk(uart_clk),
-//     .m_rst(uart_rst),
-//     .m_axis_tdata(uart_tx_axis_tdata),
-//     .m_axis_tkeep(),
-//     .m_axis_tvalid(uart_tx_axis_tvalid),
-//     .m_axis_tready(uart_tx_axis_tready),
-//     .m_axis_tlast(),
-//     .m_axis_tid(),
-//     .m_axis_tdest(),
-//     .m_axis_tuser()
-//  );
 
 
 // design_1_wrapper ila_dbg
