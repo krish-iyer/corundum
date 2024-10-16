@@ -169,14 +169,14 @@ always @(posedge s_axis_clk) begin
 
        
 	// DMA signals
-	s_axis_read_desc_addr = s_axis_read_desc_addr_int;
-	s_axis_read_desc_len = s_axis_read_desc_len_int;
-	s_axis_read_desc_tag = s_axis_read_desc_tag_int;
-	s_axis_read_desc_id = s_axis_read_desc_id_int;
-	s_axis_read_desc_dest = s_axis_read_desc_dest_int;
-	s_axis_read_desc_user = s_axis_read_desc_user_int;
-	s_axis_read_desc_valid = s_axis_read_desc_valid_int;
-	s_axis_read_desc_ready_int = s_axis_read_desc_ready;
+	s_axis_read_desc_addr <= s_axis_read_desc_addr_int;
+	s_axis_read_desc_len <= s_axis_read_desc_len_int;
+	s_axis_read_desc_tag <= s_axis_read_desc_tag_int;
+	s_axis_read_desc_id <= s_axis_read_desc_id_int;
+	s_axis_read_desc_dest <= s_axis_read_desc_dest_int;
+	s_axis_read_desc_user <= s_axis_read_desc_user_int;
+	s_axis_read_desc_valid <= s_axis_read_desc_valid_int;
+	s_axis_read_desc_ready_int <= s_axis_read_desc_ready;
     end
 end
 

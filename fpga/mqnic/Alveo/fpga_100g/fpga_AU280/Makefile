@@ -162,6 +162,7 @@ IP_TCL_FILES += ip/ila_recon.tcl
 #IP_TCL_FILES += ip/sys_ila_bd.tcl
 #IP_TCL_FILES += ip/xil_axis_async_fifo.tcl
 IP_TCL_FILES += ip/xil_aximm_async_fifo.tcl
+IP_TCL_FILES += ip/ila_axi.tcl
 
 # Configuration
 CONFIG_TCL_FILES = ./config.tcl
