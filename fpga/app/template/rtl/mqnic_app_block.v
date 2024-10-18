@@ -1366,6 +1366,14 @@ xil_aximm_async_fifo axi_async_fifo (
   .m_axi_rready(m_axi_ddr_rready)      // output wire m_axi_rready
 );
 
+ila_icap dbg_icap (
+    .clk(clk),
+    .probe0(icap_s_axis_tdata),
+    .probe1(icap_s_axis_tkeep),
+    .probe2(icap_s_axis_tlast),
+    .probe3(icap_s_axis_tvalid),
+    .probe4(icap_s_axis_tready)
+    );
 endmodule
 
 `resetall
