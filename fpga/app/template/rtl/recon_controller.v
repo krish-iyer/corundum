@@ -62,7 +62,7 @@ reg [USER_WIDTH-1:0]	     m_axis_read_desc_user_int = {USER_WIDTH{1'b0}};
 reg			     m_axis_read_desc_valid_int = 0;
 reg			     m_axis_read_desc_ready_int = 0;
 
-reg [ADDR_WIDTH-1:0] m_axis_write_desc_addr_int = {ADDR_WIDTH{1'b0}};
+reg [ADDR_WIDTH-1:0]	     m_axis_write_desc_addr_int = {ADDR_WIDTH{1'b0}};
 reg [DMA_DESC_LEN_WIDTH-1:0] m_axis_write_desc_len_int = {DMA_DESC_LEN_WIDTH{1'b0}};
 reg [DMA_DESC_TAG_WIDTH-1:0] m_axis_write_desc_tag_int = {DMA_DESC_TAG_WIDTH{1'b0}};
 reg [ID_WIDTH-1:0]	     m_axis_write_desc_id_int = {ID_WIDTH{1'b0}};
@@ -92,7 +92,7 @@ localparam [2:0]
 		DMA_CPL = 3'd6;
 
 reg [2:0]	capture_state = HDR_CAPTURE, capture_state_next;
-wire [RECON_HDR_WIDTH*8:0]	recon_hdr;
+wire [RECON_HDR_WIDTH*8:0] recon_hdr;
 wire [1:0]	func_type;
 wire [7:0]	bitstream_id;
 wire [31:0]	bitstream_size;
@@ -127,32 +127,6 @@ reg				m_axis_tvalid_int = 1'b0;
 reg				m_axis_tlast_int;
 reg				m_axis_tready_int;
 
-
-reg [KEEP_WIDTH-1:0]		s_axis_tkeep_reg1;
-reg [DATA_WIDTH-1:0]		s_axis_tdata_reg1;
-reg				s_axis_tvalid_reg1 = 1'b0;
-reg				s_axis_tlast_reg1;
-reg				s_axis_tready_reg1;
-
-reg [KEEP_WIDTH-1:0]		s_axis_tkeep_reg2;
-reg [DATA_WIDTH-1:0]		s_axis_tdata_reg2;
-reg				s_axis_tvalid_reg2 = 1'b0;
-reg				s_axis_tlast_reg2;
-reg				s_axis_tready_reg2;
-
-reg [KEEP_WIDTH-1:0]		s_axis_tkeep_reg3;
-reg [DATA_WIDTH-1:0]		s_axis_tdata_reg3;
-reg				s_axis_tvalid_reg3 = 1'b0;
-reg				s_axis_tlast_reg3;
-reg				s_axis_tready_reg3;
-
-reg [KEEP_WIDTH-1:0]		s_axis_tkeep_reg4;
-reg [DATA_WIDTH-1:0]		s_axis_tdata_reg4;
-reg				s_axis_tvalid_reg4 = 1'b0;
-reg				s_axis_tlast_reg4;
-reg				s_axis_tready_reg4;
-
-
 reg [7:0]	bitstream_addr_table [0:ADDR_WIDTH+16+1-1]; // [size][ADDR][Valid]
 
 
@@ -163,11 +137,6 @@ assign bitstream_size_valid = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) 
 assign bitstream_addr = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[3+:34] : 0;
 assign bitstream_id = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[37+:8] : 0;
 assign bitstream_size = ((capture_state == HDR_CAPTURE) && s_axis_tvalid) ? recon_hdr[45+:32] : 0;
-
-assign m_axis_tdata = s_axis_fifo_tdata;
-assign m_axis_tkeep = s_axis_fifo_tkeep;
-assign m_axis_tlast = s_axis_fifo_tlast;
-assign m_axis_tvalid = s_axis_fifo_tvalid;
 
 integer		count_ones_var = 0;
 
@@ -197,33 +166,11 @@ always @(posedge clk) begin
 	frame_size <= frame_size_int;
 	save_tdata <= save_tdata_int;
 
-	s_axis_tdata_reg1 <= s_axis_tdata_int;
-	s_axis_tkeep_reg1 <= s_axis_tkeep_int;
-	s_axis_tvalid_reg1 <= s_axis_tvalid_int;
-	s_axis_tlast_reg1 <= s_axis_tlast_int;
-	s_axis_tready <=  1'b1;
-
-
-	s_axis_tdata_reg2 <= s_axis_tdata_reg1;
-	s_axis_tkeep_reg2 <= s_axis_tkeep_reg1;
-	s_axis_tvalid_reg2 <= s_axis_tvalid_reg1;
-	s_axis_tlast_reg2 <= s_axis_tlast_reg1;
-
-	s_axis_tdata_reg3 <= s_axis_tdata_reg2;
-	s_axis_tkeep_reg3 <= s_axis_tkeep_reg2;
-	s_axis_tvalid_reg3 <= s_axis_tvalid_reg2;
-	s_axis_tlast_reg3 <= s_axis_tlast_reg2;
-
-	s_axis_tdata_reg4 <= s_axis_tdata_reg3;
-	s_axis_tkeep_reg4 <= s_axis_tkeep_reg3;
-	s_axis_tvalid_reg4 <= s_axis_tvalid_reg3;
-	s_axis_tlast_reg4 <= s_axis_tlast_reg3;
-
-	s_axis_fifo_tdata <= s_axis_tdata_reg4;
-	s_axis_fifo_tkeep <= s_axis_tkeep_reg4;
-	s_axis_fifo_tvalid <= s_axis_tvalid_reg4;
-	s_axis_fifo_tlast <= s_axis_tlast_reg4;
-
+	s_axis_fifo_tdata <= s_axis_tdata_int;
+	s_axis_fifo_tkeep <= s_axis_tkeep_int;
+	s_axis_fifo_tvalid <= s_axis_tvalid_int;
+	s_axis_fifo_tlast <= s_axis_tlast_int;
+	s_axis_tready <=  s_axis_fifo_tready;
 	// DMA signals
 	m_axis_read_desc_addr <= m_axis_read_desc_addr_int;
 	m_axis_read_desc_len <= m_axis_read_desc_len_int;
@@ -256,9 +203,6 @@ always @* begin
 	    if (s_axis_tvalid && s_axis_tready) begin
 		case (func_type)
 		    2'b00: begin
-			if (!s_axis_tlast) begin
-			    capture_state_next = FRAME_MEM_TRANSFER;
-			end
 			if (bitstream_size_valid) begin
 			    bitstream_id_int = bitstream_id;
 			    bitstream_size_int = bitstream_size;
@@ -274,21 +218,12 @@ always @* begin
 				m_axis_write_desc_len_int = bitstream_size;
 				m_axis_write_desc_valid_int = 1'b1;
 			    end
-			    // TODO: what if m_axis_write_desc_ready is not high
-			    // also account for bitstream addr
-			    // s_axis_tdata_int = s_axis_tdata >> ((ETH_IP_RMT_HDR_DATA_WIDTH + RECON_HDR_WIDTH)  * 8);
-			    // s_axis_tkeep_int = ((s_axis_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + RECON_HDR_WIDTH)) &
-			    // 		       ETH_IP_RMT_HDR_RECON_HDR_KEEP_MASK) ;
-			    // s_axis_tvalid_int = s_axis_tvalid && s_axis_tready; // only commit if there's space
-			    // //s_axis_tlast_int = s_axis_tlast;
-			    // for (i = (KEEP_WIDTH - ETH_IP_RMT_HDR_DATA_WIDTH - RECON_HDR_WIDTH - 1); i >= 0; i = i - 1)begin // don't consider header
-			    // 	frame_size_int = frame_size + s_axis_tkeep[i];
-			    // end
-			    // frame_size_int = count_ones(s_axis_tkeep_int);
-			    // s_axis_tlast_int = 1'b0;
 			end // if (bitstream_size_valid)
 			else begin
 			    // +1 byte for func_type and bitstream_size_valid
+			    if (!s_axis_tlast) begin
+				capture_state_next = FRAME_MEM_TRANSFER;
+			    end
 			    save_tdata_int = s_axis_tdata >> ((ETH_IP_RMT_HDR_DATA_WIDTH + 1)  * 8);
 			    s_axis_tkeep_int = ((s_axis_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + 1)) &
 					       ETH_IP_RMT_HDR_KEEP_MASK);
@@ -362,43 +297,43 @@ always @* begin
     endcase
 end // always @ *
 
-// axis_fifo #(
-//     .DATA_WIDTH(DATA_WIDTH),
-//     .DEPTH(1024),
-//     .FRAME_FIFO(1),
-//     .RAM_PIPELINE(3)
-// )
-// axis_fifo_inst
-// (
-//     .clk(clk),
-//     .rst(rst),
-//     .s_axis_tdata(s_axis_fifo_tdata),
-//     .s_axis_tkeep(s_axis_fifo_tkeep),
-//     .s_axis_tvalid(s_axis_fifo_tvalid),
-//     .s_axis_tready(s_axis_fifo_tready),
-//     .s_axis_tlast(s_axis_fifo_tlast),
-//     .s_axis_tid(),
-//     .s_axis_tdest(),
-//     .s_axis_tuser(),
+axis_fifo #(
+    .DATA_WIDTH(DATA_WIDTH),
+    .DEPTH(1024),
+    .FRAME_FIFO(0),
+    .RAM_PIPELINE(3)
+)
+axis_fifo_inst
+(
+    .clk(clk),
+    .rst(rst),
+    .s_axis_tdata(s_axis_fifo_tdata),
+    .s_axis_tkeep(s_axis_fifo_tkeep),
+    .s_axis_tvalid(s_axis_fifo_tvalid),
+    .s_axis_tready(s_axis_fifo_tready),
+    .s_axis_tlast(s_axis_fifo_tlast),
+    .s_axis_tid(),
+    .s_axis_tdest(),
+    .s_axis_tuser(),
 
-//     .m_axis_tdata(m_axis_tdata),
-//     .m_axis_tkeep(m_axis_tkeep),
-//     .m_axis_tvalid(m_axis_tvalid),
-//     .m_axis_tready(m_axis_tready),
-//     .m_axis_tlast(m_axis_tlast),
-//     .m_axis_tid(),
-//     .m_axis_tdest(),
-//     .m_axis_tuser(),
+    .m_axis_tdata(m_axis_tdata),
+    .m_axis_tkeep(m_axis_tkeep),
+    .m_axis_tvalid(m_axis_tvalid),
+    .m_axis_tready(m_axis_tready),
+    .m_axis_tlast(m_axis_tlast),
+    .m_axis_tid(),
+    .m_axis_tdest(),
+    .m_axis_tuser(),
 
-//     .pause_req(),
-//     .pause_ack(),
+    .pause_req(),
+    .pause_ack(),
 
-//     .status_depth(),
-//     .status_depth_commit(),
-//     .status_overflow(),
-//     .status_bad_frame(),
-//     .status_good_frame()
-//  );
+    .status_depth(),
+    .status_depth_commit(),
+    .status_overflow(),
+    .status_bad_frame(),
+    .status_good_frame()
+ );
 
 endmodule
 
