@@ -393,10 +393,10 @@ ila_recon recon_ila_inst (
     .probe7(m_axis_read_desc_valid), // input wire [0:0]  probe7
     .probe8(m_axis_read_desc_addr), // input wire [33:0]  probe8
     .probe9(m_axis_read_desc_ready), // input wire [0:0]  probe9
-    .probe10(m_axis_read_desc_len), // input wire [22:0]  probe10
-    .probe11(m_axis_read_desc_valid), // input wire [0:0]  probe11
-    .probe12(m_axis_read_desc_addr), // input wire [33:0]  probe12
-    .probe13(m_axis_read_desc_ready) // input wire [0:0]  probe13
+    .probe10(m_axis_write_desc_len), // input wire [22:0]  probe10
+    .probe11(m_axis_write_desc_valid), // input wire [0:0]  probe11
+    .probe12(m_axis_write_desc_addr), // input wire [33:0]  probe12
+    .probe13(m_axis_write_desc_ready) // input wire [0:0]  probe13
     );
 
 
