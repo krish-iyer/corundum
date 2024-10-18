@@ -115,12 +115,12 @@ SYN_FILES += lib/pcie/rtl/pcie_us_cfg.v
 SYN_FILES += lib/pcie/rtl/pulse_merge.v
 # include app
 SYN_FILES += app/template/rtl/mqnic_app_block.v
-SYN_FILES += app/template/rtl/axis_fifo_ex.v
-SYN_FILES += app/template/rtl/axi_async_fifo.v
-SYN_FILES += app/template/rtl/async_fifo.v
+#SYN_FILES += app/template/rtl/axis_fifo_ex.v
+#SYN_FILES += app/template/rtl/axi_async_fifo.v
+#SYN_FILES += app/template/rtl/async_fifo.v
 SYN_FILES += app/template/rtl/recon_controller.v
 SYN_FILES += app/template/rtl/rmt.v
-SYN_FILES += app/template/rtl/axis_mm_bridge.v
+#SYN_FILES += app/template/rtl/axis_mm_bridge.v
 SYN_FILES += lib/axis/rtl/axis_ram_switch_4x4.v
 SYN_FILES += lib/axis/rtl/axis_ram_switch.v
 SYN_FILES += lib/axis/rtl/axis_tap.v
@@ -129,7 +129,7 @@ SYN_FILES += lib/axi/rtl/axi_dma.v
 SYN_FILES += lib/axi/rtl/axi_dma_rd.v
 SYN_FILES += lib/axi/rtl/axi_dma_wr.v
 SYN_FILES += lib/axi/rtl/axi_dma_desc_mux.v
-SYN_FILES += lib/axi/rtl/axil_ram.v
+#SYN_FILES += lib/axi/rtl/axil_ram.v
 SYN_FILES += lib/axis/rtl/uart.v
 SYN_FILES += lib/axis/rtl/uart_rx.v
 SYN_FILES += lib/axis/rtl/uart_tx.v
@@ -157,6 +157,10 @@ IP_TCL_FILES += ip/cmac_gty.tcl
 IP_TCL_FILES += ip/cms.tcl
 #IP_TCL_FILES += ip/hbm_0.tcl
 IP_TCL_FILES += ip/ddr4_0_au280.tcl
+IP_TCL_FILES += ip/ila_0.tcl
+IP_TCL_FILES += ip/ila_recon.tcl
+IP_TCL_FILES += ip/ila_icap.tcl
+IP_TCL_FILES += ip/xil_aximm_async_fifo.tcl
 
 # Configuration
 CONFIG_TCL_FILES = ./config.tcl
