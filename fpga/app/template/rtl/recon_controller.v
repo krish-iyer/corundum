@@ -380,6 +380,27 @@ axis_out_fifo_inst
     .status_good_frame()
  );
 
+
+ila_recon recon_ila_inst (
+    .clk(s_axis_clk), // input wire clk
+    .probe0(capture_state), // input wire [2:0]  probe0
+    .probe1(func_type), // input wire [1:0]  probe1
+    .probe2(bitstream_id), // input wire [7:0]  probe2
+    .probe3(bitstream_size), // input wire [31:0]  probe3
+    .probe4(bitstream_size_valid), // input wire [0:0]  probe4
+    .probe5(bitstream_addr), // input wire [33:0]  probe5
+    .probe6(m_axis_read_desc_len), // input wire [22:0]  probe6
+    .probe7(m_axis_read_desc_valid), // input wire [0:0]  probe7
+    .probe8(m_axis_read_desc_addr), // input wire [33:0]  probe8
+    .probe9(m_axis_read_desc_ready), // input wire [0:0]  probe9
+    .probe10(m_axis_read_desc_len), // input wire [22:0]  probe10
+    .probe11(m_axis_read_desc_valid), // input wire [0:0]  probe11
+    .probe12(m_axis_read_desc_addr), // input wire [33:0]  probe12
+    .probe13(m_axis_read_desc_ready) // input wire [0:0]  probe13
+    );
+
+
+
 endmodule
 
 `resetall
