@@ -461,12 +461,14 @@ def create_frame(payload, recon, index, func_type=0, size=0, address=0):
     if recon == True:
         if func_type == 0:
             if index == 0:
-                upr_hdr = func_type | 1 << 2 | address << 3 | id << 37 | size << 45
-                pkt_hdr = struct.pack('<HHQH', 0xF0E1, 0x0001, upr_hdr, 0)
+                upr_hdr = func_type | 1 << 2 | address << 3 | id << 37 | (size & 0x7ffff) << 45
+                lwr_hdr = size >> 19
+                pkt_hdr = struct.pack('<HHQH', 0xF0E1, 0x0001, upr_hdr, lwr_hdr)
+                frame = eth / ip / udp / pkt_hdr
             else:
                 upr_hdr = func_type | 0 << 2
                 pkt_hdr = struct.pack('<HHB', 0xF0E1, 0x0001, upr_hdr)
-            frame = eth / ip / udp / (pkt_hdr + payload)
+                frame = eth / ip / udp / (pkt_hdr + payload)
         elif func_type == 1:
             upr_hdr = func_type | 1 << 2 | address << 3 | id << 37 | (size & 0x7ffff) << 45
             lwr_hdr = size >> 19
@@ -557,12 +559,22 @@ async def run_test_nic(dut):
     ddr_addr = 0
     num_bytes = 64
 
+    tb.loopback_enable = True
     pkts = [bytearray([(x + k) % 256 for x in range(num_bytes)]) for k in range(packet_count)]
 
-    framed_pkts = [create_frame(pkt, True, index, func_type = 0, size = num_bytes*packet_count, address=0) for index, pkt in
-                   enumerate(pkts)]
+    # sending config packet
+    config_pkt = create_frame(0, True, 0, func_type = 0, size = num_bytes*packet_count, address=0)
+    await tb.driver.interfaces[0].start_xmit(config_pkt, 0)
 
-    tb.loopback_enable = True
+    pkt = await tb.driver.interfaces[0].recv()
+
+    tb.log.info("Packet: %s", pkt)
+    assert pkt.data == config_pkt
+    if tb.driver.interfaces[0].if_feature_rx_csum:
+        assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
+
+    # sending payload to write to mem
+    framed_pkts = [create_frame(pkt, True, 1) for index, pkt in enumerate(pkts)]
 
     for p in framed_pkts:
         await tb.driver.interfaces[0].start_xmit(p, 0)
@@ -575,9 +587,8 @@ async def run_test_nic(dut):
         assert pkt.data == framed_pkts[k]
         if tb.driver.interfaces[0].if_feature_rx_csum:
             assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
-            if k!=0 :
-                assert bytes(pkts[k]) ==  tb.ddr_ram[0][ddr_addr:ddr_addr+num_bytes]
-                ddr_addr = ddr_addr + num_bytes
+            assert bytes(pkts[k]) ==  tb.ddr_ram[0][ddr_addr:ddr_addr+num_bytes]
+            ddr_addr = ddr_addr + num_bytes
         # skipping k==0
     print("######################## Dumping RAM ###################")
     tb.ddr_ram[0].hexdump(0x0000, 1024, prefix="RAM")
@@ -599,7 +610,7 @@ async def run_test_nic(dut):
 
     tb.ddr_ram[0].hexdump(0x000, 1024, prefix="RAM")
 
-    framed_pkts = [create_frame(0, True, index, func_type = 1, size = 1024, address=0x40) for index, _ in
+    framed_pkts = [create_frame(0, True, index, func_type = 1, size = 65536, address=0x40) for index, _ in
                     enumerate(pkts)]
 
     #tb.loopback_enable = True
@@ -610,7 +621,7 @@ async def run_test_nic(dut):
 
     #for i in range(int(1024/64)):
     rx_frame = await tb.icap_axis_if.recv()
-    assert rx_frame.tdata == tb.ddr_ram[0][ddr_addr:ddr_addr+1024]
+    assert rx_frame.tdata == tb.ddr_ram[0][ddr_addr:ddr_addr+65536]
 
     ddr_addr += 64
 
