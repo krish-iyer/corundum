@@ -382,7 +382,7 @@ axis_out_fifo_inst
 
 
 ila_recon recon_ila_inst (
-    .clk(s_axis_clk), // input wire clk
+    .clk(clk), // input wire clk
     .probe0(capture_state), // input wire [2:0]  probe0
     .probe1(func_type), // input wire [1:0]  probe1
     .probe2(bitstream_id), // input wire [7:0]  probe2
