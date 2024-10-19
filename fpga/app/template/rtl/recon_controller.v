@@ -289,7 +289,7 @@ always @* begin
 		else begin
 		    capture_state_next = DMA_WRITE_TRANSFER;
 		end
-		s_axis_tdata_int = save_tdata | m_axis_in_fifo_tdata << (17*8);
+		s_axis_tdata_int = save_tdata | m_axis_in_fifo_tdata << 136; // 17*8
 		s_axis_tkeep_int = FULL_TRANSFER_TKEEP;
 		s_axis_tvalid_int = m_axis_in_fifo_tvalid && m_axis_in_fifo_tready;
 		s_axis_tlast_int = 1'b0;
