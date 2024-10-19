@@ -1376,7 +1376,7 @@ ila_icap dbg_icap (
     );
 
 ila_icap dbg_ddr (
-    .clk(clk),
+    .clk(ddr_clk),
     .probe0(m_axi_ddr_wdata),
     .probe1(m_axi_ddr_wstrb),
     .probe2(0),
