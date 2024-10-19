@@ -218,6 +218,7 @@ always @* begin
     frame_size = 0;
     case (capture_state)
 	HDR_CAPTURE: begin
+	    s_axis_tvalid_int = 1'b0;
 	    if (m_axis_in_fifo_tvalid) begin
 		if (bitstream_size_valid) begin
 		    bitstream_id_int = bitstream_id;
