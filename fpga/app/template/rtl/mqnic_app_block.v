@@ -1374,6 +1374,16 @@ ila_icap dbg_icap (
     .probe3(icap_s_axis_tvalid),
     .probe4(icap_s_axis_tready)
     );
+
+ila_icap dbg_ddr (
+    .clk(clk),
+    .probe0(m_axi_ddr_wdata),
+    .probe1(m_axi_ddr_wstrb),
+    .probe2(0),
+    .probe3(m_axi_ddr_wvalid),
+    .probe4(m_axi_ddr_wready)
+    );
+
 endmodule
 
 `resetall

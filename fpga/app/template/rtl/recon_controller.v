@@ -402,7 +402,23 @@ ila_recon recon_ila_inst (
     .probe13(m_axis_write_desc_ready) // input wire [0:0]  probe13
     );
 
+ila_icap dbg_recon_instream (
+    .clk(clk),
+    .probe0(m_axis_in_fifo_tdata),
+    .probe1(m_axis_in_fifo_tkeep),
+    .probe2(m_axis_in_fifo_tlast),
+    .probe3(m_axis_in_fifo_tvalid),
+    .probe4(m_axis_in_fifo_tready)
+    );
 
+ila_icap dbg_recon_outstream (
+    .clk(clk),
+    .probe0(m_axis_tdata),
+    .probe1(m_axis_tkeep),
+    .probe2(m_axis_tlast),
+    .probe3(m_axis_tvalid),
+    .probe4(m_axis_tready)
+    );
 
 endmodule
 
