@@ -1375,14 +1375,14 @@ ila_icap dbg_icap (
     .probe4(icap_s_axis_tready)
     );
 
-ila_icap dbg_ddr (
-    .clk(ddr_clk),
-    .probe0(m_axi_ddr_wdata),
-    .probe1(m_axi_ddr_wstrb),
-    .probe2(0),
-    .probe3(m_axi_ddr_wvalid),
-    .probe4(m_axi_ddr_wready)
-    );
+// ila_icap dbg_ddr (
+//     .clk(ddr_clk),
+//     .probe0(m_axi_ddr_wdata),
+//     .probe1(m_axi_ddr_wstrb),
+//     .probe2(0),
+//     .probe3(m_axi_ddr_wvalid),
+//     .probe4(m_axi_ddr_wready)
+//     );
 
 endmodule
 

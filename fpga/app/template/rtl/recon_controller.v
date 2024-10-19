@@ -294,7 +294,7 @@ always @* begin
 		save_tdata_int = m_axis_in_fifo_tdata << PAYLOAD_1_DATA_WIDTH_BITS;
 		s_axis_tdata_int = save_tdata_int | save_tdata;
 		s_axis_tkeep_int = FULL_TRANSFER_TKEEP;
-		s_axis_tvalid_int = m_axis_in_fifo_tvalid && m_axis_in_fifo_tready;
+		s_axis_tvalid_int = 1'b1;
 		s_axis_tlast_int = 1'b0;
 		m_axis_in_fifo_tready_int = 1'b1;
 	    end
