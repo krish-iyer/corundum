@@ -46,6 +46,8 @@ module recon_controller #(
 );
 
 localparam integer ETH_IP_RMT_HDR_DATA_WIDTH = 46; // bytes
+localparam integer ETH_IP_RMT_HDR_DATA_WIDTH_BITS = 376;
+localparam integer PAYLOAD_1_DATA_WIDTH_BITS = 136;
 localparam [63:0]  ETH_IP_RMT_HDR_KEEP_MASK  = 64'h000000000003FFFF; // + bitstream_addr
 localparam [63:0]  ETH_IP_RMT_HDR_KEEP_MASK2 = 64'h00003FFFFFFFFFFF; // + bitstream_addr
 localparam [63:0]  ETH_IP_RMT_HDR_RECON_HDR_KEEP_MASK = 64'h00000000000000FF; // + bitstream_addr
@@ -229,11 +231,11 @@ always @* begin
 		else begin
 		    // +1 byte for func_type and bitstream_size_valid
 		    if (func_type == 0) begin
-			save_tdata_int = m_axis_in_fifo_tdata >> ((ETH_IP_RMT_HDR_DATA_WIDTH + 1)  * 8);
-			s_axis_tkeep_int = ((m_axis_in_fifo_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + 1)) &
-					   ETH_IP_RMT_HDR_KEEP_MASK);
+			save_tdata_int = m_axis_in_fifo_tdata >> ETH_IP_RMT_HDR_DATA_WIDTH_BITS;
+			//s_axis_tkeep_int = ((m_axis_in_fifo_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + 1)) &
+			//ETH_IP_RMT_HDR_KEEP_MASK);
 			m_axis_write_desc_valid_int = 1'b0;
-			frame_size_int = count_ones(s_axis_tkeep_int);
+			//frame_size_int = count_ones(s_axis_tkeep_int);
 			m_axis_in_fifo_tready_int = 1'b1;
 			s_axis_tlast_int = 1'b0;
 			if (!m_axis_in_fifo_tlast) begin
@@ -289,7 +291,8 @@ always @* begin
 		else begin
 		    capture_state_next = DMA_WRITE_TRANSFER;
 		end
-		s_axis_tdata_int = save_tdata | m_axis_in_fifo_tdata << 136; // 17*8
+		save_tdata_int = m_axis_in_fifo_tdata << PAYLOAD_1_DATA_WIDTH_BITS;
+		s_axis_tdata_int = save_tdata_int | save_tdata;
 		s_axis_tkeep_int = FULL_TRANSFER_TKEEP;
 		s_axis_tvalid_int = m_axis_in_fifo_tvalid && m_axis_in_fifo_tready;
 		s_axis_tlast_int = 1'b0;
