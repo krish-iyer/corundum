@@ -284,7 +284,7 @@ always @* begin
 	    end
 	end // case: DMA_READ_INIT
 	DMA_WRITE_TRANSFER: begin
-	    if (m_axis_in_fifo_tvalid && m_axis_in_fifo_tready) begin
+	    if (m_axis_in_fifo_tvalid) begin
 		if (m_axis_in_fifo_tlast) begin
 		    capture_state_next = HDR_CAPTURE;
 		end
@@ -296,6 +296,7 @@ always @* begin
 		s_axis_tkeep_int = FULL_TRANSFER_TKEEP;
 		s_axis_tvalid_int = m_axis_in_fifo_tvalid && m_axis_in_fifo_tready;
 		s_axis_tlast_int = 1'b0;
+		m_axis_in_fifo_tready_int = 1'b1;
 	    end
 	    else begin
 		capture_state_next = DMA_WRITE_TRANSFER;
