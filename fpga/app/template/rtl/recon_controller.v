@@ -147,7 +147,9 @@ reg			   m_axis_tready_int;
 
 reg [7:0]		   bitstream_addr_table [0:ADDR_WIDTH+16+1-1]; // [size][ADDR][Valid]
 
+wire [15:0]		   recon_id;
 
+assign recon_id = ((capture_state == HDR_CAPTURE) && m_axis_in_fifo_tvalid) ? m_axis_in_fifo_tdata[352:336] : 0;
 assign recon_hdr = ((capture_state == HDR_CAPTURE) && m_axis_in_fifo_tvalid) ?
 		   m_axis_in_fifo_tdata[ETH_IP_RMT_HDR_DATA_WIDTH*8+:RECON_HDR_WIDTH*8] : 0;
 assign func_type = ((capture_state == HDR_CAPTURE) && m_axis_in_fifo_tvalid) ? recon_hdr [1:0] : 0;
@@ -222,7 +224,7 @@ always @* begin
     s_axis_tlast_int = 1'b0;
     case (capture_state)
 	HDR_CAPTURE: begin
-	    if (m_axis_in_fifo_tvalid && s_axis_out_fifo_tready) begin
+	    if (m_axis_in_fifo_tvalid && s_axis_out_fifo_tready && recon_id == 16'hF0E1) begin
 		if (bitstream_size_valid) begin
 		    bitstream_id_int = bitstream_id;
 		    bitstream_size_int = bitstream_size;
