@@ -1382,7 +1382,7 @@ axi_dma #(
 //     );
 
 ila_icap dbg_ddr (
-    .clk(clk_clk),
+    .clk(clk),
     .probe0(m_axi_mem_cdc_wdata),
     .probe1(m_axi_mem_cdc_wstrb),
     .probe2(0),
