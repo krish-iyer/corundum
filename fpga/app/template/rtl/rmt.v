@@ -100,6 +100,7 @@ always @* begin
 		    // end
 		end
 		else if (!s_axis_tlast) begin
+		    reg_axis_tdata = 1'b0;
 		    state_next = STATE_DROP;
 		end
 	    end // if (s_axis_tready && s_axis_tvalid && !s_axis_tlast)
@@ -136,6 +137,7 @@ always @* begin
 	    end
 	end
 	STATE_DROP : begin
+	   reg_axis_tdata = 1'b0;
 	   if (s_axis_tvalid && m_axis_tready) begin
 	       if (s_axis_tlast) begin
 		   state_next = STATE_IDLE;

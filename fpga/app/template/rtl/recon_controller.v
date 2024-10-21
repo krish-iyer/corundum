@@ -129,17 +129,17 @@ wire			   m_axis_in_fifo_tvalid;
 wire			   m_axis_in_fifo_tlast;
 reg			   m_axis_in_fifo_tready = 1'b1;
 
-assign m_axis_in_fifo_tkeep = s_axis_tkeep;
-assign m_axis_in_fifo_tdata = s_axis_tdata;
-assign m_axis_in_fifo_tvalid = s_axis_tvalid;
-assign m_axis_in_fifo_tlast = s_axis_tlast;
-assign s_axis_tready = m_axis_in_fifo_tready;
+// assign m_axis_in_fifo_tkeep = s_axis_tkeep;
+// assign m_axis_in_fifo_tdata = s_axis_tdata;
+// assign m_axis_in_fifo_tvalid = s_axis_tvalid;
+// assign m_axis_in_fifo_tlast = s_axis_tlast;
+// assign s_axis_tready = m_axis_in_fifo_tready;
 
-assign m_axis_tkeep = s_axis_out_fifo_tkeep;
-assign m_axis_tdata = s_axis_out_fifo_tdata;
-assign m_axis_tvalid = s_axis_out_fifo_tvalid;
-assign m_axis_tlast = s_axis_out_fifo_tlast;
-assign s_axis_out_fifo_tready = 1'b1;
+// assign m_axis_tkeep = s_axis_out_fifo_tkeep;
+// assign m_axis_tdata = s_axis_out_fifo_tdata;
+// assign m_axis_tvalid = s_axis_out_fifo_tvalid;
+// assign m_axis_tlast = s_axis_out_fifo_tlast;
+// assign s_axis_out_fifo_tready = 1'b1;
 
 reg			   m_axis_in_fifo_tready_int = 1'b1;
 
@@ -193,7 +193,7 @@ always @(posedge clk) begin
 	save_bitstream_addr <= bitstream_addr_int;
 	save_bitstream_size <= bitstream_size_int;
 
-	m_axis_in_fifo_tready <= 1'b1;//m_axis_in_fifo_tready_int;
+	m_axis_in_fifo_tready <= 1'b1; //m_axis_in_fifo_tready_int;
 
 	s_axis_out_fifo_tdata <= s_axis_tdata_int;
 	s_axis_out_fifo_tkeep <= s_axis_tkeep_int;
@@ -222,11 +222,6 @@ end
 
 always @* begin
     capture_state_next = HDR_CAPTURE;
-    frame_size = 0;
-    m_axis_read_desc_valid_int = 1'b0;
-    m_axis_write_desc_valid_int = 1'b0;
-    s_axis_tvalid_int = 1'b0;
-    s_axis_tlast_int = 1'b0;
     case (capture_state)
 	HDR_CAPTURE: begin
 	    if (m_axis_in_fifo_tvalid && s_axis_out_fifo_tready && recon_id == 16'hF0E1) begin
@@ -237,31 +232,27 @@ always @* begin
 		    pending_transfer_size_int = bitstream_size;
 		    m_axis_in_fifo_tready_int = s_axis_out_fifo_tready;
 		    // initiate DMA_WRITE
-		    case (func_type)
-			2'b00: begin
-			    if (m_axis_write_desc_ready) begin
-				m_axis_write_desc_addr_int = bitstream_addr;
-				m_axis_write_desc_len_int = bitstream_size;
-				m_axis_write_desc_valid_int = 1'b1;
-			    end
-			end
-			2'b01: begin
-			    if (m_axis_read_desc_ready) begin
-				m_axis_read_desc_addr_int = bitstream_addr;
-				m_axis_read_desc_len_int = bitstream_size;
-				m_axis_read_desc_valid_int = 1'b1;
-			    end
-			end
-		    endcase
+		    if (func_type == 0 && m_axis_write_desc_ready) begin
+			m_axis_write_desc_addr_int = bitstream_addr;
+			m_axis_write_desc_len_int = bitstream_size;
+			m_axis_read_desc_valid_int = 1'b0;
+			m_axis_write_desc_valid_int = 1'b1;
+		    end
+		    else if (func_type == 1 && m_axis_read_desc_ready) begin
+			m_axis_read_desc_addr_int = bitstream_addr;
+			m_axis_read_desc_len_int = bitstream_size;
+			m_axis_write_desc_valid_int = 1'b0;
+			m_axis_read_desc_valid_int = 1'b1;
+		    end
 		end // if (bitstream_size_valid)
 		else begin
 		    // +1 byte for func_type and bitstream_size_valid
+		    m_axis_read_desc_valid_int = 1'b0;
+		    m_axis_write_desc_valid_int = 1'b0;
+		    s_axis_tvalid_int = 1'b0;
+		    s_axis_tlast_int = 1'b0;
 		    if (func_type == 0) begin
 			save_tdata_int = m_axis_in_fifo_tdata >> ETH_IP_RMT_HDR_DATA_WIDTH_BITS;
-			//s_axis_tkeep_int = ((m_axis_in_fifo_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + 1)) &
-			//ETH_IP_RMT_HDR_KEEP_MASK);
-			m_axis_write_desc_valid_int = 1'b0;
-			s_axis_tlast_int = 1'b0;
 			if (!m_axis_in_fifo_tlast) begin
 			    capture_state_next = DMA_WRITE_TRANSFER;
 			end
@@ -269,11 +260,12 @@ always @* begin
 		end
 	    end
 	    else begin
-	        //s_axis_tdata_int = {DATA_WIDTH{1'b0}};
-		//s_axis_tkeep_int = {KEEP_WIDTH{1'b0}};
+	        s_axis_tdata_int = {DATA_WIDTH{1'b0}};
+		s_axis_tkeep_int = {KEEP_WIDTH{1'b0}};
 		s_axis_tlast_int = 1'b0;
 		s_axis_tvalid_int = 1'b0;
-		//m_axis_in_fifo_tready_int = 1'b1;
+		m_axis_read_desc_valid_int = 1'b0;
+		m_axis_write_desc_valid_int = 1'b0;
 		capture_state_next = HDR_CAPTURE;
 	    end // else: !if(m_axis_in_fifo_tvalid)
 	end // case: HDR_CAPTURE
@@ -304,81 +296,82 @@ always @* begin
     endcase
 end // always @ *
 
-// axis_fifo #(
-//     .DATA_WIDTH(DATA_WIDTH),
-//     .DEPTH(2048),
-//     .FRAME_FIFO(0),
-//     .RAM_PIPELINE(1)
-// )
-// axis_in_fifo_inst
-// (
-//     .clk(clk),
-//     .rst(rst),
-//     .s_axis_tdata(s_axis_tdata),
-//     .s_axis_tkeep(s_axis_tkeep),
-//     .s_axis_tvalid(s_axis_tvalid),
-//     .s_axis_tready(s_axis_tready),
-//     .s_axis_tlast(s_axis_tlast),
-//     .s_axis_tid(),
-//     .s_axis_tdest(),
-//     .s_axis_tuser(),
+axis_fifo #(
+    .DATA_WIDTH(DATA_WIDTH),
+    .DEPTH(8192),
+    .FRAME_FIFO(0)
+    //.RAM_PIPELINE(1)
+)
+axis_in_fifo_inst
+(
+    .clk(clk),
+    .rst(rst),
+    .s_axis_tdata(s_axis_tdata),
+    .s_axis_tkeep(s_axis_tkeep),
+    .s_axis_tvalid(s_axis_tvalid),
+    .s_axis_tready(s_axis_tready),
+    .s_axis_tlast(s_axis_tlast),
+    .s_axis_tid(),
+    .s_axis_tdest(),
+    .s_axis_tuser(),
 
-//     .m_axis_tdata(m_axis_in_fifo_tdata),
-//     .m_axis_tkeep(m_axis_in_fifo_tkeep),
-//     .m_axis_tvalid(m_axis_in_fifo_tvalid),
-//     .m_axis_tready(m_axis_in_fifo_tready),
-//     .m_axis_tlast(m_axis_in_fifo_tlast),
-//     .m_axis_tid(),
-//     .m_axis_tdest(),
-//     .m_axis_tuser(),
+    .m_axis_tdata(m_axis_in_fifo_tdata),
+    .m_axis_tkeep(m_axis_in_fifo_tkeep),
+    .m_axis_tvalid(m_axis_in_fifo_tvalid),
+    .m_axis_tready(m_axis_in_fifo_tready),
+    .m_axis_tlast(m_axis_in_fifo_tlast),
+    .m_axis_tid(),
+    .m_axis_tdest(),
+    .m_axis_tuser(),
 
-//     .pause_req(),
-//     .pause_ack(),
+    .pause_req(),
+    .pause_ack(),
 
-//     .status_depth(),
-//     .status_depth_commit(),
-//     .status_overflow(),
-//     .status_bad_frame(),
-//     .status_good_frame()
-//  );
+    .status_depth(),
+    .status_depth_commit(),
+    .status_overflow(),
+    .status_bad_frame(),
+    .status_good_frame()
+ );
 
-// axis_fifo #(
-//     .DATA_WIDTH(DATA_WIDTH),
-//     .DEPTH(2048),
-//     .FRAME_FIFO(0),
-//     .RAM_PIPELINE(3)
-// )
-// axis_out_fifo_inst
-// (
-//     .clk(clk),
-//     .rst(rst),
-//     .s_axis_tdata(s_axis_out_fifo_tdata),
-//     .s_axis_tkeep(s_axis_out_fifo_tkeep),
-//     .s_axis_tvalid(s_axis_out_fifo_tvalid),
-//     .s_axis_tready(s_axis_out_fifo_tready),
-//     .s_axis_tlast(s_axis_out_fifo_tlast),
-//     .s_axis_tid(),
-//     .s_axis_tdest(),
-//     .s_axis_tuser(),
+axis_fifo #(
+    .DATA_WIDTH(DATA_WIDTH),
+    .DEPTH(8192),
+    .FRAME_FIFO(0),
+    //.LAST_ENABLE(1)
+    .RAM_PIPELINE(5)
+)
+axis_out_fifo_inst
+(
+    .clk(clk),
+    .rst(rst),
+    .s_axis_tdata(s_axis_out_fifo_tdata),
+    .s_axis_tkeep(s_axis_out_fifo_tkeep),
+    .s_axis_tvalid(s_axis_out_fifo_tvalid),
+    .s_axis_tready(s_axis_out_fifo_tready),
+    .s_axis_tlast(s_axis_out_fifo_tlast),
+    .s_axis_tid(),
+    .s_axis_tdest(),
+    .s_axis_tuser(),
 
-//     .m_axis_tdata(m_axis_tdata),
-//     .m_axis_tkeep(m_axis_tkeep),
-//     .m_axis_tvalid(m_axis_tvalid),
-//     .m_axis_tready(m_axis_tready),
-//     .m_axis_tlast(m_axis_tlast),
-//     .m_axis_tid(),
-//     .m_axis_tdest(),
-//     .m_axis_tuser(),
+    .m_axis_tdata(m_axis_tdata),
+    .m_axis_tkeep(m_axis_tkeep),
+    .m_axis_tvalid(m_axis_tvalid),
+    .m_axis_tready(m_axis_tready),
+    .m_axis_tlast(m_axis_tlast),
+    .m_axis_tid(),
+    .m_axis_tdest(),
+    .m_axis_tuser(),
 
-//     .pause_req(),
-//     .pause_ack(),
+    .pause_req(),
+    .pause_ack(),
 
-//     .status_depth(),
-//     .status_depth_commit(),
-//     .status_overflow(),
-//     .status_bad_frame(),
-//     .status_good_frame()
-//  );
+    .status_depth(),
+    .status_depth_commit(),
+    .status_overflow(),
+    .status_bad_frame(),
+    .status_good_frame()
+ );
 
 
 // ila_recon recon_ila_inst (
