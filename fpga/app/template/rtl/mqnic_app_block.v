@@ -1056,97 +1056,103 @@ rmt_inst (
 
 );
 
-axis_ram_switch_4x4 #(
-    .S_DATA_WIDTH(DATA_WIDTH),
-    .M_DATA_WIDTH(DATA_WIDTH),
-    .M_DEST_WIDTH(M_DEST_WIDTH),
-    .ID_ENABLE(ID_ENABLE),
-    .USER_ENABLE(USER_ENABLE),
-    .USER_WIDTH(USER_WIDTH),
-    .ARB_TYPE_ROUND_ROBIN(ARB_TYPE_ROUND_ROBIN),
-    .ARB_LSB_HIGH_PRIORITY(ARB_LSB_HIGH_PRIORITY),
-    .RAM_PIPELINE(3)
-    )
-axis_switch_inst (
-    .clk(clk),
-    .rst(rst),
+assign recon_s_axis_tdata = rmt_s_axis_tdata;
+assign recon_s_axis_tkeep = rmt_s_axis_tkeep;
+assign recon_s_axis_tlast = rmt_s_axis_tlast;
+assign recon_s_axis_tvalid = rmt_s_axis_tvalid;
+assign rmt_s_axis_tready = recon_s_axis_tready;
 
-    // rx
-    .s00_axis_tdata(rmt_s_axis_tdata),
-    .s00_axis_tkeep(rmt_s_axis_tkeep),
-    .s00_axis_tvalid(rmt_s_axis_tvalid),
-    .s00_axis_tready(rmt_s_axis_tready),
-    .s00_axis_tlast(rmt_s_axis_tlast),
-    .s00_axis_tid(),
-    .s00_axis_tdest(rmt_s_axis_tdest),
-    .s00_axis_tuser(rmt_s_axis_tuser),
+// axis_ram_switch_4x4 #(
+//     .S_DATA_WIDTH(DATA_WIDTH),
+//     .M_DATA_WIDTH(DATA_WIDTH),
+//     .M_DEST_WIDTH(M_DEST_WIDTH),
+//     .ID_ENABLE(ID_ENABLE),
+//     .USER_ENABLE(USER_ENABLE),
+//     .USER_WIDTH(USER_WIDTH),
+//     .ARB_TYPE_ROUND_ROBIN(ARB_TYPE_ROUND_ROBIN),
+//     .ARB_LSB_HIGH_PRIORITY(ARB_LSB_HIGH_PRIORITY),
+//     .RAM_PIPELINE(3)
+//     )
+// axis_switch_inst (
+//     .clk(clk),
+//     .rst(rst),
 
-    .s01_axis_tdata(),
-    .s01_axis_tkeep(),
-    .s01_axis_tvalid(),
-    .s01_axis_tready(),
-    .s01_axis_tlast(),
-    .s01_axis_tid(),
-    .s01_axis_tdest(),
-    .s01_axis_tuser(),
+//     // rx
+//     .s00_axis_tdata(rmt_s_axis_tdata),
+//     .s00_axis_tkeep(rmt_s_axis_tkeep),
+//     .s00_axis_tvalid(rmt_s_axis_tvalid),
+//     .s00_axis_tready(rmt_s_axis_tready),
+//     .s00_axis_tlast(rmt_s_axis_tlast),
+//     .s00_axis_tid(),
+//     .s00_axis_tdest(rmt_s_axis_tdest),
+//     .s00_axis_tuser(rmt_s_axis_tuser),
 
-    .s02_axis_tdata(),
-    .s02_axis_tkeep(),
-    .s02_axis_tvalid(),
-    .s02_axis_tready(),
-    .s02_axis_tlast(),
-    .s02_axis_tid(),
-    .s02_axis_tdest(),
-    .s02_axis_tuser(),
+//     .s01_axis_tdata(),
+//     .s01_axis_tkeep(),
+//     .s01_axis_tvalid(),
+//     .s01_axis_tready(),
+//     .s01_axis_tlast(),
+//     .s01_axis_tid(),
+//     .s01_axis_tdest(),
+//     .s01_axis_tuser(),
 
-    .s03_axis_tdata(),
-    .s03_axis_tkeep(),
-    .s03_axis_tvalid(),
-    .s03_axis_tready(),
-    .s03_axis_tlast(),
-    .s03_axis_tid(),
-    .s03_axis_tdest(),
-    .s03_axis_tuser(),
+//     .s02_axis_tdata(),
+//     .s02_axis_tkeep(),
+//     .s02_axis_tvalid(),
+//     .s02_axis_tready(),
+//     .s02_axis_tlast(),
+//     .s02_axis_tid(),
+//     .s02_axis_tdest(),
+//     .s02_axis_tuser(),
+
+//     .s03_axis_tdata(),
+//     .s03_axis_tkeep(),
+//     .s03_axis_tvalid(),
+//     .s03_axis_tready(),
+//     .s03_axis_tlast(),
+//     .s03_axis_tid(),
+//     .s03_axis_tdest(),
+//     .s03_axis_tuser(),
 
 
-    // rx
-    .m00_axis_tdata(),
-    .m00_axis_tkeep(),
-    .m00_axis_tvalid(),
-    .m00_axis_tready(),
-    .m00_axis_tlast(),
-    .m00_axis_tid(),
-    .m00_axis_tdest(),
-    .m00_axis_tuser(),
+//     // rx
+//     .m00_axis_tdata(),
+//     .m00_axis_tkeep(),
+//     .m00_axis_tvalid(),
+//     .m00_axis_tready(),
+//     .m00_axis_tlast(),
+//     .m00_axis_tid(),
+//     .m00_axis_tdest(),
+//     .m00_axis_tuser(),
 
-    .m01_axis_tdata(recon_s_axis_tdata),
-    .m01_axis_tkeep(recon_s_axis_tkeep),
-    .m01_axis_tvalid(recon_s_axis_tvalid),
-    .m01_axis_tready(recon_s_axis_tready),
-    .m01_axis_tlast(recon_s_axis_tlast),
-    .m01_axis_tid(),
-    .m01_axis_tdest(),
-    .m01_axis_tuser(),
+//     .m01_axis_tdata(recon_s_axis_tdata),
+//     .m01_axis_tkeep(recon_s_axis_tkeep),
+//     .m01_axis_tvalid(recon_s_axis_tvalid),
+//     .m01_axis_tready(recon_s_axis_tready),
+//     .m01_axis_tlast(recon_s_axis_tlast),
+//     .m01_axis_tid(),
+//     .m01_axis_tdest(),
+//     .m01_axis_tuser(),
 
-    .m02_axis_tdata(),
-    .m02_axis_tkeep(),
-    .m02_axis_tvalid(),
-    .m02_axis_tready(),
-    .m02_axis_tlast(),
-    .m02_axis_tid(),
-    .m02_axis_tdest(),
-    .m02_axis_tuser(),
+//     .m02_axis_tdata(),
+//     .m02_axis_tkeep(),
+//     .m02_axis_tvalid(),
+//     .m02_axis_tready(),
+//     .m02_axis_tlast(),
+//     .m02_axis_tid(),
+//     .m02_axis_tdest(),
+//     .m02_axis_tuser(),
 
-    // tx
-    .m03_axis_tdata(),
-    .m03_axis_tkeep(),
-    .m03_axis_tvalid(),
-    .m03_axis_tready(),
-    .m03_axis_tlast(),
-    .m03_axis_tid(),
-    .m03_axis_tdest(),
-    .m03_axis_tuser()
-);
+//     // tx
+//     .m03_axis_tdata(),
+//     .m03_axis_tkeep(),
+//     .m03_axis_tvalid(),
+//     .m03_axis_tready(),
+//     .m03_axis_tlast(),
+//     .m03_axis_tid(),
+//     .m03_axis_tdest(),
+//     .m03_axis_tuser()
+// );
 
 recon_controller #(
     .DATA_WIDTH(DATA_WIDTH),
