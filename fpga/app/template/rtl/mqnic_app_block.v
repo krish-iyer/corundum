@@ -1060,7 +1060,7 @@ assign recon_s_axis_tdata = rmt_s_axis_tdata;
 assign recon_s_axis_tkeep = rmt_s_axis_tkeep;
 assign recon_s_axis_tlast = rmt_s_axis_tlast;
 assign recon_s_axis_tvalid = rmt_s_axis_tvalid;
-assign rmt_s_axis_tready = recon_s_axis_tready;
+assign rmt_s_axis_tready = 1'b1;
 
 // axis_ram_switch_4x4 #(
 //     .S_DATA_WIDTH(DATA_WIDTH),
@@ -1154,147 +1154,146 @@ assign rmt_s_axis_tready = recon_s_axis_tready;
 //     .m03_axis_tuser()
 // );
 
-recon_controller #(
-    .DATA_WIDTH(DATA_WIDTH),
-    .ADDR_WIDTH(AXI_DDR_ADDR_WIDTH),
-    .FIFO_DEPTH(AXIS_AXI_FIFO_DEPTH),
-    .ID_WIDTH(AXI_DDR_ID_WIDTH),
-    .DMA_DESC_LEN_WIDTH(DDR_ICAP_DMA_LEN_WIDTH),
-    .DMA_DESC_TAG_WIDTH(DDR_ICAP_DMA_TAG_WIDTH)
-)
-recon_controller_inst (
-    .clk(clk),
-    .rst(rst),
+// recon_controller #(
+//     .DATA_WIDTH(DATA_WIDTH),
+//     .ADDR_WIDTH(AXI_DDR_ADDR_WIDTH),
+//     .FIFO_DEPTH(AXIS_AXI_FIFO_DEPTH),
+//     .ID_WIDTH(AXI_DDR_ID_WIDTH),
+//     .DMA_DESC_LEN_WIDTH(DDR_ICAP_DMA_LEN_WIDTH),
+//     .DMA_DESC_TAG_WIDTH(DDR_ICAP_DMA_TAG_WIDTH)
+// )
+// recon_controller_inst (
+//     .clk(clk),
+//     .rst(rst),
 
-    .s_axis_tvalid(recon_s_axis_tvalid),
-    .s_axis_tdata(recon_s_axis_tdata),
-    .s_axis_tkeep(recon_s_axis_tkeep),
-    .s_axis_tlast(recon_s_axis_tlast),
-    .s_axis_tready(recon_s_axis_tready),
+//     .s_axis_tvalid(recon_s_axis_tvalid),
+//     .s_axis_tdata(recon_s_axis_tdata),
+//     .s_axis_tkeep(recon_s_axis_tkeep),
+//     .s_axis_tlast(recon_s_axis_tlast),
+//     .s_axis_tready(recon_s_axis_tready),
 
-    .m_axis_read_desc_addr(s_axis_read_desc_addr),
-    .m_axis_read_desc_len(s_axis_read_desc_len),
-    .m_axis_read_desc_tag(s_axis_read_desc_tag),
-    .m_axis_read_desc_id(s_axis_read_desc_id),
-    .m_axis_read_desc_dest(s_axis_read_desc_dest),
-    .m_axis_read_desc_user(s_axis_read_desc_user),
-    .m_axis_read_desc_valid(s_axis_read_desc_valid),
-    .m_axis_read_desc_ready(s_axis_read_desc_ready),
+//     .m_axis_read_desc_addr(s_axis_read_desc_addr),
+//     .m_axis_read_desc_len(s_axis_read_desc_len),
+//     .m_axis_read_desc_tag(s_axis_read_desc_tag),
+//     .m_axis_read_desc_id(s_axis_read_desc_id),
+//     .m_axis_read_desc_dest(s_axis_read_desc_dest),
+//     .m_axis_read_desc_user(s_axis_read_desc_user),
+//     .m_axis_read_desc_valid(s_axis_read_desc_valid),
+//     .m_axis_read_desc_ready(s_axis_read_desc_ready),
 
-    .m_axis_write_desc_addr(s_axis_write_desc_addr),
-    .m_axis_write_desc_len(s_axis_write_desc_len),
-    .m_axis_write_desc_tag(s_axis_write_desc_tag),
-    .m_axis_write_desc_valid(s_axis_write_desc_valid),
-    .m_axis_write_desc_ready(s_axis_write_desc_ready),
+//     .m_axis_write_desc_addr(s_axis_write_desc_addr),
+//     .m_axis_write_desc_len(s_axis_write_desc_len),
+//     .m_axis_write_desc_tag(s_axis_write_desc_tag),
+//     .m_axis_write_desc_valid(s_axis_write_desc_valid),
+//     .m_axis_write_desc_ready(s_axis_write_desc_ready),
 
-    .m_axis_tdata(s_axis_dma_write_tdata),
-    .m_axis_tkeep(s_axis_dma_write_tkeep),
-    .m_axis_tvalid(s_axis_dma_write_tvalid),
-    .m_axis_tready(s_axis_dma_write_tready),
-    .m_axis_tlast(s_axis_dma_write_tlast)
-);
+//     .m_axis_tdata(s_axis_dma_write_tdata),
+//     .m_axis_tkeep(s_axis_dma_write_tkeep),
+//     .m_axis_tvalid(s_axis_dma_write_tvalid),
+//     .m_axis_tready(s_axis_dma_write_tready),
+//     .m_axis_tlast(s_axis_dma_write_tlast)
+// );
 
 
-axi_dma #(
-    .AXI_DATA_WIDTH(AXI_DDR_DATA_WIDTH),
-    .AXI_ADDR_WIDTH(AXI_DDR_ADDR_WIDTH),
-    .AXI_STRB_WIDTH(AXI_DDR_STRB_WIDTH),
-    .AXI_ID_WIDTH(AXI_DDR_ID_WIDTH),
-    .LEN_WIDTH(DDR_ICAP_DMA_LEN_WIDTH),
-    .AXIS_LAST_ENABLE(1),
-    .AXIS_KEEP_ENABLE(1),
-    .AXI_MAX_BURST_LEN(16),
-    .ENABLE_SG(0),
-    .ENABLE_UNALIGNED(0)
-) axi_dma_ddr_icap_inst (
-    .clk(clk),
-    .rst(rst),
+// axi_dma #(
+//     .AXI_DATA_WIDTH(AXI_DDR_DATA_WIDTH),
+//     .AXI_ADDR_WIDTH(AXI_DDR_ADDR_WIDTH),
+//     .AXI_STRB_WIDTH(AXI_DDR_STRB_WIDTH),
+//     .AXI_ID_WIDTH(AXI_DDR_ID_WIDTH),
+//     .LEN_WIDTH(DDR_ICAP_DMA_LEN_WIDTH),
+//     .AXIS_LAST_ENABLE(1),
+//     .AXIS_KEEP_ENABLE(1),
+//     .AXI_MAX_BURST_LEN(16),
+//     .ENABLE_SG(0),
+//     .ENABLE_UNALIGNED(0)
+// ) axi_dma_ddr_icap_inst (
+//     .clk(clk),
+//     .rst(rst),
 
-    .s_axis_read_desc_addr(s_axis_read_desc_addr),
-    .s_axis_read_desc_len(s_axis_read_desc_len),
-    .s_axis_read_desc_tag(s_axis_read_desc_tag),
-    .s_axis_read_desc_id(s_axis_read_desc_id),
-    .s_axis_read_desc_dest(s_axis_read_desc_dest),
-    .s_axis_read_desc_user(s_axis_read_desc_user),
-    .s_axis_read_desc_valid(s_axis_read_desc_valid),
-    .s_axis_read_desc_ready(s_axis_read_desc_ready),
+//     .s_axis_read_desc_addr(s_axis_read_desc_addr),
+//     .s_axis_read_desc_len(s_axis_read_desc_len),
+//     .s_axis_read_desc_tag(s_axis_read_desc_tag),
+//     .s_axis_read_desc_id(s_axis_read_desc_id),
+//     .s_axis_read_desc_dest(s_axis_read_desc_dest),
+//     .s_axis_read_desc_user(s_axis_read_desc_user),
+//     .s_axis_read_desc_valid(s_axis_read_desc_valid),
+//     .s_axis_read_desc_ready(s_axis_read_desc_ready),
 
-    .m_axis_read_desc_status_tag(),
-    .m_axis_read_desc_status_error(),
-    .m_axis_read_desc_status_valid(),
+//     .m_axis_read_desc_status_tag(),
+//     .m_axis_read_desc_status_error(),
+//     .m_axis_read_desc_status_valid(),
 
-    .m_axis_read_data_tdata(icap_s_axis_tdata),
-    .m_axis_read_data_tkeep(icap_s_axis_tkeep),
-    .m_axis_read_data_tvalid(icap_s_axis_tvalid),
-    .m_axis_read_data_tready(icap_s_axis_tready),
-    .m_axis_read_data_tlast(icap_s_axis_tlast),
-    .m_axis_read_data_tid(),
-    .m_axis_read_data_tdest(),
-    .m_axis_read_data_tuser(),
+//     .m_axis_read_data_tdata(icap_s_axis_tdata),
+//     .m_axis_read_data_tkeep(icap_s_axis_tkeep),
+//     .m_axis_read_data_tvalid(icap_s_axis_tvalid),
+//     .m_axis_read_data_tready(icap_s_axis_tready),
+//     .m_axis_read_data_tlast(icap_s_axis_tlast),
+//     .m_axis_read_data_tid(),
+//     .m_axis_read_data_tdest(),
+//     .m_axis_read_data_tuser(),
 
-    .s_axis_write_desc_addr(s_axis_write_desc_addr),
-    .s_axis_write_desc_len(s_axis_write_desc_len),
-    .s_axis_write_desc_tag(s_axis_write_desc_tag),
-    .s_axis_write_desc_valid(s_axis_write_desc_valid),
-    .s_axis_write_desc_ready(s_axis_write_desc_ready),
+//     .s_axis_write_desc_addr(s_axis_write_desc_addr),
+//     .s_axis_write_desc_len(s_axis_write_desc_len),
+//     .s_axis_write_desc_tag(s_axis_write_desc_tag),
+//     .s_axis_write_desc_valid(s_axis_write_desc_valid),
+//     .s_axis_write_desc_ready(s_axis_write_desc_ready),
 
-    .m_axis_write_desc_status_len(),
-    .m_axis_write_desc_status_tag(),
-    .m_axis_write_desc_status_id(),
-    .m_axis_write_desc_status_dest(),
-    .m_axis_write_desc_status_user(),
-    .m_axis_write_desc_status_error(),
-    .m_axis_write_desc_status_valid(),
+//     .m_axis_write_desc_status_len(),
+//     .m_axis_write_desc_status_tag(),
+//     .m_axis_write_desc_status_id(),
+//     .m_axis_write_desc_status_dest(),
+//     .m_axis_write_desc_status_user(),
+//     .m_axis_write_desc_status_error(),
+//     .m_axis_write_desc_status_valid(),
 
-    .s_axis_write_data_tdata(s_axis_dma_write_tdata),
-    .s_axis_write_data_tkeep(s_axis_dma_write_tkeep),
-    .s_axis_write_data_tvalid(s_axis_dma_write_tvalid),
-    .s_axis_write_data_tready(s_axis_dma_write_tready),
-    .s_axis_write_data_tlast(s_axis_dma_write_tlast),
-    .s_axis_write_data_tid(1),
-    .s_axis_write_data_tdest(0),
-    .s_axis_write_data_tuser(0),
+//     .s_axis_write_data_tdata(s_axis_dma_write_tdata),
+//     .s_axis_write_data_tkeep(s_axis_dma_write_tkeep),
+//     .s_axis_write_data_tvalid(s_axis_dma_write_tvalid),
+//     .s_axis_write_data_tready(s_axis_dma_write_tready),
+//     .s_axis_write_data_tlast(s_axis_dma_write_tlast),
+//     .s_axis_write_data_tid(1),
+//     .s_axis_write_data_tdest(0),
+//     .s_axis_write_data_tuser(0),
+//     .m_axi_awid(m_axi_ddr_awid),
+//     .m_axi_awaddr(m_axi_ddr_awaddr),
+//     .m_axi_awlen(m_axi_ddr_awlen),
+//     .m_axi_awsize(m_axi_ddr_awsize),
+//     .m_axi_awburst(m_axi_ddr_awburst),
+//     .m_axi_awlock(m_axi_ddr_awlock),
+//     .m_axi_awcache(m_axi_ddr_awcache),
+//     .m_axi_awprot(m_axi_ddr_awprot),
+//     .m_axi_awvalid(m_axi_ddr_awvalid),
+//     .m_axi_awready(m_axi_ddr_awready),
+//     .m_axi_wdata(m_axi_ddr_wdata),
+//     .m_axi_wstrb(m_axi_ddr_wstrb),
+//     .m_axi_wlast(m_axi_ddr_wlast),
+//     .m_axi_wvalid(m_axi_ddr_wvalid),
+//     .m_axi_wready(m_axi_ddr_wready),
+//     .m_axi_bid(m_axi_ddr_bid),
+//     .m_axi_bresp(m_axi_ddr_bresp),
+//     .m_axi_bvalid(m_axi_ddr_bvalid),
+//     .m_axi_bready(m_axi_ddr_bready),
+//     .m_axi_arid(m_axi_ddr_arid),
+//     .m_axi_araddr(m_axi_ddr_araddr),
+//     .m_axi_arlen(m_axi_ddr_arlen),
+//     .m_axi_arsize(m_axi_ddr_arsize),
+//     .m_axi_arburst(m_axi_ddr_arburst),
+//     .m_axi_arlock(m_axi_ddr_arlock),
+//     .m_axi_arcache(m_axi_ddr_arcache),
+//     .m_axi_arprot(m_axi_ddr_arprot),
+//     .m_axi_arvalid(m_axi_ddr_arvalid),
+//     .m_axi_arready(m_axi_ddr_arready),
+//     .m_axi_rid(m_axi_ddr_rid),
+//     .m_axi_rdata(m_axi_ddr_rdata),
+//     .m_axi_rresp(m_axi_ddr_rresp),
+//     .m_axi_rlast(m_axi_ddr_rlast),
+//     .m_axi_rvalid(m_axi_ddr_rvalid),
+//     .m_axi_rready(m_axi_ddr_rready),
 
-    .m_axi_awid(m_axi_mem_cdc_awid),
-    .m_axi_awaddr(m_axi_mem_cdc_awaddr),
-    .m_axi_awlen(m_axi_mem_cdc_awlen),
-    .m_axi_awsize(m_axi_mem_cdc_awsize),
-    .m_axi_awburst(m_axi_mem_cdc_awburst),
-    .m_axi_awlock(m_axi_mem_cdc_awlock),
-    .m_axi_awcache(m_axi_mem_cdc_awcache),
-    .m_axi_awprot(m_axi_mem_cdc_awprot),
-    .m_axi_awvalid(m_axi_mem_cdc_awvalid),
-    .m_axi_awready(m_axi_mem_cdc_awready),
-    .m_axi_wdata(m_axi_mem_cdc_wdata),
-    .m_axi_wstrb(m_axi_mem_cdc_wstrb),
-    .m_axi_wlast(m_axi_mem_cdc_wlast),
-    .m_axi_wvalid(m_axi_mem_cdc_wvalid),
-    .m_axi_wready(m_axi_mem_cdc_wready),
-    .m_axi_bid(m_axi_mem_cdc_bid),
-    .m_axi_bresp(m_axi_mem_cdc_bresp),
-    .m_axi_bvalid(m_axi_mem_cdc_bvalid),
-    .m_axi_bready(m_axi_mem_cdc_bready),
-    .m_axi_arid(m_axi_mem_cdc_arid),
-    .m_axi_araddr(m_axi_mem_cdc_araddr),
-    .m_axi_arlen(m_axi_mem_cdc_arlen),
-    .m_axi_arsize(m_axi_mem_cdc_arsize),
-    .m_axi_arburst(m_axi_mem_cdc_arburst),
-    .m_axi_arlock(m_axi_mem_cdc_arlock),
-    .m_axi_arcache(m_axi_mem_cdc_arcache),
-    .m_axi_arprot(m_axi_mem_cdc_arprot),
-    .m_axi_arvalid(m_axi_mem_cdc_arvalid),
-    .m_axi_arready(m_axi_mem_cdc_arready),
-    .m_axi_rid(m_axi_mem_cdc_rid),
-    .m_axi_rdata(m_axi_mem_cdc_rdata),
-    .m_axi_rresp(m_axi_mem_cdc_rresp),
-    .m_axi_rlast(m_axi_mem_cdc_rlast),
-    .m_axi_rvalid(m_axi_mem_cdc_rvalid),
-    .m_axi_rready(m_axi_mem_cdc_rready),
-
-    .read_enable(1'b1),
-    .write_enable(1'b1),
-    .write_abort(1'b0)
-);
+//     .read_enable(1'b1),
+//     .write_enable(1'b1),
+//     .write_abort(1'b0)
+// );
 
 // xil_aximm_async_fifo axi_async_fifo (
 //   .m_aclk(ddr_clk),                  // input wire m_aclk
@@ -1381,14 +1380,14 @@ axi_dma #(
 //     .probe4(icap_s_axis_tready)
 //     );
 
-ila_icap dbg_ddr (
-    .clk(clk),
-    .probe0(m_axi_mem_cdc_wdata),
-    .probe1(m_axi_mem_cdc_wstrb),
-    .probe2(0),
-    .probe3(m_axi_mem_cdc_wvalid),
-    .probe4(m_axi_mem_cdc_wready)
-    );
+// ila_icap dbg_ddr (
+//     .clk(clk),
+//     .probe0(m_axi_mem_cdc_wdata),
+//     .probe1(m_axi_mem_cdc_wstrb),
+//     .probe2(0),
+//     .probe3(m_axi_mem_cdc_wvalid),
+//     .probe4(m_axi_mem_cdc_wready)
+//     );
 
 endmodule
 

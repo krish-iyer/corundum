@@ -65,8 +65,7 @@ always @(posedge clk) begin
 	m_axis_tdata <= reg_axis_tdata;
 	m_axis_tkeep <= reg_axis_tkeep;
 	m_axis_tvalid <= reg_axis_tvalid;
-	reg_axis_tready <= m_axis_tready;
-	s_axis_tready <= reg_axis_tready;
+	s_axis_tready <= m_axis_tready;
 	m_axis_tlast <= reg_axis_tlast;
 	m_axis_tuser <= reg_axis_tuser;
 	m_axis_tdest <= reg_axis_tdest;
@@ -153,16 +152,26 @@ always @* begin
     endcase
 end
 
-// ila_0 rmt_ila (
-//     .clk(clk), // input wire clk
-//     .probe0(ether_type), // input wire [15:0]  probe0
-//     .probe1(pkt_type), // input wire [15:0]  probe1
-//     .probe2(func_type), // input wire [15:0]  probe2
-//     .probe3(state_reg), // input wire [1:0]  probe3
-//     .probe4(s_axis_tvalid), // input wire [0:0]  probe4
-//     .probe5(m_axis_tvalid), // input wire [0:0]  probe5
-//     .probe6(reg_axis_tvalid) // input wire [0:0]  probe6
-//     );
+ila_0 rmt_ila (
+    .clk(clk), // input wire clk
+    .probe0(ether_type), // input wire [15:0]  probe0
+    .probe1(pkt_type), // input wire [15:0]  probe1
+    .probe2(func_type), // input wire [15:0]  probe2
+    .probe3(state_reg), // input wire [1:0]  probe3
+    .probe4(s_axis_tvalid), // input wire [0:0]  probe4
+    .probe5(m_axis_tvalid), // input wire [0:0]  probe5
+    .probe6(reg_axis_tvalid) // input wire [0:0]  probe6
+    );
+
+ila_icap rmt_out (
+    .clk(clk),
+    .probe0(m_axis_tdata),
+    .probe1(m_axis_tkeep),
+    .probe2(m_axis_tlast),
+    .probe3(m_axis_tvalid),
+    .probe4(m_axis_tready)
+    );
+
 
 endmodule
 
