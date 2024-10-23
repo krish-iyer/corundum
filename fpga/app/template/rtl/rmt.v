@@ -152,25 +152,25 @@ always @* begin
     endcase
 end
 
-ila_0 rmt_ila (
-    .clk(clk), // input wire clk
-    .probe0(ether_type), // input wire [15:0]  probe0
-    .probe1(pkt_type), // input wire [15:0]  probe1
-    .probe2(func_type), // input wire [15:0]  probe2
-    .probe3(state_reg), // input wire [1:0]  probe3
-    .probe4(s_axis_tvalid), // input wire [0:0]  probe4
-    .probe5(m_axis_tvalid), // input wire [0:0]  probe5
-    .probe6(reg_axis_tvalid) // input wire [0:0]  probe6
-    );
+// ila_0 rmt_ila (
+//     .clk(clk), // input wire clk
+//     .probe0(ether_type), // input wire [15:0]  probe0
+//     .probe1(pkt_type), // input wire [15:0]  probe1
+//     .probe2(func_type), // input wire [15:0]  probe2
+//     .probe3(state_reg), // input wire [1:0]  probe3
+//     .probe4(s_axis_tvalid), // input wire [0:0]  probe4
+//     .probe5(m_axis_tvalid), // input wire [0:0]  probe5
+//     .probe6(reg_axis_tvalid) // input wire [0:0]  probe6
+//     );
 
-ila_icap rmt_out (
-    .clk(clk),
-    .probe0(m_axis_tdata),
-    .probe1(m_axis_tkeep),
-    .probe2(m_axis_tlast),
-    .probe3(m_axis_tvalid),
-    .probe4(m_axis_tready)
-    );
+// ila_icap rmt_out (
+//     .clk(clk),
+//     .probe0(m_axis_tdata),
+//     .probe1(m_axis_tkeep),
+//     .probe2(m_axis_tlast),
+//     .probe3(m_axis_tvalid),
+//     .probe4(m_axis_tready)
+//     );
 
 
 endmodule
