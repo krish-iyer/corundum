@@ -114,9 +114,11 @@ SYN_FILES += lib/pcie/rtl/pcie_us_if_cc.v
 SYN_FILES += lib/pcie/rtl/pcie_us_if_cq.v
 SYN_FILES += lib/pcie/rtl/pcie_us_cfg.v
 SYN_FILES += lib/pcie/rtl/pulse_merge.v
+### App related ###
 SYN_FILES += app/template/rtl/mqnic_app_block.v
 SYN_FILES += app/template/rtl/recon_controller.v
 SYN_FILES += app/template/rtl/rmt.v
+SYN_FILES += lib/axis/rtl/axis_tap.v
 
 # XDC files
 XDC_FILES = fpga_au50.xdc
