@@ -601,36 +601,36 @@ end
 /*
  * AXI-Lite slave interface (control from host)
  */
-axil_ram #(
-    .DATA_WIDTH(AXIL_APP_CTRL_DATA_WIDTH),
-    .ADDR_WIDTH(12),
-    .STRB_WIDTH(AXIL_APP_CTRL_STRB_WIDTH),
-    .PIPELINE_OUTPUT(1)
-)
-ram_inst (
-    .clk(clk),
-    .rst(rst),
+// axil_ram #(
+//     .DATA_WIDTH(AXIL_APP_CTRL_DATA_WIDTH),
+//     .ADDR_WIDTH(12),
+//     .STRB_WIDTH(AXIL_APP_CTRL_STRB_WIDTH),
+//     .PIPELINE_OUTPUT(1)
+// )
+// ram_inst (
+//     .clk(clk),
+//     .rst(rst),
 
-    .s_axil_awaddr(s_axil_app_ctrl_awaddr),
-    .s_axil_awprot(s_axil_app_ctrl_awprot),
-    .s_axil_awvalid(s_axil_app_ctrl_awvalid),
-    .s_axil_awready(s_axil_app_ctrl_awready),
-    .s_axil_wdata(s_axil_app_ctrl_wdata),
-    .s_axil_wstrb(s_axil_app_ctrl_wstrb),
-    .s_axil_wvalid(s_axil_app_ctrl_wvalid),
-    .s_axil_wready(s_axil_app_ctrl_wready),
-    .s_axil_bresp(s_axil_app_ctrl_bresp),
-    .s_axil_bvalid(s_axil_app_ctrl_bvalid),
-    .s_axil_bready(s_axil_app_ctrl_bready),
-    .s_axil_araddr(s_axil_app_ctrl_araddr),
-    .s_axil_arprot(s_axil_app_ctrl_arprot),
-    .s_axil_arvalid(s_axil_app_ctrl_arvalid),
-    .s_axil_arready(s_axil_app_ctrl_arready),
-    .s_axil_rdata(s_axil_app_ctrl_rdata),
-    .s_axil_rresp(s_axil_app_ctrl_rresp),
-    .s_axil_rvalid(s_axil_app_ctrl_rvalid),
-    .s_axil_rready(s_axil_app_ctrl_rready)
-);
+//     .s_axil_awaddr(s_axil_app_ctrl_awaddr),
+//     .s_axil_awprot(s_axil_app_ctrl_awprot),
+//     .s_axil_awvalid(s_axil_app_ctrl_awvalid),
+//     .s_axil_awready(s_axil_app_ctrl_awready),
+//     .s_axil_wdata(s_axil_app_ctrl_wdata),
+//     .s_axil_wstrb(s_axil_app_ctrl_wstrb),
+//     .s_axil_wvalid(s_axil_app_ctrl_wvalid),
+//     .s_axil_wready(s_axil_app_ctrl_wready),
+//     .s_axil_bresp(s_axil_app_ctrl_bresp),
+//     .s_axil_bvalid(s_axil_app_ctrl_bvalid),
+//     .s_axil_bready(s_axil_app_ctrl_bready),
+//     .s_axil_araddr(s_axil_app_ctrl_araddr),
+//     .s_axil_arprot(s_axil_app_ctrl_arprot),
+//     .s_axil_arvalid(s_axil_app_ctrl_arvalid),
+//     .s_axil_arready(s_axil_app_ctrl_arready),
+//     .s_axil_rdata(s_axil_app_ctrl_rdata),
+//     .s_axil_rresp(s_axil_app_ctrl_rresp),
+//     .s_axil_rvalid(s_axil_app_ctrl_rvalid),
+//     .s_axil_rready(s_axil_app_ctrl_rready)
+// );
 
 /*
  * AXI-Lite master interface (control to NIC)
@@ -847,6 +847,248 @@ assign gpio_out = 0;
  * JTAG
  */
 assign jtag_tdo = jtag_tdi;
+
+
+parameter S_COUNT = 4;
+parameter M_COUNT = 4;
+parameter DATA_WIDTH = AXIS_SYNC_DATA_WIDTH;
+parameter KEEP_ENABLE = (DATA_WIDTH>8);
+parameter KEEP_WIDTH = (DATA_WIDTH/8);
+parameter ID_ENABLE = 0;
+parameter M_DEST_WIDTH = $clog2(M_COUNT+1);
+parameter USER_ENABLE = 1;
+parameter USER_WIDTH = AXIS_SYNC_TX_USER_WIDTH;
+parameter ARB_TYPE_ROUND_ROBIN = 1;
+parameter ARB_LSB_HIGH_PRIORITY = 1;
+parameter AXIS_AXI_FIFO_DEPTH = 32;
+
+wire [AXIS_SYNC_DATA_WIDTH-1:0] rmt_s_axis_tdata;
+wire [AXIS_SYNC_KEEP_WIDTH-1:0] rmt_s_axis_tkeep;
+wire				rmt_s_axis_tlast;
+wire				rmt_s_axis_tvalid;
+wire				rmt_s_axis_tready;
+wire [AXIS_SYNC_TX_USER_WIDTH-1:0] rmt_s_axis_tuser;
+wire [1:0]			   rmt_s_axis_tdest;
+
+wire [AXIS_SYNC_DATA_WIDTH-1:0] recon_s_axis_tdata;
+wire [AXIS_SYNC_KEEP_WIDTH-1:0] recon_s_axis_tkeep;
+wire				recon_s_axis_tlast;
+wire				recon_s_axis_tvalid;
+wire				recon_s_axis_tready;
+
+wire [AXIS_SYNC_DATA_WIDTH-1:0] tap_s_axis_sync_tx_tdata;
+wire [AXIS_SYNC_KEEP_WIDTH-1:0] tap_s_axis_sync_tx_tkeep;
+wire				tap_s_axis_sync_tx_tvalid;
+wire				tap_s_axis_sync_tx_tready;
+wire				tap_s_axis_sync_tx_tlast;
+wire [AXIS_SYNC_TX_USER_WIDTH-1:0] tap_s_axis_sync_tx_tuser;
+
+localparam				      DDR_ICAP_DMA_LEN_WIDTH = 24;
+localparam				      DDR_ICAP_DMA_TAG_WIDTH = 8;
+localparam				      DDR_ICAP_DMA_DEST_WIDTH = 8;
+localparam				      DDR_ICAP_DMA_USER_WIDTH = 1;
+localparam				      AXIS_ICAP_DATA_WIDTH = 512;
+localparam				      AXIS_ICAP_KEEP_WIDTH = 64;
+
+wire [AXI_DDR_ADDR_WIDTH-1:0]		      s_axis_read_desc_addr;
+wire [DDR_ICAP_DMA_LEN_WIDTH-1:0]	      s_axis_read_desc_len;
+wire [DDR_ICAP_DMA_TAG_WIDTH-1:0]	      s_axis_read_desc_tag;
+wire [AXI_DDR_ID_WIDTH-1:0]		      s_axis_read_desc_id;
+wire [DDR_ICAP_DMA_DEST_WIDTH-1:0]	      s_axis_read_desc_dest;
+wire [DDR_ICAP_DMA_USER_WIDTH-1:0]	      s_axis_read_desc_user;
+wire					      s_axis_read_desc_valid;
+wire					      s_axis_read_desc_ready;
+
+wire [AXI_DDR_ADDR_WIDTH-1:0]		      s_axis_write_desc_addr;
+wire [DDR_ICAP_DMA_LEN_WIDTH-1:0]	      s_axis_write_desc_len;
+wire [DDR_ICAP_DMA_TAG_WIDTH-1:0]	      s_axis_write_desc_tag;
+wire [AXI_DDR_ID_WIDTH-1:0]		      s_axis_write_desc_id;
+wire [DDR_ICAP_DMA_DEST_WIDTH-1:0]	      s_axis_write_desc_dest;
+wire [DDR_ICAP_DMA_USER_WIDTH-1:0]	      s_axis_write_desc_user;
+wire					      s_axis_write_desc_valid;
+wire					      s_axis_write_desc_ready;
+
+
+wire [AXIS_ICAP_DATA_WIDTH-1:0]		      icap_s_axis_tdata;
+wire [AXIS_ICAP_KEEP_WIDTH-1:0]		      icap_s_axis_tkeep;
+wire					      icap_s_axis_tlast;
+wire					      icap_s_axis_tvalid;
+wire					      icap_s_axis_tready = 1'b1;
+
+
+wire [AXIS_ICAP_DATA_WIDTH-1:0]		      s_axis_dma_write_tdata;
+wire [AXIS_ICAP_KEEP_WIDTH-1:0]		      s_axis_dma_write_tkeep;
+wire					      s_axis_dma_write_tlast;
+wire					      s_axis_dma_write_tvalid;
+wire					      s_axis_dma_write_tready;
+
+
+wire [AXI_DDR_ID_WIDTH-1:0]		      m_axi_async_dma_ddr_arid;
+wire [AXI_DDR_ADDR_WIDTH-1:0]		      m_axi_async_dma_ddr_araddr;
+wire [7:0]				      m_axi_async_dma_ddr_arlen;
+wire [2:0]				      m_axi_async_dma_ddr_arsize;
+wire [1:0]				      m_axi_async_dma_ddr_arburst;
+wire					      m_axi_async_dma_ddr_arlock;
+wire [3:0]				      m_axi_async_dma_ddr_arcache;
+wire [2:0]				      m_axi_async_dma_ddr_arprot;
+wire [3:0]				      m_axi_async_dma_ddr_arqos;
+wire [AXI_DDR_ARUSER_WIDTH-1:0]		      m_axi_async_dma_ddr_aruser;
+wire					      m_axi_async_dma_ddr_arvalid;
+wire					      m_axi_async_dma_ddr_arready;
+wire [AXI_DDR_ID_WIDTH-1:0]		      m_axi_async_dma_ddr_rid;
+wire [AXI_DDR_DATA_WIDTH-1:0]		      m_axi_async_dma_ddr_rdata;
+wire [1:0]				      m_axi_async_dma_ddr_rresp;
+wire					      m_axi_async_dma_ddr_rlast;
+wire [AXI_DDR_RUSER_WIDTH-1:0]		      m_axi_async_dma_ddr_ruser;
+wire					      m_axi_async_dma_ddr_rvalid;
+wire					      m_axi_async_dma_ddr_rready;
+
+
+wire [AXI_DDR_ID_WIDTH-1:0]		      m_axi_mem_cdc_arid;
+wire [AXI_DDR_ADDR_WIDTH-1:0]		      m_axi_mem_cdc_araddr;
+wire [7:0]				      m_axi_mem_cdc_arlen;
+wire [2:0]				      m_axi_mem_cdc_arsize;
+wire [1:0]				      m_axi_mem_cdc_arburst;
+wire					      m_axi_mem_cdc_arlock;
+wire [3:0]				      m_axi_mem_cdc_arcache;
+wire [2:0]				      m_axi_mem_cdc_arprot;
+wire [3:0]				      m_axi_mem_cdc_arqos;
+wire [AXI_DDR_ARUSER_WIDTH-1:0]		      m_axi_mem_cdc_aruser;
+wire					      m_axi_mem_cdc_arvalid;
+wire					      m_axi_mem_cdc_arready = 1'b1;
+wire [AXI_DDR_ID_WIDTH-1:0]		      m_axi_mem_cdc_rid;
+wire [AXI_DDR_DATA_WIDTH-1:0]		      m_axi_mem_cdc_rdata;
+wire [AXI_DDR_STRB_WIDTH-1:0]		      m_axi_mem_cdc_wstrb;
+wire [1:0]				      m_axi_mem_cdc_rresp;
+wire					      m_axi_mem_cdc_rlast;
+wire [AXI_DDR_RUSER_WIDTH-1:0]		      m_axi_mem_cdc_ruser;
+wire					      m_axi_mem_cdc_rvalid;
+wire					      m_axi_mem_cdc_rready;
+wire [AXI_DDR_ID_WIDTH-1:0]		      m_axi_mem_cdc_awid;
+wire [AXI_DDR_ADDR_WIDTH-1:0]		      m_axi_mem_cdc_awaddr;
+wire [7:0]				      m_axi_mem_cdc_awlen;
+wire [2:0]				      m_axi_mem_cdc_awsize;
+wire [1:0]				      m_axi_mem_cdc_awburst;
+wire					      m_axi_mem_cdc_awlock;
+wire [3:0]				      m_axi_mem_cdc_awcache;
+wire [2:0]				      m_axi_mem_cdc_awprot;
+wire [3:0]				      m_axi_mem_cdc_awqos;
+wire [AXI_DDR_ARUSER_WIDTH-1:0]		      m_axi_mem_cdc_awuser;
+wire					      m_axi_mem_cdc_awvalid;
+wire					      m_axi_mem_cdc_awready = 1'b1;
+wire [AXI_DDR_ID_WIDTH-1:0]		      m_axi_mem_cdc_wid;
+wire [AXI_DDR_DATA_WIDTH-1:0]		      m_axi_mem_cdc_wdata;
+wire [1:0]				      m_axi_mem_cdc_wresp;
+wire					      m_axi_mem_cdc_wlast;
+wire [AXI_DDR_RUSER_WIDTH-1:0]		      m_axi_mem_cdc_wuser;
+wire					      m_axi_mem_cdc_wvalid;
+wire					      m_axi_mem_cdc_wready = 1'b1;
+wire [AXI_DDR_ID_WIDTH-1:0]		      m_axi_mem_cdc_bid;
+wire [1:0]				      m_axi_mem_cdc_bresp;
+wire [AXI_DDR_BUSER_WIDTH-1:0]		      m_axi_mem_cdc_buser;
+wire					      m_axi_mem_cdc_bvalid;
+wire					      m_axi_mem_cdc_bready;
+
+assign m_axi_mem_cdc_arqos = 0;
+assign m_axi_mem_cdc_awqos = 0;
+
+axis_tap #(
+    .DATA_WIDTH(DATA_WIDTH)
+    )
+axis_tap_inst (
+    .clk(clk),
+    .rst(rst),
+    .tap_axis_tdata(s_axis_sync_tx_tdata),
+    .tap_axis_tkeep(s_axis_sync_tx_tkeep),
+    .tap_axis_tvalid(s_axis_sync_tx_tvalid),
+    .tap_axis_tready(s_axis_sync_tx_tready),
+    .tap_axis_tlast(s_axis_sync_tx_tlast),
+    .tap_axis_tid(),
+    .tap_axis_tdest(),
+    .tap_axis_tuser(s_axis_sync_tx_tuser),
+
+    .m_axis_tdata(tap_s_axis_sync_tx_tdata),
+    .m_axis_tkeep(tap_s_axis_sync_tx_tkeep),
+    .m_axis_tvalid(tap_s_axis_sync_tx_tvalid),
+    .m_axis_tready(tap_s_axis_sync_tx_tready),
+    .m_axis_tlast(tap_s_axis_sync_tx_tlast),
+    .m_axis_tid(),
+    .m_axis_tdest(),
+    .m_axis_tuser(tap_s_axis_sync_tx_tuser)
+    );
+
+
+rmt #(
+    .DATA_WIDTH(DATA_WIDTH)
+)
+rmt_inst (
+    .clk(clk),
+    .rst(rst),
+
+    .s_axis_tdata(tap_s_axis_sync_tx_tdata),
+    .s_axis_tkeep(tap_s_axis_sync_tx_tkeep),
+    .s_axis_tvalid(tap_s_axis_sync_tx_tvalid),
+    .s_axis_tready(tap_s_axis_sync_tx_tready),
+    .s_axis_tlast(tap_s_axis_sync_tx_tlast),
+
+    .m_axis_tdata(rmt_s_axis_tdata),
+    .m_axis_tkeep(rmt_s_axis_tkeep),
+    .m_axis_tvalid(rmt_s_axis_tvalid),
+    .m_axis_tready(rmt_s_axis_tready),
+    .m_axis_tlast(rmt_s_axis_tlast),
+    .m_axis_tdest(rmt_s_axis_tdest)
+
+);
+
+assign recon_s_axis_tdata = rmt_s_axis_tdata;
+assign recon_s_axis_tkeep = rmt_s_axis_tkeep;
+assign recon_s_axis_tlast = rmt_s_axis_tlast;
+assign recon_s_axis_tvalid = rmt_s_axis_tvalid;
+assign rmt_s_axis_tready = recon_s_axis_tready;
+assign s_axis_dma_write_tready = 1'b1;
+assign s_axis_write_desc_ready = 1'b1;
+assign s_axis_read_desc_ready = 1'b1;
+
+recon_controller #(
+    .DATA_WIDTH(DATA_WIDTH),
+    .ADDR_WIDTH(AXI_DDR_ADDR_WIDTH),
+    .FIFO_DEPTH(AXIS_AXI_FIFO_DEPTH),
+    .ID_WIDTH(AXI_DDR_ID_WIDTH),
+    .DMA_DESC_LEN_WIDTH(DDR_ICAP_DMA_LEN_WIDTH),
+    .DMA_DESC_TAG_WIDTH(DDR_ICAP_DMA_TAG_WIDTH)
+)
+recon_controller_inst (
+    .clk(clk),
+    .rst(rst),
+
+    .s_axis_tvalid(recon_s_axis_tvalid),
+    .s_axis_tdata(recon_s_axis_tdata),
+    .s_axis_tkeep(recon_s_axis_tkeep),
+    .s_axis_tlast(recon_s_axis_tlast),
+    .s_axis_tready(recon_s_axis_tready),
+
+    .m_axis_read_desc_addr(s_axis_read_desc_addr),
+    .m_axis_read_desc_len(s_axis_read_desc_len),
+    .m_axis_read_desc_tag(s_axis_read_desc_tag),
+    .m_axis_read_desc_id(s_axis_read_desc_id),
+    .m_axis_read_desc_dest(s_axis_read_desc_dest),
+    .m_axis_read_desc_user(s_axis_read_desc_user),
+    .m_axis_read_desc_valid(s_axis_read_desc_valid),
+    .m_axis_read_desc_ready(s_axis_read_desc_ready),
+
+    .m_axis_write_desc_addr(s_axis_write_desc_addr),
+    .m_axis_write_desc_len(s_axis_write_desc_len),
+    .m_axis_write_desc_tag(s_axis_write_desc_tag),
+    .m_axis_write_desc_valid(s_axis_write_desc_valid),
+    .m_axis_write_desc_ready(s_axis_write_desc_ready),
+
+    .m_axis_tdata(s_axis_dma_write_tdata),
+    .m_axis_tkeep(s_axis_dma_write_tkeep),
+    .m_axis_tvalid(s_axis_dma_write_tvalid),
+    .m_axis_tready(s_axis_dma_write_tready),
+    .m_axis_tlast(s_axis_dma_write_tlast)
+);
+
 
 endmodule
 

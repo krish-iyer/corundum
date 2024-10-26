@@ -115,6 +115,8 @@ SYN_FILES += lib/pcie/rtl/pcie_us_if_cq.v
 SYN_FILES += lib/pcie/rtl/pcie_us_cfg.v
 SYN_FILES += lib/pcie/rtl/pulse_merge.v
 SYN_FILES += app/template/rtl/mqnic_app_block.v
+SYN_FILES += app/template/rtl/recon_controller.v
+SYN_FILES += app/template/rtl/rmt.v
 
 # XDC files
 XDC_FILES = fpga_au50.xdc
@@ -191,4 +193,3 @@ flash: $(FPGA_TOP).mcs $(FPGA_TOP).prm
 	echo "boot_hw_device [current_hw_device]" >> flash.tcl
 	echo "exit" >> flash.tcl
 	vivado -nojournal -nolog -mode batch -source flash.tcl
-
