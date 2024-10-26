@@ -64,6 +64,7 @@ SYN_FILES += lib/eth/rtl/ptp_perout.v
 SYN_FILES += lib/axi/rtl/axil_cdc.v
 SYN_FILES += lib/axi/rtl/axil_cdc_rd.v
 SYN_FILES += lib/axi/rtl/axil_cdc_wr.v
+SYN_FILES += lib/axi/rtl/axil_ram.v
 SYN_FILES += lib/axi/rtl/axil_interconnect.v
 SYN_FILES += lib/axi/rtl/axil_crossbar.v
 SYN_FILES += lib/axi/rtl/axil_crossbar_addr.v
@@ -113,6 +114,7 @@ SYN_FILES += lib/pcie/rtl/pcie_us_if_cc.v
 SYN_FILES += lib/pcie/rtl/pcie_us_if_cq.v
 SYN_FILES += lib/pcie/rtl/pcie_us_cfg.v
 SYN_FILES += lib/pcie/rtl/pulse_merge.v
+SYN_FILES += app/template/rtl/mqnic_app_block.v
 
 # XDC files
 XDC_FILES = fpga_au50.xdc
