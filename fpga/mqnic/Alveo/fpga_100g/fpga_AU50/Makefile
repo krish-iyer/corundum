@@ -142,6 +142,8 @@ IP_TCL_FILES += ip/cmac_usplus.tcl
 IP_TCL_FILES += ip/cmac_gty.tcl
 IP_TCL_FILES += ip/cms.tcl
 #IP_TCL_FILES += ip/hbm_0.tcl
+IP_TCL_FILES += ip/ila_recon.tcl
+IP_TCL_FILES += ip/ila_icap.tcl
 
 # Configuration
 CONFIG_TCL_FILES = ./config.tcl
