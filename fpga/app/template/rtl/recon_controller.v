@@ -245,6 +245,20 @@ always @* begin
 		    save_tdata_int3 = save_tdata_int2 >> 64;
 		    save_tdata_int2 = save_tdata_int3 >> 64;
 		    save_tdata_int3 = save_tdata_int2 >> 56;
+		    s_axis_tdata_int = save_tdata_int3;
+		    s_axis_tkeep_int = ((m_axis_in_fifo_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + 1)) &
+					   ETH_IP_RMT_HDR_KEEP_MASK);
+		    m_axis_in_fifo_tready_int = 1'b1;
+		    s_axis_tlast_int = 1'b0;
+		    s_axis_tvalid_int = 1'b1;
+		    frame_size_int = count_ones(s_axis_tkeep_int);
+		    if (pending_transfer_size > frame_size_int) begin
+			pending_transfer_size_int = pending_transfer_size - frame_size_int;
+			s_axis_tlast_int = 1'b0;
+		    end
+		    else begin
+			s_axis_tlast_int = 1'b1;
+		    end
 		    if (!m_axis_in_fifo_tlast) begin
 			capture_state_next = DMA_WRITE_TRANSFER;
 		    end
@@ -259,20 +273,28 @@ always @* begin
 	end // case: HDR_CAPTURE
 	DMA_WRITE_TRANSFER: begin
 	    if (m_axis_in_fifo_tvalid) begin
-		save_tdata_int3 = m_axis_in_fifo_tdata << 64;
-		save_tdata_int2 = save_tdata_int3 << 64;
-		save_tdata_int3 = save_tdata_int2 << 8;
-		s_axis_tdata_int = save_tdata_int3 | save_tdata;
-		s_axis_tkeep_int = FULL_TRANSFER_TKEEP;
+		// save_tdata_int3 = m_axis_in_fifo_tdata << 64;
+		// save_tdata_int2 = save_tdata_int3 << 64;
+		// save_tdata_int3 = save_tdata_int2 << 8;
+		// s_axis_tdata_int = save_tdata_int3 | save_tdata;
+		// s_axis_tkeep_int = FULL_TRANSFER_TKEEP;
+		s_axis_tdata_int = m_axis_in_fifo_tdata;
+		s_axis_tkeep_int = m_axis_in_fifo_tkeep;
 		s_axis_tvalid_int = 1'b1;
-		if (pending_transfer_size > 32'd64) begin
-		    pending_transfer_size_int = pending_transfer_size - 32'd64;
+		frame_size_int = count_ones(s_axis_tkeep_int);
+		if (pending_transfer_size > frame_size_int) begin
+		    pending_transfer_size_int = pending_transfer_size - frame_size_int;
 		    s_axis_tlast_int = 1'b0;
 		end
 		else begin
 		    s_axis_tlast_int = 1'b1;
 		end
-		capture_state_next = HDR_CAPTURE;
+		if (m_axis_in_fifo_tlast) begin
+		    capture_state_next = HDR_CAPTURE;
+		end
+		else begin
+		    capture_state_next = DMA_WRITE_TRANSFER;
+		end
 	    end
 	    else begin
 		capture_state_next = DMA_WRITE_TRANSFER;
