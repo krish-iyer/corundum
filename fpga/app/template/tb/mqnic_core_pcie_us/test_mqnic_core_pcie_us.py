@@ -369,7 +369,7 @@ class TB(object):
         if hasattr(core_inst, 'hbm'):
             ram = None
             for i, ch in enumerate(core_inst.hbm.dram_if_inst.ch):
-                cocotb.start_soon(Clock(ch.ch_clk, 2.222, units="ns").start())
+                cocotb.start_soon(Clock(ch.ch_clk, 4, units="ns").start())
                 ch.ch_rst.setimmediatevalue(0)
                 ch.ch_status.setimmediatevalue(1)
 
@@ -587,7 +587,7 @@ async def run_test_nic(dut):
         assert pkt.data == framed_pkts[k]
         if tb.driver.interfaces[0].if_feature_rx_csum:
             assert pkt.rx_checksum == ~scapy.utils.checksum(bytes(pkt.data[14:])) & 0xffff
-            assert bytes(pkts[k]) ==  tb.ddr_ram[0][ddr_addr:ddr_addr+num_bytes]
+            assert bytes(pkts[k]) ==  tb.hbm_ram[0][ddr_addr:ddr_addr+num_bytes]
             ddr_addr = ddr_addr + num_bytes
         # skipping k==0
     print("######################## Dumping RAM ###################")
@@ -605,10 +605,10 @@ async def run_test_nic(dut):
     pkts = [bytearray([(x + k) % 256 for x in range(num_bytes)]) for k in range(packet_count)]
 
     for pkt in pkts:
-        await tb.ddr_ram[0].write(ddr_addr, pkt)
+        await tb.hbm_ram[0].write(ddr_addr, pkt)
         ddr_addr = ddr_addr + num_bytes
 
-    tb.ddr_ram[0].hexdump(0x000, 1024, prefix="RAM")
+    tb.hbm_ram[0].hexdump(0x000, 1024, prefix="RAM")
 
     framed_pkts = [create_frame(0, True, index, func_type = 1, size = 65536, address=0x40) for index, _ in
                     enumerate(pkts)]
@@ -621,7 +621,7 @@ async def run_test_nic(dut):
 
     #for i in range(int(1024/64)):
     rx_frame = await tb.icap_axis_if.recv()
-    assert rx_frame.tdata == tb.ddr_ram[0][ddr_addr:ddr_addr+65536]
+    assert rx_frame.tdata == tb.hbm_ram[0][ddr_addr:ddr_addr+65536]
 
     ddr_addr += 64
 
@@ -851,14 +851,14 @@ def test_mqnic_core_pcie_us(request, if_count, ports_per_if, axis_pcie_data_widt
 
     # RAM configuration
     parameters['DDR_CH'] = 1
-    parameters['DDR_ENABLE'] = 1
+    parameters['DDR_ENABLE'] = 0
     parameters['DDR_GROUP_SIZE'] = 1
     parameters['AXI_DDR_DATA_WIDTH'] = 512
     parameters['AXI_DDR_ADDR_WIDTH'] = 34
     parameters['AXI_DDR_ID_WIDTH'] = 8
     parameters['AXI_DDR_MAX_BURST_LEN'] = 256
     parameters['HBM_CH'] = 1
-    parameters['HBM_ENABLE'] = 0
+    parameters['HBM_ENABLE'] = 1
     parameters['HBM_GROUP_SIZE'] = parameters['HBM_CH']
     parameters['AXI_HBM_DATA_WIDTH'] = 256
     parameters['AXI_HBM_ADDR_WIDTH'] = 32
