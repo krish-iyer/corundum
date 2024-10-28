@@ -223,7 +223,6 @@ always @* begin
 		pending_transfer_size_int = bitstream_size_int;
 		bitstream_size_valid_int = bitstream_size_valid;
 		func_type_int = func_type;
-		s_axis_tvalid_int = 1'b0;
 		if (bitstream_size_valid_int) begin
 		    if (func_type_int == 0 && m_axis_write_desc_ready) begin
 			m_axis_write_desc_addr_int = bitstream_addr_int;
@@ -239,12 +238,12 @@ always @* begin
 		    end
 		end
 		else begin
-		    save_tdata_int2 = m_axis_in_fifo_tdata >> 64;//ETH_IP_RMT_HDR_DATA_WIDTH_BITS;
-		    save_tdata_int3 = save_tdata_int2 >> 64;
-		    save_tdata_int2 = save_tdata_int3 >> 64;
-		    save_tdata_int3 = save_tdata_int2 >> 64;
-		    save_tdata_int2 = save_tdata_int3 >> 64;
-		    save_tdata_int3 = save_tdata_int2 >> 56;
+		    save_tdata_int3 = m_axis_in_fifo_tdata >> ETH_IP_RMT_HDR_DATA_WIDTH_BITS;
+		    // save_tdata_int3 = save_tdata_int2 >> 64;
+		    // save_tdata_int2 = save_tdata_int3 >> 64;
+		    // save_tdata_int3 = save_tdata_int2 >> 64;
+		    // save_tdata_int2 = save_tdata_int3 >> 64;
+		    // save_tdata_int3 = save_tdata_int2 >> 56;
 		    if (!m_axis_in_fifo_tlast) begin
 			capture_state_next = DMA_WRITE_TRANSFER;
 		    end
@@ -259,14 +258,15 @@ always @* begin
 	end // case: HDR_CAPTURE
 	DMA_WRITE_TRANSFER: begin
 	    if (m_axis_in_fifo_tvalid) begin
-		save_tdata_int3 = m_axis_in_fifo_tdata << 64;
-		save_tdata_int2 = save_tdata_int3 << 64;
-		save_tdata_int3 = save_tdata_int2 << 8;
-		s_axis_tdata_int = save_tdata_int3 | save_tdata;
+		// save_tdata_int3 = m_axis_in_fifo_tdata << 64;
+		// save_tdata_int2 = save_tdata_int3 << 64;
+		// save_tdata_int3 = save_tdata_int2 << 8;
+		save_tdata_int2 = m_axis_in_fifo_tdata << PAYLOAD_1_DATA_WIDTH_BITS;
+		s_axis_tdata_int = save_tdata_int2 | save_tdata;
 		s_axis_tkeep_int = FULL_TRANSFER_TKEEP;
 		s_axis_tvalid_int = 1'b1;
-		if (pending_transfer_size > 32'd64) begin
-		    pending_transfer_size_int = pending_transfer_size - 32'd64;
+		if (pending_transfer_size > 64) begin
+		    pending_transfer_size_int = pending_transfer_size - 64;
 		    s_axis_tlast_int = 1'b0;
 		end
 		else begin
