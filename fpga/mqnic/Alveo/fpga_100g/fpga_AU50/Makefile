@@ -144,6 +144,7 @@ IP_TCL_FILES += ip/cms.tcl
 #IP_TCL_FILES += ip/hbm_0.tcl
 IP_TCL_FILES += ip/ila_recon.tcl
 IP_TCL_FILES += ip/ila_icap.tcl
+IP_TCL_FILES += ip/ila_0.tcl
 
 # Configuration
 CONFIG_TCL_FILES = ./config.tcl
