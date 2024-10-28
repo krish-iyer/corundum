@@ -397,11 +397,11 @@ ila_recon recon_ila_inst (
 
 ila_icap dbg_recon_instream (
     .clk(clk),
-    .probe0(m_axis_in_fifo_tdata),
-    .probe1(m_axis_in_fifo_tkeep),
-    .probe2(m_axis_in_fifo_tlast),
-    .probe3(m_axis_in_fifo_tvalid),
-    .probe4(m_axis_in_fifo_tready)
+    .probe0(s_axis_tdata),
+    .probe1(s_axis_tkeep),
+    .probe2(s_axis_tlast),
+    .probe3(s_axis_tvalid),
+    .probe4(s_axis_tready)
     );
 
 ila_icap dbg_recon_outstream (

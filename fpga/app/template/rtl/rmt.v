@@ -59,6 +59,8 @@ always @(posedge clk) begin
     if (rst) begin
         //reg_axis_tvalid <= 1'b0;
         //reg_axis_tready <= 1'b0;
+	m_axis_tready <= 1'b0;
+	s_axis_tvalid <= 1'b0;
 	state_reg <= STATE_IDLE;
     end
     else begin
@@ -84,22 +86,25 @@ always @* begin
 			state_next = STATE_TRANSFER;
 		    end
 		    // if (reg_axis_tready) begin
-			reg_axis_tdata = s_axis_tdata;
-			reg_axis_tkeep = s_axis_tkeep;
-			reg_axis_tvalid = s_axis_tvalid && s_axis_tready;
-			reg_axis_tlast = s_axis_tlast;
-			reg_axis_tuser = s_axis_tuser;
+		    reg_axis_tdata = s_axis_tdata;
+		    reg_axis_tkeep = s_axis_tkeep;
+		    reg_axis_tvalid = s_axis_tvalid && s_axis_tready;
+		    reg_axis_tlast = s_axis_tlast;
+		    reg_axis_tuser = s_axis_tuser;
 
-			case (func_type)
-			    16'h0001:
-				reg_axis_tdest = 2'b01;
-			    default:
-				reg_axis_tdest = 2'b00;
-			endcase
+		    case (func_type)
+			16'h0001:
+			    reg_axis_tdest = 2'b01;
+			default:
+			    reg_axis_tdest = 2'b00;
+		    endcase
 		    // end
 		end
 		else if (!s_axis_tlast) begin
 		    reg_axis_tdata = 1'b0;
+		    reg_axis_tvalid = 1'b0;
+		    reg_axis_tkeep = s_axis_tkeep;
+		    reg_axis_tlast = s_axis_tlast;
 		    state_next = STATE_DROP;
 		end
 	    end // if (s_axis_tready && s_axis_tvalid && !s_axis_tlast)
@@ -118,11 +123,11 @@ always @* begin
 	STATE_TRANSFER : begin
 	    if (m_axis_tready && s_axis_tvalid) begin
 		// if (reg_axis_tready) begin
-		    reg_axis_tdata = s_axis_tdata;
-		    reg_axis_tkeep = s_axis_tkeep;
-		    reg_axis_tvalid = s_axis_tvalid && s_axis_tready;
-		    reg_axis_tlast = s_axis_tlast;
-		    reg_axis_tuser = s_axis_tuser;
+		reg_axis_tdata = s_axis_tdata;
+		reg_axis_tkeep = s_axis_tkeep;
+		reg_axis_tvalid = s_axis_tvalid && s_axis_tready;
+		reg_axis_tlast = s_axis_tlast;
+		reg_axis_tuser = s_axis_tuser;
 		// end
 		if (s_axis_tlast) begin
 		    state_next = STATE_IDLE;
@@ -137,17 +142,17 @@ always @* begin
 	end
 	STATE_DROP : begin
 	   reg_axis_tdata = 1'b0;
-	   if (s_axis_tvalid && m_axis_tready) begin
-	       if (s_axis_tlast) begin
+	    if (s_axis_tvalid && m_axis_tready) begin
+		if (s_axis_tlast) begin
 		   state_next = STATE_IDLE;
-	       end
-	       else begin
-		   state_next = STATE_DROP;
-	       end
+		end
+		else begin
+		    state_next = STATE_DROP;
+		end
 	   end
-	   else begin
-	       state_next = STATE_DROP;
-	   end
+	    else begin
+		state_next = STATE_DROP;
+	    end
 	end
     endcase
 end
