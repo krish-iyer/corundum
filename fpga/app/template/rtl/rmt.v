@@ -59,8 +59,8 @@ always @(posedge clk) begin
     if (rst) begin
         //reg_axis_tvalid <= 1'b0;
         //reg_axis_tready <= 1'b0;
-	m_axis_tready <= 1'b0;
-	s_axis_tvalid <= 1'b0;
+	m_axis_tvalid <= 1'b0;
+	s_axis_tready <= 1'b0;
 	state_reg <= STATE_IDLE;
     end
     else begin
@@ -75,7 +75,7 @@ always @(posedge clk) begin
 end // always @ (posedge clk)
 
 always @* begin
-    state_next = STATE_IDLE;
+    state_next = state_reg;
     case (state_reg)
 	STATE_IDLE : begin
 	    if (m_axis_tready && s_axis_tvalid) begin
@@ -88,7 +88,7 @@ always @* begin
 		    // if (reg_axis_tready) begin
 		    reg_axis_tdata = s_axis_tdata;
 		    reg_axis_tkeep = s_axis_tkeep;
-		    reg_axis_tvalid = s_axis_tvalid && s_axis_tready;
+		    reg_axis_tvalid = s_axis_tvalid && m_axis_tready;
 		    reg_axis_tlast = s_axis_tlast;
 		    reg_axis_tuser = s_axis_tuser;
 
@@ -125,7 +125,7 @@ always @* begin
 		// if (reg_axis_tready) begin
 		reg_axis_tdata = s_axis_tdata;
 		reg_axis_tkeep = s_axis_tkeep;
-		reg_axis_tvalid = s_axis_tvalid && s_axis_tready;
+		reg_axis_tvalid = s_axis_tvalid && m_axis_tready;
 		reg_axis_tlast = s_axis_tlast;
 		reg_axis_tuser = s_axis_tuser;
 		// end
@@ -142,6 +142,7 @@ always @* begin
 	end
 	STATE_DROP : begin
 	   reg_axis_tdata = 1'b0;
+	   reg_axis_tvalid = 1'b0;
 	    if (s_axis_tvalid && m_axis_tready) begin
 		if (s_axis_tlast) begin
 		   state_next = STATE_IDLE;
