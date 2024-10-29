@@ -211,47 +211,67 @@ always @(posedge clk) begin
 end
 
 always @* begin
-    capture_state_next = HDR_CAPTURE;
+    capture_state_next = capture_state;
     case (capture_state)
 	HDR_CAPTURE: begin
-	    s_axis_tlast_int = 1'b0;
-	    s_axis_tvalid_int = 1'b0;
 	    if (m_axis_in_fifo_tvalid && recon_id == 16'hF0E1) begin
 		bitstream_addr_int = bitstream_addr;
 		bitstream_id_int = bitstream_id;
 		bitstream_size_int = bitstream_size;
-		pending_transfer_size_int = bitstream_size_int;
+		pending_transfer_size_int = bitstream_size;
 		bitstream_size_valid_int = bitstream_size_valid;
 		func_type_int = func_type;
-		s_axis_tvalid_int = 1'b0;
-		if (bitstream_size_valid_int) begin
-		    if (func_type_int == 0 && m_axis_write_desc_ready) begin
-			m_axis_write_desc_addr_int = bitstream_addr_int;
-			m_axis_write_desc_len_int = bitstream_size_int;
+	       s_axis_tvalid_int = 1'b0;
+	       if (bitstream_size_valid) begin
+		    if (func_type == 0 && m_axis_write_desc_ready) begin
+			m_axis_write_desc_addr_int = bitstream_addr;
+			m_axis_write_desc_len_int = bitstream_size;
 			m_axis_write_desc_valid_int = 1'b1;
 			capture_state_next = DMA_WRITE_CMD_CPL;
 		    end
-		    else if (func_type_int == 1 && m_axis_read_desc_ready) begin
-			m_axis_read_desc_addr_int = bitstream_addr_int;
-			m_axis_read_desc_len_int = bitstream_size_int;
+		    else if (func_type == 1 && m_axis_read_desc_ready) begin
+			m_axis_read_desc_addr_int = bitstream_addr;
+			m_axis_read_desc_len_int = bitstream_size;
 			m_axis_read_desc_valid_int = 1'b1;
 			capture_state_next = DMA_READ_CMD_CPL;
 		    end
 		end
 		else begin
-		    save_tdata_int2 = m_axis_in_fifo_tdata >> 64;//ETH_IP_RMT_HDR_DATA_WIDTH_BITS;
-		    save_tdata_int3 = save_tdata_int2 >> 64;
-		    save_tdata_int2 = save_tdata_int3 >> 64;
-		    save_tdata_int3 = save_tdata_int2 >> 64;
-		    save_tdata_int2 = save_tdata_int3 >> 64;
-		    save_tdata_int3 = save_tdata_int2 >> 56;
-		    if (!m_axis_in_fifo_tlast) begin
-			capture_state_next = DMA_WRITE_TRANSFER;
-		    end
+		   s_axis_tdata_int = m_axis_in_fifo_tdata >> ETH_IP_RMT_HDR_DATA_WIDTH_BITS;
+		   s_axis_tkeep_int = ((m_axis_in_fifo_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + 1)) &
+				       ETH_IP_RMT_HDR_KEEP_MASK);
+		   m_axis_in_fifo_tready_int = 1'b1;
+		   s_axis_tlast_int = 1'b0;
+		   s_axis_tvalid_int = 1'b1;
+		   frame_size_int = count_ones(s_axis_tkeep_int);
+		   if (pending_transfer_size > frame_size_int) begin
+			pending_transfer_size_int = pending_transfer_size - frame_size_int;
+		      s_axis_tlast_int = 1'b0;
+		   end
+		   else begin
+			s_axis_tlast_int = 1'b1;
+		   end
+		   // save_tdata_int3 = save_tdata_int2 >> 64;
+		   // save_tdata_int2 = save_tdata_int3 >> 64;
+		    // save_tdata_int3 = save_tdata_int2 >> 64;
+		   // save_tdata_int2 = save_tdata_int3 >> 64;
+		   // save_tdata_int3 = save_tdata_int2 >> 56;
+		   //s_axis_tlast_int = 1'b0;
+		   //s_axis_tvalid_int = 1'b0;
+		   m_axis_write_desc_valid_int = 1'b0;
+		   m_axis_read_desc_valid_int = 1'b0;
+		   if (!m_axis_in_fifo_tlast) begin
+		      capture_state_next = DMA_WRITE_TRANSFER;
+		   end
 		end // else: !if(bitstream_size_valid_int)
+
 		// TODO: add tlast to write
 	    end // if (m_axis_in_fifo_tvalid && recon_id == 16'hF0E1)
 	    else begin
+	       s_axis_tlast_int = 1'b0;
+	       s_axis_tvalid_int = 1'b0;
+	       m_axis_write_desc_valid_int = 1'b0;
+	       m_axis_read_desc_valid_int = 1'b0;
 		s_axis_tdata_int = {DATA_WIDTH{1'b0}};
 		s_axis_tkeep_int = {KEEP_WIDTH{1'b0}};
 		capture_state_next = HDR_CAPTURE;
@@ -259,26 +279,33 @@ always @* begin
 	end // case: HDR_CAPTURE
 	DMA_WRITE_TRANSFER: begin
 	    if (m_axis_in_fifo_tvalid) begin
-		save_tdata_int3 = m_axis_in_fifo_tdata << 64;
-		save_tdata_int2 = save_tdata_int3 << 64;
-		save_tdata_int3 = save_tdata_int2 << 8;
-		s_axis_tdata_int = save_tdata_int3 | save_tdata;
-		s_axis_tkeep_int = FULL_TRANSFER_TKEEP;
-		s_axis_tvalid_int = 1'b1;
-		if (pending_transfer_size > 32'd64) begin
-		    pending_transfer_size_int = pending_transfer_size - 32'd64;
-		    s_axis_tlast_int = 1'b0;
-		end
-		else begin
-		    s_axis_tlast_int = 1'b1;
-		end
-		capture_state_next = HDR_CAPTURE;
+		// save_tdata_int3 = m_axis_in_fifo_tdata << 64;
+		// save_tdata_int2 = save_tdata_int3 << 64;
+		// save_tdata_int3 = save_tdata_int2 << 8;
+	       s_axis_tdata_int = m_axis_in_fifo_tdata;
+	       s_axis_tkeep_int = m_axis_in_fifo_tkeep;
+	       s_axis_tvalid_int = 1'b1;
+	       frame_size_int = count_ones(s_axis_tkeep_int);
+	       if (pending_transfer_size > frame_size_int) begin
+		  pending_transfer_size_int = pending_transfer_size - frame_size_int;
+		  s_axis_tlast_int = 1'b0;
+	       end
+	       else begin
+		  s_axis_tlast_int = 1'b1;
+	       end
+	       if (m_axis_in_fifo_tlast) begin
+		  capture_state_next = HDR_CAPTURE;
+	       end
+	       else begin
+		  capture_state_next = DMA_WRITE_TRANSFER;
+	       end
 	    end
 	    else begin
 		capture_state_next = DMA_WRITE_TRANSFER;
 	    end
 	end
 	DMA_WRITE_CMD_CPL: begin
+	   s_axis_tvalid_int = 1'b0;
 	    if (m_axis_write_desc_ready) begin
 		m_axis_write_desc_valid_int = 1'b0;
 		capture_state_next = HDR_CAPTURE;
@@ -288,6 +315,7 @@ always @* begin
 	    end
 	end
 	DMA_READ_CMD_CPL: begin
+	   s_axis_tvalid_int = 1'b0;
 	    if (m_axis_read_desc_ready) begin
 		m_axis_read_desc_valid_int = 1'b0;
 		capture_state_next = HDR_CAPTURE;
@@ -396,6 +424,23 @@ axis_out_fifo_inst
 //     );
 
 
+// ila_icap dbg_recon_instream (
+//     .clk(clk),
+//     .probe0(s_axis_out_fifo_tdata),
+//     .probe1(s_axis_out_fifo_tkeep),
+//     .probe2(s_axis_out_fifo_tlast),
+//     .probe3(s_axis_out_fifo_tvalid),
+//     .probe4(s_axis_out_fifo_tready)
+//     );
+
+// ila_icap dbg_recon_outstream (
+//     .clk(clk),
+//     .probe0(m_axis_tdata),
+//     .probe1(m_axis_tkeep),
+//     .probe2(m_axis_tlast),
+//     .probe3(m_axis_tvalid),
+//     .probe4(m_axis_tready)
+//     );
 
 endmodule
 

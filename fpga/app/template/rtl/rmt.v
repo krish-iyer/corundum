@@ -59,14 +59,15 @@ always @(posedge clk) begin
     if (rst) begin
         //reg_axis_tvalid <= 1'b0;
         //reg_axis_tready <= 1'b0;
+	m_axis_tvalid <= 1'b0;
+	s_axis_tready <= 1'b0;
 	state_reg <= STATE_IDLE;
     end
     else begin
 	m_axis_tdata <= reg_axis_tdata;
 	m_axis_tkeep <= reg_axis_tkeep;
 	m_axis_tvalid <= reg_axis_tvalid;
-	reg_axis_tready <= m_axis_tready;
-	s_axis_tready <= reg_axis_tready;
+	s_axis_tready <= m_axis_tready;
 	m_axis_tlast <= reg_axis_tlast;
 	m_axis_tuser <= reg_axis_tuser;
 	m_axis_tdest <= reg_axis_tdest;
@@ -74,7 +75,7 @@ always @(posedge clk) begin
 end // always @ (posedge clk)
 
 always @* begin
-    state_next = STATE_IDLE;
+    state_next = state_reg;
     case (state_reg)
 	STATE_IDLE : begin
 	    if (m_axis_tready && s_axis_tvalid) begin
@@ -85,22 +86,25 @@ always @* begin
 			state_next = STATE_TRANSFER;
 		    end
 		    // if (reg_axis_tready) begin
-			reg_axis_tdata = s_axis_tdata;
-			reg_axis_tkeep = s_axis_tkeep;
-			reg_axis_tvalid = s_axis_tvalid && s_axis_tready;
-			reg_axis_tlast = s_axis_tlast;
-			reg_axis_tuser = s_axis_tuser;
+		    reg_axis_tdata = s_axis_tdata;
+		    reg_axis_tkeep = s_axis_tkeep;
+		    reg_axis_tvalid = s_axis_tvalid && m_axis_tready;
+		    reg_axis_tlast = s_axis_tlast;
+		    reg_axis_tuser = s_axis_tuser;
 
-			case (func_type)
-			    16'h0001:
-				reg_axis_tdest = 2'b01;
-			    default:
-				reg_axis_tdest = 2'b00;
-			endcase
+		    case (func_type)
+			16'h0001:
+			    reg_axis_tdest = 2'b01;
+			default:
+			    reg_axis_tdest = 2'b00;
+		    endcase
 		    // end
 		end
 		else if (!s_axis_tlast) begin
 		    reg_axis_tdata = 1'b0;
+		    reg_axis_tvalid = 1'b0;
+		    reg_axis_tkeep = s_axis_tkeep;
+		    reg_axis_tlast = s_axis_tlast;
 		    state_next = STATE_DROP;
 		end
 	    end // if (s_axis_tready && s_axis_tvalid && !s_axis_tlast)
@@ -119,11 +123,11 @@ always @* begin
 	STATE_TRANSFER : begin
 	    if (m_axis_tready && s_axis_tvalid) begin
 		// if (reg_axis_tready) begin
-		    reg_axis_tdata = s_axis_tdata;
-		    reg_axis_tkeep = s_axis_tkeep;
-		    reg_axis_tvalid = s_axis_tvalid && s_axis_tready;
-		    reg_axis_tlast = s_axis_tlast;
-		    reg_axis_tuser = s_axis_tuser;
+		reg_axis_tdata = s_axis_tdata;
+		reg_axis_tkeep = s_axis_tkeep;
+		reg_axis_tvalid = s_axis_tvalid && m_axis_tready;
+		reg_axis_tlast = s_axis_tlast;
+		reg_axis_tuser = s_axis_tuser;
 		// end
 		if (s_axis_tlast) begin
 		    state_next = STATE_IDLE;
@@ -138,20 +142,22 @@ always @* begin
 	end
 	STATE_DROP : begin
 	   reg_axis_tdata = 1'b0;
-	   if (s_axis_tvalid && m_axis_tready) begin
-	       if (s_axis_tlast) begin
+	   reg_axis_tvalid = 1'b0;
+	    if (s_axis_tvalid && m_axis_tready) begin
+		if (s_axis_tlast) begin
 		   state_next = STATE_IDLE;
-	       end
-	       else begin
-		   state_next = STATE_DROP;
-	       end
+		end
+		else begin
+		    state_next = STATE_DROP;
+		end
 	   end
-	   else begin
-	       state_next = STATE_DROP;
-	   end
+	    else begin
+		state_next = STATE_DROP;
+	    end
 	end
     endcase
 end
+
 // ila_0 rmt_ila (
 //     .clk(clk), // input wire clk
 //     .probe0(ether_type), // input wire [15:0]  probe0
@@ -162,6 +168,16 @@ end
 //     .probe5(m_axis_tvalid), // input wire [0:0]  probe5
 //     .probe6(reg_axis_tvalid) // input wire [0:0]  probe6
 //     );
+
+// ila_icap rmt_out (
+//     .clk(clk),
+//     .probe0(m_axis_tdata),
+//     .probe1(m_axis_tkeep),
+//     .probe2(m_axis_tlast),
+//     .probe3(m_axis_tvalid),
+//     .probe4(m_axis_tready)
+//     );
+
 
 endmodule
 
