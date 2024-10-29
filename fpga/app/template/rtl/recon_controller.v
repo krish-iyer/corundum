@@ -95,8 +95,7 @@ reg [34:0]	save_bitstream_addr = 0;
 reg [7:0]	save_bitstream_id = 0;
 reg [31:0]	save_bitstream_size = 0;
 
-reg [31:0]	pending_transfer_size = 0;
-reg [31:0]	pending_transfer_size_int = 0;
+reg [31:0]	pending_transfer_size = 0, pending_transfer_size_int;
 
 reg [31:0] frame_size = 0;
 reg [31:0] frame_size_int = 0;
@@ -218,17 +217,17 @@ always @* begin
 		bitstream_addr_int = bitstream_addr;
 		bitstream_id_int = bitstream_id;
 		bitstream_size_int = bitstream_size;
-		pending_transfer_size_int = bitstream_size;
 		bitstream_size_valid_int = bitstream_size_valid;
-		func_type_int = func_type;
+	        func_type_int = func_type;
 		s_axis_tvalid_int = 1'b0;
 		s_axis_tlast_int = 1'b0;
 		if (bitstream_size_valid) begin
-		    if (func_type == 0 && m_axis_write_desc_ready) begin
-			m_axis_write_desc_addr_int = bitstream_addr;
-			m_axis_write_desc_len_int = bitstream_size;
-			m_axis_write_desc_valid_int = 1'b1;
-			capture_state_next = DMA_WRITE_CMD_CPL;
+		   if (func_type == 0 && m_axis_write_desc_ready) begin
+		      pending_transfer_size_int = bitstream_size_int;
+		      m_axis_write_desc_addr_int = bitstream_addr;
+		      m_axis_write_desc_len_int = bitstream_size;
+		      m_axis_write_desc_valid_int = 1'b1;
+		      capture_state_next = DMA_WRITE_CMD_CPL;
 		    end
 		    else if (func_type == 1 && m_axis_read_desc_ready) begin
 			m_axis_read_desc_addr_int = bitstream_addr;
@@ -248,6 +247,7 @@ always @* begin
 		      s_axis_tlast_int = 1'b0;
 		   end
 		   else begin
+		        pending_transfer_size_int = pending_transfer_size;
 			s_axis_tlast_int = 1'b1;
 		   end
 		    s_axis_tvalid_int = 1'b1;
@@ -268,6 +268,7 @@ always @* begin
 		// TODO: add tlast to write
 	    end // if (m_axis_in_fifo_tvalid && recon_id == 16'hF0E1)
 	    else begin
+	        pending_transfer_size_int = pending_transfer_size;
 		s_axis_tlast_int = 1'b0;
 		s_axis_tvalid_int = 1'b0;
 		m_axis_write_desc_valid_int = 1'b0;
@@ -291,6 +292,7 @@ always @* begin
 		  s_axis_tlast_int = 1'b0;
 	       end
 	       else begin
+		  pending_transfer_size_int = pending_transfer_size;
 		  s_axis_tlast_int = 1'b1;
 	       end
 	       if (m_axis_in_fifo_tlast) begin
@@ -307,6 +309,7 @@ always @* begin
 	DMA_WRITE_CMD_CPL: begin
 	    s_axis_tvalid_int = 1'b0;
 	    s_axis_tlast_int = 1'b0;
+	    pending_transfer_size_int = pending_transfer_size;
 	    if (m_axis_write_desc_ready) begin
 		m_axis_write_desc_valid_int = 1'b0;
 		capture_state_next = HDR_CAPTURE;
@@ -318,6 +321,7 @@ always @* begin
 	DMA_READ_CMD_CPL: begin
 	    s_axis_tvalid_int = 1'b0;
 	    s_axis_tlast_int = 1'b0;
+	    pending_transfer_size_int = pending_transfer_size;
 	    if (m_axis_read_desc_ready) begin
 		m_axis_read_desc_valid_int = 1'b0;
 		capture_state_next = HDR_CAPTURE;
@@ -422,7 +426,9 @@ ila_recon recon_ila_inst (
     .probe10(m_axis_write_desc_len), // input wire [22:0]  probe10
     .probe11(m_axis_write_desc_valid), // input wire [0:0]  probe11
     .probe12(m_axis_write_desc_addr), // input wire [33:0]  probe12
-    .probe13(m_axis_write_desc_ready) // input wire [0:0]  probe13
+    .probe13(m_axis_write_desc_ready), // input wire [0:0]  probe13
+    .probe14(pending_transfer_size),
+    .probe15(pending_transfer_size_int)
     );
 
 

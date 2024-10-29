@@ -9,5 +9,7 @@ set_property -dict [list \
 			CONFIG.C_PROBE2_WIDTH {8} \
 			CONFIG.C_PROBE1_WIDTH {2} \
 			CONFIG.C_PROBE0_WIDTH {3} \
-			CONFIG.C_NUM_OF_PROBES {14}
+			CONFIG.C_PROBE14_WIDTH {32} \
+			CONFIG.C_PROBE15_WIDTH {32} \
+			CONFIG.C_NUM_OF_PROBES {16}
 		   ] [get_ips ila_recon]
