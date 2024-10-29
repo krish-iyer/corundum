@@ -221,8 +221,14 @@ always @* begin
 		pending_transfer_size_int = bitstream_size;
 		bitstream_size_valid_int = bitstream_size_valid;
 		func_type_int = func_type;
+<<<<<<< HEAD
 	       s_axis_tvalid_int = 1'b0;	
 	       if (bitstream_size_valid) begin
+=======
+		s_axis_tvalid_int = 1'b0;
+		s_axis_tlast_int = 1'b0;
+		if (bitstream_size_valid) begin
+>>>>>>> a2dbd4a2 (define tlast in all possible states)
 		    if (func_type == 0 && m_axis_write_desc_ready) begin
 			m_axis_write_desc_addr_int = bitstream_addr;
 			m_axis_write_desc_len_int = bitstream_size;
@@ -241,9 +247,7 @@ always @* begin
 		   s_axis_tkeep_int = ((m_axis_in_fifo_tkeep >> (ETH_IP_RMT_HDR_DATA_WIDTH + 1)) &
 				       ETH_IP_RMT_HDR_KEEP_MASK);
 		   m_axis_in_fifo_tready_int = 1'b1;
-		   s_axis_tlast_int = 1'b0;
-		   s_axis_tvalid_int = 1'b1;
-		   frame_size_int = count_ones(s_axis_tkeep_int);
+		   frame_size_int = count_ones(m_axis_in_fifo_tkeep);
 		   if (pending_transfer_size > frame_size_int) begin
 			pending_transfer_size_int = pending_transfer_size - frame_size_int;
 		      s_axis_tlast_int = 1'b0;
@@ -251,6 +255,7 @@ always @* begin
 		   else begin
 			s_axis_tlast_int = 1'b1;
 		   end
+		    s_axis_tvalid_int = 1'b1;
 		   // save_tdata_int3 = save_tdata_int2 >> 64;
 		   // save_tdata_int2 = save_tdata_int3 >> 64;
 		    // save_tdata_int3 = save_tdata_int2 >> 64;
@@ -268,10 +273,10 @@ always @* begin
 		// TODO: add tlast to write
 	    end // if (m_axis_in_fifo_tvalid && recon_id == 16'hF0E1)
 	    else begin
-	       s_axis_tlast_int = 1'b0;
-	       s_axis_tvalid_int = 1'b0;
-	       m_axis_write_desc_valid_int = 1'b0;
-	       m_axis_read_desc_valid_int = 1'b0;
+		s_axis_tlast_int = 1'b0;
+		s_axis_tvalid_int = 1'b0;
+		m_axis_write_desc_valid_int = 1'b0;
+		m_axis_read_desc_valid_int = 1'b0;
 		s_axis_tdata_int = {DATA_WIDTH{1'b0}};
 		s_axis_tkeep_int = {KEEP_WIDTH{1'b0}};
 		capture_state_next = HDR_CAPTURE;
@@ -285,7 +290,7 @@ always @* begin
 	       s_axis_tdata_int = m_axis_in_fifo_tdata;
 	       s_axis_tkeep_int = m_axis_in_fifo_tkeep;
 	       s_axis_tvalid_int = 1'b1;
-	       frame_size_int = count_ones(s_axis_tkeep_int);
+	       frame_size_int = count_ones(m_axis_in_fifo_tkeep);
 	       if (pending_transfer_size > frame_size_int) begin
 		  pending_transfer_size_int = pending_transfer_size - frame_size_int;
 		  s_axis_tlast_int = 1'b0;
@@ -305,7 +310,8 @@ always @* begin
 	    end
 	end
 	DMA_WRITE_CMD_CPL: begin
-	   s_axis_tvalid_int = 1'b0;
+	    s_axis_tvalid_int = 1'b0;
+	    s_axis_tlast_int = 1'b0;
 	    if (m_axis_write_desc_ready) begin
 		m_axis_write_desc_valid_int = 1'b0;
 		capture_state_next = HDR_CAPTURE;
@@ -315,7 +321,8 @@ always @* begin
 	    end
 	end
 	DMA_READ_CMD_CPL: begin
-	   s_axis_tvalid_int = 1'b0;
+	    s_axis_tvalid_int = 1'b0;
+	    s_axis_tlast_int = 1'b0;
 	    if (m_axis_read_desc_ready) begin
 		m_axis_read_desc_valid_int = 1'b0;
 		capture_state_next = HDR_CAPTURE;
