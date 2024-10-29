@@ -98,8 +98,8 @@ reg [31:0]	save_bitstream_size = 0;
 reg [31:0]	pending_transfer_size = 0;
 reg [31:0]	pending_transfer_size_int = 0;
 
-reg [$clog2(DATA_WIDTH):0] frame_size = 0;
-reg [$clog2(DATA_WIDTH):0] frame_size_int = 0;
+reg [31:0] frame_size = 0;
+reg [31:0] frame_size_int = 0;
 
 reg [DATA_WIDTH-1:0]	   save_tdata=0;
 reg [DATA_WIDTH-1:0]	   save_tdata_int=0;
