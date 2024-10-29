@@ -98,8 +98,8 @@ reg [31:0]	save_bitstream_size = 0;
 reg [31:0]	pending_transfer_size = 0;
 reg [31:0]	pending_transfer_size_int = 0;
 
-reg [$clog2(DATA_WIDTH):0] frame_size = 0;
-reg [$clog2(DATA_WIDTH):0] frame_size_int = 0;
+reg [31:0] frame_size = 0;
+reg [31:0] frame_size_int = 0;
 
 reg [DATA_WIDTH-1:0]	   save_tdata=0;
 reg [DATA_WIDTH-1:0]	   save_tdata_int=0;
@@ -221,14 +221,9 @@ always @* begin
 		pending_transfer_size_int = bitstream_size;
 		bitstream_size_valid_int = bitstream_size_valid;
 		func_type_int = func_type;
-<<<<<<< HEAD
-	       s_axis_tvalid_int = 1'b0;	
-	       if (bitstream_size_valid) begin
-=======
 		s_axis_tvalid_int = 1'b0;
 		s_axis_tlast_int = 1'b0;
 		if (bitstream_size_valid) begin
->>>>>>> a2dbd4a2 (define tlast in all possible states)
 		    if (func_type == 0 && m_axis_write_desc_ready) begin
 			m_axis_write_desc_addr_int = bitstream_addr;
 			m_axis_write_desc_len_int = bitstream_size;
@@ -269,7 +264,7 @@ always @* begin
 		      capture_state_next = DMA_WRITE_TRANSFER;
 		   end
 		end // else: !if(bitstream_size_valid_int)
-	       
+
 		// TODO: add tlast to write
 	    end // if (m_axis_in_fifo_tvalid && recon_id == 16'hF0E1)
 	    else begin
@@ -297,7 +292,7 @@ always @* begin
 	       end
 	       else begin
 		  s_axis_tlast_int = 1'b1;
-	       end	
+	       end
 	       if (m_axis_in_fifo_tlast) begin
 		  capture_state_next = HDR_CAPTURE;
 	       end
@@ -430,14 +425,16 @@ ila_recon recon_ila_inst (
     .probe13(m_axis_write_desc_ready) // input wire [0:0]  probe13
     );
 
-   
-ila_icap dbg_recon_instream (
+
+ila_reconstream dbg_recon_instream (
     .clk(clk),
     .probe0(s_axis_out_fifo_tdata),
     .probe1(s_axis_out_fifo_tkeep),
     .probe2(s_axis_out_fifo_tlast),
     .probe3(s_axis_out_fifo_tvalid),
-    .probe4(s_axis_out_fifo_tready)
+    .probe4(s_axis_out_fifo_tready),
+    .probe5(pending_transfer_size),
+    .probe6(frame_size_int)
     );
 
 ila_icap dbg_recon_outstream (
