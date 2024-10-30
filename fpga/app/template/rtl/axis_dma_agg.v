@@ -100,10 +100,18 @@ always @* begin
 		save_tdata_int = save_tdata | (s_axis_tdata << (cur_frame_width * 8));
 	    end
 	end
-	if (free_frame_width_int == 0) begin
-	    m_axis_tdata_int = save_tdata_int;
+	// if (split_frame_width_int > 0) begin
+	//     cur_frame_width_int = split_frame_width_int;
+	//     free_frame_width_int = KEEP_WIDTH - split_frame_width_int;
+	//     split_frame_width_int = 0;
+	//     save_tdata_int = split_tdata_int;
+	// end
+    end // if (s_axis_tvalid && s_axis_out_fifo_tready)
+    if (s_axis_out_fifo_tready) begin
+	if (free_frame_width == 0) begin
+	    m_axis_tdata_int = save_tdata;
 	    m_axis_tkeep_int = FULL_TRANSFER_TKEEP;
-	    m_axis_tvalid_int = s_axis_tvalid & s_axis_out_fifo_tready;
+	    m_axis_tvalid_int = s_axis_out_fifo_tready;
 	    m_axis_tlast_int = s_axis_tlast;
 	    free_frame_width_int = KEEP_WIDTH;
 	    cur_frame_width_int = 0;
@@ -114,18 +122,6 @@ always @* begin
 	    m_axis_tvalid_int = 1'b0;
 	    m_axis_tlast_int = 1'b0;
 	end // else: !if(free_frame_width_int == 0)
-	// if (split_frame_width_int > 0) begin
-	//     cur_frame_width_int = split_frame_width_int;
-	//     free_frame_width_int = KEEP_WIDTH - split_frame_width_int;
-	//     split_frame_width_int = 0;
-	//     save_tdata_int = split_tdata_int;
-	// end
-    end // if (s_axis_tvalid && s_axis_out_fifo_tready)
-    else begin
-	m_axis_tvalid_int = 1'b0;
-	save_tdata_int = save_tdata;
-	free_frame_width_int = free_frame_width;
-	cur_frame_width_int = cur_frame_width;
     end
 end // always @ *
 
