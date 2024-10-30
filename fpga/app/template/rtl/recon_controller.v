@@ -443,15 +443,6 @@ ila_reconstream dbg_recon_instream (
     .probe6(frame_size_int)
     );
 
-ila_icap dbg_recon_outstream (
-    .clk(clk),
-    .probe0(m_axis_tdata),
-    .probe1(m_axis_tkeep),
-    .probe2(m_axis_tlast),
-    .probe3(m_axis_tvalid),
-    .probe4(m_axis_tready)
-    );
-
 endmodule
 
 `resetall
