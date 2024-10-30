@@ -45,6 +45,9 @@ localparam		     FULL_TRANSFER_TKEEP = {KEEP_WIDTH{1'b1}};
 
 assign s_axis_tready = s_axis_out_fifo_tready;
 
+   reg 			     save_tlast_int;
+   reg 			     save_tlast;
+   
 function integer count_ones;
     input reg [KEEP_WIDTH-1:0] data;
     integer i;
@@ -69,7 +72,8 @@ always @(posedge clk) begin
 	save_tdata <= save_tdata_int;
 	split_tdata <= split_tdata_int;
 	split_frame_width <= split_frame_width_int;
-
+        save_tlast <= save_tlast_int;
+       
 	s_axis_out_fifo_tdata <= m_axis_tdata_int;
 	s_axis_out_fifo_tkeep <= m_axis_tkeep_int;
 	s_axis_out_fifo_tvalid <= m_axis_tvalid_int;
@@ -82,6 +86,7 @@ end
 always @* begin
     if (s_axis_tvalid && s_axis_out_fifo_tready) begin
 	frame_width = count_ones(s_axis_tkeep); // bytes
+        save_tlast_int = s_axis_tlast; 
 	if (frame_width < KEEP_WIDTH) begin
 	    if (frame_width <= free_frame_width) begin
 		cur_frame_width_int = cur_frame_width + frame_width;
@@ -112,7 +117,7 @@ always @* begin
 	    m_axis_tdata_int = save_tdata;
 	    m_axis_tkeep_int = FULL_TRANSFER_TKEEP;
 	    m_axis_tvalid_int = s_axis_out_fifo_tready;
-	    m_axis_tlast_int = s_axis_tlast;
+	    m_axis_tlast_int = save_tlast;
 	    free_frame_width_int = KEEP_WIDTH;
 	    cur_frame_width_int = 0;
 	end
