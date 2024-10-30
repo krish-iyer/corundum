@@ -118,6 +118,7 @@ SYN_FILES += lib/pcie/rtl/pulse_merge.v
 SYN_FILES += app/template/rtl/mqnic_app_block.v
 SYN_FILES += app/template/rtl/recon_controller.v
 SYN_FILES += app/template/rtl/rmt.v
+SYN_FILES += app/template/rtl/axis_dma_agg.v
 SYN_FILES += lib/axis/rtl/axis_tap.v
 
 # XDC files
