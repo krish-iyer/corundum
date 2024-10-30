@@ -563,7 +563,7 @@ async def run_test_nic(dut):
     pkts = [bytearray([(x + k) % 256 for x in range(num_bytes)]) for k in range(packet_count)]
 
     # sending config packet
-    config_pkt = create_frame(0, True, 0, func_type = 0, size = num_bytes*packet_count, address=0)
+    config_pkt = create_frame(0, True, 0, func_type = 0, size = num_bytes*packet_count*2, address=0)
     await tb.driver.interfaces[0].start_xmit(config_pkt, 0)
 
     pkt = await tb.driver.interfaces[0].recv()
@@ -591,7 +591,7 @@ async def run_test_nic(dut):
             ddr_addr = ddr_addr + num_bytes
         # skipping k==0
     print("######################## Dumping RAM ###################")
-    tb.ddr_ram[0].hexdump(0x0000, 1024, prefix="RAM")
+    tb.hbm_ram[0].hexdump(0x0000, 1024, prefix="RAM")
 
     tb.loopback_enable = False
 
@@ -860,7 +860,7 @@ def test_mqnic_core_pcie_us(request, if_count, ports_per_if, axis_pcie_data_widt
     parameters['HBM_CH'] = 1
     parameters['HBM_ENABLE'] = 1
     parameters['HBM_GROUP_SIZE'] = parameters['HBM_CH']
-    parameters['AXI_HBM_DATA_WIDTH'] = 256
+    parameters['AXI_HBM_DATA_WIDTH'] = 512
     parameters['AXI_HBM_ADDR_WIDTH'] = 32
     parameters['AXI_HBM_ID_WIDTH'] = 6
     parameters['AXI_HBM_MAX_BURST_LEN'] = 16
