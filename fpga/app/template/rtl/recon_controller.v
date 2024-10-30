@@ -131,11 +131,11 @@ assign m_axis_in_fifo_tvalid = s_axis_tvalid;
 assign m_axis_in_fifo_tlast = s_axis_tlast;
 assign s_axis_tready = m_axis_in_fifo_tready;
 
-// assign m_axis_tkeep = s_axis_out_fifo_tkeep;
-// assign m_axis_tdata = s_axis_out_fifo_tdata;
-// assign m_axis_tvalid = s_axis_out_fifo_tvalid;
-// assign m_axis_tlast = s_axis_out_fifo_tlast;
-// assign s_axis_out_fifo_tready = m_axis_tready;
+assign m_axis_tkeep = s_axis_out_fifo_tkeep;
+assign m_axis_tdata = s_axis_out_fifo_tdata;
+assign m_axis_tvalid = s_axis_out_fifo_tvalid;
+assign m_axis_tlast = s_axis_out_fifo_tlast;
+assign s_axis_out_fifo_tready = m_axis_tready;
 
 reg			   m_axis_in_fifo_tready_int = 1'b1;
 
@@ -371,44 +371,44 @@ end // always @ *
 //     .status_good_frame()
 //  );
 
-axis_fifo #(
-    .DATA_WIDTH(DATA_WIDTH),
-    .DEPTH(8192),
-    .FRAME_FIFO(0),
-    //.LAST_ENABLE(1)
-    .RAM_PIPELINE(5)
-)
-axis_out_fifo_inst
-(
-    .clk(clk),
-    .rst(rst),
-    .s_axis_tdata(s_axis_out_fifo_tdata),
-    .s_axis_tkeep(s_axis_out_fifo_tkeep),
-    .s_axis_tvalid(s_axis_out_fifo_tvalid),
-    .s_axis_tready(s_axis_out_fifo_tready),
-    .s_axis_tlast(s_axis_out_fifo_tlast),
-    .s_axis_tid(),
-    .s_axis_tdest(),
-    .s_axis_tuser(),
+// axis_fifo #(
+//     .DATA_WIDTH(DATA_WIDTH),
+//     .DEPTH(8192),
+//     .FRAME_FIFO(0),
+//     //.LAST_ENABLE(1)
+//     .RAM_PIPELINE(5)
+// )
+// axis_out_fifo_inst
+// (
+//     .clk(clk),
+//     .rst(rst),
+//     .s_axis_tdata(s_axis_out_fifo_tdata),
+//     .s_axis_tkeep(s_axis_out_fifo_tkeep),
+//     .s_axis_tvalid(s_axis_out_fifo_tvalid),
+//     .s_axis_tready(s_axis_out_fifo_tready),
+//     .s_axis_tlast(s_axis_out_fifo_tlast),
+//     .s_axis_tid(),
+//     .s_axis_tdest(),
+//     .s_axis_tuser(),
 
-    .m_axis_tdata(m_axis_tdata),
-    .m_axis_tkeep(m_axis_tkeep),
-    .m_axis_tvalid(m_axis_tvalid),
-    .m_axis_tready(m_axis_tready),
-    .m_axis_tlast(m_axis_tlast),
-    .m_axis_tid(),
-    .m_axis_tdest(),
-    .m_axis_tuser(),
+//     .m_axis_tdata(m_axis_tdata),
+//     .m_axis_tkeep(m_axis_tkeep),
+//     .m_axis_tvalid(m_axis_tvalid),
+//     .m_axis_tready(m_axis_tready),
+//     .m_axis_tlast(m_axis_tlast),
+//     .m_axis_tid(),
+//     .m_axis_tdest(),
+//     .m_axis_tuser(),
 
-    .pause_req(),
-    .pause_ack(),
+//     .pause_req(),
+//     .pause_ack(),
 
-    .status_depth(),
-    .status_depth_commit(),
-    .status_overflow(),
-    .status_bad_frame(),
-    .status_good_frame()
- );
+//     .status_depth(),
+//     .status_depth_commit(),
+//     .status_overflow(),
+//     .status_bad_frame(),
+//     .status_good_frame()
+//  );
 
 
 // ila_recon recon_ila_inst (
