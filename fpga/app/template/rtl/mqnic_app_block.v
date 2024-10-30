@@ -922,6 +922,12 @@ wire					      s_axis_dma_write_tlast;
 wire					      s_axis_dma_write_tvalid;
 wire					      s_axis_dma_write_tready;
 
+wire [AXIS_ICAP_DATA_WIDTH-1:0]		      s_axis_dma_agg_tdata;
+wire [AXIS_ICAP_KEEP_WIDTH-1:0]		      s_axis_dma_agg_tkeep;
+wire					      s_axis_dma_agg_tlast;
+wire					      s_axis_dma_agg_tvalid;
+wire					      s_axis_dma_agg_tready;
+
 
 wire [AXI_DDR_ID_WIDTH-1:0]		      m_axi_async_dma_ddr_arid;
 wire [AXI_DDR_ADDR_WIDTH-1:0]		      m_axi_async_dma_ddr_araddr;
@@ -1082,12 +1088,31 @@ recon_controller_inst (
     .m_axis_write_desc_valid(s_axis_write_desc_valid),
     .m_axis_write_desc_ready(s_axis_write_desc_ready),
 
+    .m_axis_tdata(s_axis_dma_agg_tdata),
+    .m_axis_tkeep(s_axis_dma_agg_tkeep),
+    .m_axis_tvalid(s_axis_dma_agg_tvalid),
+    .m_axis_tready(s_axis_dma_agg_tready),
+    .m_axis_tlast(s_axis_dma_agg_tlast)
+);
+
+axis_dma_agg #(
+    .DATA_WIDTH(AXIS_DATA_WIDTH),
+    .KEEP_WIDTH(AXIS_KEEP_WIDTH)
+) axis_dma_agg_inst (
+    .clk(clk),
+    .rst(rst),
+    .s_axis_tdata(s_axis_dma_agg_tdata),
+    .s_axis_tkeep(s_axis_dma_agg_tkeep),
+    .s_axis_tvalid(s_axis_dma_agg_tvalid),
+    .s_axis_tready(s_axis_dma_agg_tready),
+    .s_axis_tlast(s_axis_dma_agg_tlast),
+
     .m_axis_tdata(s_axis_dma_write_tdata),
     .m_axis_tkeep(s_axis_dma_write_tkeep),
     .m_axis_tvalid(s_axis_dma_write_tvalid),
     .m_axis_tready(s_axis_dma_write_tready),
     .m_axis_tlast(s_axis_dma_write_tlast)
-);
+    );
 
 endmodule
 
