@@ -1051,9 +1051,9 @@ assign recon_s_axis_tkeep = rmt_s_axis_tkeep;
 assign recon_s_axis_tlast = rmt_s_axis_tlast;
 assign recon_s_axis_tvalid = rmt_s_axis_tvalid;
 assign rmt_s_axis_tready = recon_s_axis_tready;
-assign s_axis_dma_write_tready = 1'b1;
-assign s_axis_write_desc_ready = 1'b1;
-assign s_axis_read_desc_ready = 1'b1;
+// assign s_axis_dma_write_tready = 1'b1;
+// assign s_axis_write_desc_ready = 1'b1;
+// assign s_axis_read_desc_ready = 1'b1;
 
 recon_controller #(
     .DATA_WIDTH(DATA_WIDTH),
@@ -1116,6 +1116,15 @@ axis_dma_agg #(
 
 localparam n = 0;
 
+   reg 					      jump_start = 0;
+   always @(posedge clk) begin
+      if (s_axis_write_desc_valid) begin
+	 jump_start <= 1;
+      end
+      else begin
+	 jump_start <= 0;
+      end
+   end
 
 axi_dma #(
     .AXI_DATA_WIDTH(AXI_DDR_DATA_WIDTH),
@@ -1170,7 +1179,7 @@ axi_dma #(
 
     .s_axis_write_data_tdata(s_axis_dma_write_tdata),
     .s_axis_write_data_tkeep(s_axis_dma_write_tkeep),
-    .s_axis_write_data_tvalid(s_axis_dma_write_tvalid),
+    .s_axis_write_data_tvalid(s_axis_dma_write_tvalid | jump_start),
     .s_axis_write_data_tready(s_axis_dma_write_tready),
     .s_axis_write_data_tlast(s_axis_dma_write_tlast),
     .s_axis_write_data_tid(0),
