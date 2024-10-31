@@ -432,16 +432,16 @@ ila_recon recon_ila_inst (
     );
 
 
-ila_reconstream dbg_recon_instream (
-    .clk(clk),
-    .probe0(s_axis_out_fifo_tdata),
-    .probe1(s_axis_out_fifo_tkeep),
-    .probe2(s_axis_out_fifo_tlast),
-    .probe3(s_axis_out_fifo_tvalid),
-    .probe4(s_axis_out_fifo_tready),
-    .probe5(pending_transfer_size),
-    .probe6(frame_size_int)
-    );
+// ila_reconstream dbg_recon_instream (
+//     .clk(clk),
+//     .probe0(s_axis_out_fifo_tdata),
+//     .probe1(s_axis_out_fifo_tkeep),
+//     .probe2(s_axis_out_fifo_tlast),
+//     .probe3(s_axis_out_fifo_tvalid),
+//     .probe4(s_axis_out_fifo_tready),
+//     .probe5(pending_transfer_size),
+//     .probe6(frame_size_int)
+//     );
 
 endmodule
 
